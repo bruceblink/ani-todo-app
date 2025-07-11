@@ -1,0 +1,39 @@
+[package]
+name = "todo-app"               # Crate 名称，对应二进制的 name
+version = "0.1.0"
+authors = ["Your Name <you@example.com>"]
+edition = "2021"
+description = "A Tauri‑based Todo App (v2.0)"
+license = "MIT"
+repository = "https://github.com/yourname/todo-app"
+
+# 让 `cargo run` 默认执行名为 todo-app 的二进制（即 src-tauri/src/main.rs）
+default-run = "todo-app"
+
+[dependencies]
+# 核心 Tauri v2 框架，启用所有 API
+tauri = { version = "2.0", features = ["api-all"] }
+
+# 如需异步运行时支持
+tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
+
+# 示例：使用 SQLx 访问 PostgreSQL，可根据需要替换
+sqlx = { version = "0.8.6", features = ["runtime-tokio-rustls", "postgres", "macros"] }
+
+# 序列化库
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+[build-dependencies]
+# 与 tauri 依赖保持一致的构建脚本
+tauri-build = "2.0"
+
+[features]
+# 默认生产模式特性，让打包后二进制从本地文件系统加载前端资源
+default = ["custom-protocol"]
+custom-protocol = ["tauri/custom-protocol"]
+
+# 明确声明二进制目标，路径指向 Tauri 的主入口
+[[bin]]
+name = "todo-app"
+path = "src-tauri/src/main.rs"
