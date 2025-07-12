@@ -57,6 +57,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "ani-todo-app"
+version = "0.1.0"
+dependencies = [
+ "tauri",
+]
+
+[[package]]
 name = "anyhow"
 version = "1.0.98"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3468,13 +3475,6 @@ checksum = "5d4f6d1145dcb577acf783d4e601bc1d76a13337bb54e6233add580b07344c8b"
 dependencies = [
  "displaydoc",
  "zerovec",
-]
-
-[[package]]
-name = "todo-app"
-version = "0.1.0"
-dependencies = [
- "tauri",
 ]
 
 [[package]]

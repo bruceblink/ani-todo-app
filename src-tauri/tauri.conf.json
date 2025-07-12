@@ -2,6 +2,11 @@
   "productName": "ani-todo-app",
   "version": "0.1.0",
   "identifier": "com.likanug.dev",
+  "plugins": {
+    "http": {
+      "version": "2.0.0"
+    }
+  },
   "build": {
     "frontendDist": "../dist",
     "devUrl": "http://localhost:3000",
