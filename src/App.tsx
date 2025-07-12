@@ -543,14 +543,15 @@ export default function App() {
                     />
                     <div className="ani-title">{ani.title}</div>
                     <div className="ani-update-info">{ani.update_info}</div>
-                    <div className="ani-update-info">{ani.platform}</div>
+                    <div className="ani-platform">{ani.platform}</div>
                 </a>
             </div>
         );
     });
+    const today = Object.keys(ani_data)[0]
     return (
         <div className="App">
-            <h1>星期五新番推荐</h1>
+            <h1>{today}更新番剧</h1>
             <div className="ani-list">
                 {ani_list}
             </div>
