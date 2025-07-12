@@ -1,5 +1,5 @@
 [package]
-name = "todo-app"
+name = "ani-todo-app"
 version = "0.1.0"
 description = "A Tauri App"
 authors = ["you"]

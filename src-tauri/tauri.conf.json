@@ -1,5 +1,5 @@
 {
-  "productName": "tauri-app",
+  "productName": "ani-todo-app",
   "version": "0.1.0",
   "identifier": "com.likanug.dev",
   "build": {
@@ -11,7 +11,7 @@
   "app": {
     "windows": [
       {
-        "title": "tauri-app",
+        "title": "ani-todo-app",
         "width": 800,
         "height": 600,
         "resizable": true,

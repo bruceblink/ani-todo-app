@@ -1,5 +1,5 @@
 [package]
-name = "todo-app"               # Crate 名称，对应二进制的 name
+name = "ani-todo-app"               # Crate 名称，对应二进制的 name
 version = "0.1.0"
 authors = ["Your Name <you@example.com>"]
 edition = "2021"
