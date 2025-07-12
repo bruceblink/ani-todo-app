@@ -16,8 +16,9 @@ export default function App() {
     const ani_list: Ani[] = data[today];
     // 4. 使用 useState 来管理已清除的番剧 ID
     const [clearedIds, setClearedIds] = useState<Set<string>>(() => {
-        const saved = localStorage.getItem('clearedAni');
-        return saved ? new Set(JSON.parse(saved)) : new Set();
+        // 从 localStorage 获取已清除的番剧 ID
+        const cleared = localStorage.getItem('clearedAni');
+        return cleared ? new Set(JSON.parse(cleared)) : new Set();
     });
 
     // 5. 过滤出未清除的番剧
@@ -25,6 +26,7 @@ export default function App() {
 
     const handleClear = (id: string) => {
         setClearedIds(prev => {
+            // 更新已清除的番剧 ID，并存储到 localStorage
             const newSet = new Set(prev);
             newSet.add(id);
             localStorage.setItem('clearedAni', JSON.stringify(Array.from(newSet)));
