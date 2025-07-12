@@ -40,3 +40,49 @@
 .read-the-docs {
   color: #888;
 }
+
+.ani-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px; /* 每个 item 之间间距 */
+}
+
+.ani-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;           /* 图片和文字之间的间距 */
+  padding: 12px 16px;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  transition: box-shadow .2s;
+}
+
+.ani-item:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.ani-img {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.ani-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.ani-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.ani-update-info,
+.ani-platform {
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 2px;
+}
