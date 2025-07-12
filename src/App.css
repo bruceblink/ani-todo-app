@@ -86,3 +86,23 @@
   color: #666;
   margin-bottom: 2px;
 }
+
+.clear-btn {
+  background-color: #fdecea;      /* 非常浅的红色背景 */
+  border: 1px solid #e0aeb3;      /* 深一点的红色边框 */
+  border-radius: 4px;
+  padding: 4px 12px;
+  font-size: 0.9rem;
+  color: #b02a37;                 /* 深红文字 */
+  cursor: pointer;
+  transition:
+          background-color 0.2s ease,
+          border-color 0.2s ease,
+          color 0.2s ease;
+}
+
+.clear-btn:hover {
+  background-color: #f5c2c7;      /* 略深的警告色背景 */
+  border-color:   #e55353;        /* 更鲜艳的红色边框 */
+  color:          #721c24;        /* 更深的警告文字 */
+}

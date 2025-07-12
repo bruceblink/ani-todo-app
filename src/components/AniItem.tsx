@@ -38,7 +38,7 @@ export default function AniItem({ani, onClear}: Props) {
                 )}
                 <div className="ani-platform">{ani.platform}</div>
             </div>
-            <button onClick={() => onClear(id)} style={{marginLeft: 12}}>
+            <button className="clear-btn" onClick={() => onClear(id)} style={{marginLeft: 12}}>
                 清除
             </button>
         </div>
