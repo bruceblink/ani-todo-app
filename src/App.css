@@ -1,88 +1,90 @@
 #root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 2rem;
+    text-align: center;
 }
 
 .logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
+    height: 6em;
+    padding: 1.5em;
+    will-change: filter;
+    transition: filter 300ms;
 }
+
 .logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
+    filter: drop-shadow(0 0 2em #646cffaa);
 }
+
 .logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+    filter: drop-shadow(0 0 2em #61dafbaa);
 }
 
 @keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+    a:nth-of-type(2) .logo {
+        animation: logo-spin infinite 20s linear;
+    }
 }
 
 .card {
-  padding: 2em;
+    padding: 2em;
 }
 
 .read-the-docs {
-  color: #888;
+    color: #888;
 }
 
 .ani-list {
-  display: flex;
-  flex-direction: column;
-  gap: 16px; /* 每个 item 之间间距 */
+    display: flex;
+    flex-direction: column;
+    gap: 16px; /* 每个 item 之间间距 */
 }
 
 .ani-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;           /* 图片和文字之间的间距 */
-  padding: 12px 16px;
-  border: 1px solid #eee;
-  border-radius: 8px;
-  transition: box-shadow .2s;
+    display: flex;
+    align-items: center;
+    gap: 12px; /* 图片和文字之间的间距 */
+    padding: 12px 16px;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    transition: box-shadow .2s;
 }
 
 .ani-item:hover {
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .ani-img {
-  width: 150px;
-  height: 150px;
-  object-fit: cover;
-  border-radius: 4px;
+    width: 150px;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 4px;
 }
 
 .ani-info {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 .ani-title {
-  font-size: 1.1rem;
-  font-weight: 600;
-  margin-bottom: 4px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 4px;
 }
 
 .ani-update-info,
 .ani-platform {
-  font-size: 0.9rem;
-  color: #666;
-  margin-bottom: 2px;
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 2px;
 }

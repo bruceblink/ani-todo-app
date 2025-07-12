@@ -2,22 +2,21 @@ use base64::{engine::general_purpose, Engine as _};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-  tauri::Builder::default()
-    .setup(|app| {
-      if cfg!(debug_assertions) {
-        app.handle().plugin(
-          tauri_plugin_log::Builder::default()
-            .level(log::LevelFilter::Info)
-            .build(),
-        )?;
-      }
-      Ok(())
-      })
-      .invoke_handler(tauri::generate_handler![fetch_bilibili_image])
-      .run(tauri::generate_context!())
-      .expect("error while running tauri application");
+    tauri::Builder::default()
+        .setup(|app| {
+            if cfg!(debug_assertions) {
+                app.handle().plugin(
+                    tauri_plugin_log::Builder::default()
+                        .level(log::LevelFilter::Info)
+                        .build(),
+                )?;
+            }
+            Ok(())
+        })
+        .invoke_handler(tauri::generate_handler![fetch_bilibili_image])
+        .run(tauri::generate_context!())
+        .expect("error while running tauri application");
 }
-
 
 #[tauri::command]
 async fn fetch_bilibili_image(url: String) -> Result<String, String> {
@@ -39,10 +38,7 @@ async fn fetch_bilibili_image(url: String) -> Result<String, String> {
         .unwrap_or_else(|| "image/jpeg".to_string());
 
     // 这时 resp 不再被借用，可以放心移动
-    let bytes = resp
-        .bytes()
-        .await
-        .map_err(|e| e.to_string())?;
+    let bytes = resp.bytes().await.map_err(|e| e.to_string())?;
 
     // 转 base64，并拼成 Data URL
     let b64 = general_purpose::STANDARD.encode(&bytes);
