@@ -13,14 +13,14 @@ pub fn run() {
       }
       Ok(())
       })
-      .invoke_handler(tauri::generate_handler![fetch_image])
+      .invoke_handler(tauri::generate_handler![fetch_bilibili_image])
       .run(tauri::generate_context!())
       .expect("error while running tauri application");
 }
 
 
 #[tauri::command]
-async fn fetch_image(url: String) -> Result<String, String> {
+async fn fetch_bilibili_image(url: String) -> Result<String, String> {
     // 新建异步 Reqwest 客户端
     let client = reqwest::Client::new();
     let resp = client

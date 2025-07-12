@@ -25,7 +25,7 @@ const AniImage: React.FC<Props> = ({ url, alt = '', className }) => {
         }
 
         // 是 Bilibili 图片，调用后端接口转换为 base64
-        invoke<string>('fetch_image', { url })
+        invoke<string>('fetch_bilibili_image', { url })
             .then((dataUrl) => {
                 if (!useOriginUrl) setSrc(dataUrl);
             })
