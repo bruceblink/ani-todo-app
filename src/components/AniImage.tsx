@@ -1,6 +1,6 @@
 // src/components/AniImage.tsx
-import React, { useEffect, useState } from 'react';
-import { invoke } from '@tauri-apps/api/core';
+import React, {useEffect, useState} from 'react';
+import {invoke} from '@tauri-apps/api/core';
 
 interface Props {
     url: string;
@@ -12,7 +12,7 @@ const isBilibiliImage = (url: string): boolean => {
     return url.includes('hdslb.com'); // 根据需要更严格匹配
 };
 
-const AniImage: React.FC<Props> = ({ url, alt = '', className }) => {
+const AniImage: React.FC<Props> = ({url, alt = '', className}) => {
     const [src, setSrc] = useState<string>(url); // 默认就是传入的 url
 
     useEffect(() => {
@@ -25,7 +25,7 @@ const AniImage: React.FC<Props> = ({ url, alt = '', className }) => {
         }
 
         // 是 Bilibili 图片，调用后端接口转换为 base64
-        invoke<string>('fetch_bilibili_image', { url })
+        invoke<string>('fetch_bilibili_image', {url})
             .then((dataUrl) => {
                 if (!useOriginUrl) setSrc(dataUrl);
             })
@@ -40,9 +40,9 @@ const AniImage: React.FC<Props> = ({ url, alt = '', className }) => {
     }, [url]);
 
     return src ? (
-        <img src={src} alt={alt} className={className} />
+        <img src={src} alt={alt} className={className}/>
     ) : (
-        <div className={className} style={{ background: '#eee' }} />
+        <div className={className} style={{background: '#eee'}}/>
     );
 };
 

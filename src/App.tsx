@@ -1,6 +1,8 @@
 import './App.css';
 import ani_data from './data/ani_data.json';
 import AniItem, {type Ani} from "./components/AniItem.tsx";
+import {useState} from "react";
+import {getAniId} from "./utils/utils.ts";
 
 // 1. 定义整个 JSON 数据的类型（任意星期 → Ani 数组）
 type AniData = Record<string, Ani[]>;
@@ -11,17 +13,33 @@ const data = ani_data as AniData;
 export default function App() {
     // 3. 获取第一个 key（比如 "星期五"）
     const today = Object.keys(data)[0];
+    const ani_list: Ani[] = data[today];
+    // 4. 使用 useState 来管理已清除的番剧 ID
+    const [clearedIds, setClearedIds] = useState<Set<string>>(() => {
+        const saved = localStorage.getItem('clearedAni');
+        return saved ? new Set(JSON.parse(saved)) : new Set();
+    });
+
+    // 5. 过滤出未清除的番剧
+    const filtered = ani_list.filter(ani => !clearedIds.has(getAniId(ani)));
+
+    const handleClear = (id: string) => {
+        setClearedIds(prev => {
+            const newSet = new Set(prev);
+            newSet.add(id);
+            localStorage.setItem('clearedAni', JSON.stringify(Array.from(newSet)));
+            return newSet;
+        });
+    };
+
 
     return (
         <div className="App">
-            <h1>{today} 更新番剧</h1>
+            <h1>{today} 更新番剧 {ani_list.length} 部</h1>
             <div className="ani-list">
-                {data[today].map((ani, idx) => (
-                    // 4. 使用 map 遍历数组，渲染每个 AniItem
-                    <AniItem ani={ani} idx={idx}/>
-                    )
-                  )
-                }
+                {filtered.map((ani) => (
+                    <AniItem ani={ani} onClear={handleClear} key={getAniId(ani)}/>
+                ))}
             </div>
         </div>
     );
