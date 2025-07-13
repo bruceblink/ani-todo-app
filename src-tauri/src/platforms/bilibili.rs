@@ -2,10 +2,8 @@ use std::collections::HashMap;
 use base64::{engine::general_purpose, Engine as _};
 use log::{error, info};
 use serde_json::Value;
-use crate::platforms::AniItem;
+use crate::platforms::{AniItem, AniResult};
 use crate::utils::{clean_text, extract_number, get_week_day_of_today, today_iso_date_ld};
-/// 定义结果类型：星期字符串 -> 番剧更新列表
-type AniResult = HashMap<String, Vec<AniItem>>;
 
 #[tauri::command]
 pub async fn fetch_bilibili_image(url: String) -> Result<String, String> {
@@ -55,7 +53,7 @@ pub async fn fetch_bilibili_ani_data(url: String) -> Result<String, String> {
     let mut result: AniResult = HashMap::new();
 
     // 4. 填充 result
-    format_json_value(&json_value, &mut result);
+    process_json_value(&json_value, &mut result);
 
     // 5. 序列化 result 并返回给前端
     let json_string = serde_json::to_string(&result)
@@ -65,7 +63,7 @@ pub async fn fetch_bilibili_ani_data(url: String) -> Result<String, String> {
 }
 
 /// 解析原始 JSON，往 `result` 中填充当天已发布的番剧更新
-fn format_json_value(json_value: &Value, result: &mut AniResult) {
+fn process_json_value(json_value: &Value, result: &mut AniResult) {
     // 1. code != 0 或者没有 result 字段，则记录错误并返回
     let code = json_value.get("code").and_then(Value::as_i64).unwrap_or(-1);
     if code != 0 || !json_value.get("result").map_or(false, Value::is_array) {
@@ -91,7 +89,7 @@ fn format_json_value(json_value: &Value, result: &mut AniResult) {
         // 获取星期字符串，例如 "星期日"
         let weekday_str = get_week_day_of_today();
         for ep in eps.iter().filter(|e| e.get("published").and_then(Value::as_i64) == Some(1)) {
-            let item = build_item_from_episode(ep);
+            let item = parse_item(ep);
             info!("识别到更新：{} {}", item.title, item.update_info);
             result
                 .entry(weekday_str.clone())
@@ -102,7 +100,7 @@ fn format_json_value(json_value: &Value, result: &mut AniResult) {
 }
 
 /// 根据单个 episode JSON 构建 AniItem
-fn build_item_from_episode(ep: &Value) -> AniItem {
+fn parse_item(ep: &Value) -> AniItem {
     // pub_index
     let pub_index = ep
         .get("pub_index")
