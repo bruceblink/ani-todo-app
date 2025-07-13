@@ -1,11 +1,38 @@
 use std::collections::HashMap;
+use base64::{engine::general_purpose, Engine as _};
 use log::{error, info};
 use serde_json::Value;
-use crate::AniItem;
+use crate::platforms::AniItem;
 use crate::utils::{clean_text, extract_number, get_week_day_of_today, today_iso_date_ld};
-
 /// 定义结果类型：星期字符串 -> 番剧更新列表
 type AniResult = HashMap<String, Vec<AniItem>>;
+
+#[tauri::command]
+pub async fn fetch_bilibili_image(url: String) -> Result<String, String> {
+    // 新建异步 Reqwest 客户端
+    let client = reqwest::Client::new();
+    let resp = client
+        .get(&url)
+        .header("Referer", "https://www.bilibili.com/")
+        .send()
+        .await
+        .map_err(|e| e.to_string())?;
+
+    // 先把 Content-Type 拷贝到一个拥有 String
+    let ct: String = resp
+        .headers()
+        .get(reqwest::header::CONTENT_TYPE)
+        .and_then(|v| v.to_str().ok())
+        .map(|s| s.to_string())
+        .unwrap_or_else(|| "image/jpeg".to_string());
+
+    // 这时 resp 不再被借用，可以放心移动
+    let bytes = resp.bytes().await.map_err(|e| e.to_string())?;
+
+    // 转 base64，并拼成 Data URL
+    let b64 = general_purpose::STANDARD.encode(&bytes);
+    Ok(format!("data:{};base64,{}", ct, b64))
+}
 
 #[tauri::command]
 pub async fn fetch_bilibili_ani_data(url: String) -> Result<String, String> {
