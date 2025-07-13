@@ -1,8 +1,12 @@
-// src/App.tsx
 import './App.css';
 import AniItem, { type Ani } from './components/AniItem';
 import { useState, useEffect } from 'react';
 import { getAniId, loadAniData } from './utils/utils';
+
+type Source = {
+    url: string;
+    cmd: string;
+};
 
 export default function App() {
     // 1. 全部数据
@@ -20,27 +24,35 @@ export default function App() {
     useEffect(() => {
         (async () => {
             try {
-                const urls = [
-                    'https://api.bilibili.com/pgc/web/timeline?types=4&before=6&after=6',
-                    'https://api.bilibili.com/pgc/web/timeline?types=1&before=6&after=6',
+                // 不同的源和命令
+                const sources: Source[] = [
+                    {
+                        url: 'https://api.bilibili.com/pgc/web/timeline?types=4&before=6&after=6',  //哔哩哔哩国创
+                        cmd: 'fetch_bilibili_ani_data',
+                    },
+                    {
+                        url: 'https://api.bilibili.com/pgc/web/timeline?types=1&before=6&after=6',  //哔哩哔哩番剧
+                        cmd: 'fetch_bilibili_ani_data',
+                    },
+                    // 继续添加更多 { url, cmd } 对
                 ];
 
-                // 显式声明 Promise 类型，告诉 TS 返回 Record<string, Ani[]>
-                const promises: Promise<Record<string, Ani[]>>[] = urls.map((url) =>
-                    loadAniData(url, 'fetch_bilibili_ani_data') as Promise<Record<string, Ani[]>>
+                // 并行发请求
+                const results = await Promise.all(
+                    sources.map(({ url, cmd }) =>
+                        // loadAniData 返回 Promise<Record<string, Ani[]>>
+                        loadAniData(url, cmd) as Promise<Record<string, Ani[]>>
+                    )
                 );
 
-                const results = await Promise.all(promises);
-
+                // 合并
                 const merged = results.reduce<Record<string, Ani[]>>((acc, cur) => {
-                    // cur 已知是 Record<string, Ani[]>
-                    (Object.entries(cur) as [string, Ani[]][]).forEach(([weekday, list]) => {
-                        if (!acc[weekday]) {
-                            acc[weekday] = [];
+                    (Object.entries(cur) as [string, Ani[]][]).forEach(
+                        ([weekday, list]) => {
+                            if (!acc[weekday]) acc[weekday] = [];
+                            acc[weekday] = acc[weekday]!.concat(list);
                         }
-                        // list 现在被 TS 识别为 Ani[]，可以安全 concat
-                        acc[weekday] = acc[weekday]!.concat(list);
-                    });
+                    );
                     return acc;
                 }, {});
 
