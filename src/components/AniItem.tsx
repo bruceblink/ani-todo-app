@@ -1,7 +1,7 @@
 import AniImage from "./AniImage";
 import { getAniId } from "../utils/utils";
 
-interface Ani {
+export interface Ani {
     title: string;
     update_count: string;
     detail_url: string;
@@ -58,6 +58,3 @@ export default function AniItem({ ani, onClear }: Props) {
         </div>
     );
 }
-
-// 导出类型定义
-export type { Ani };
