@@ -4,6 +4,8 @@ import { type Ani } from './components/AniItem';
 import Header from './components/Header';
 import AniList from './components/AniList';
 import { useAniData } from './hooks/useAniData';
+import { getAniId } from './utils/utils';
+import RefreshButton from './components/RefreshButton';
 
 export default function App() {
     const { data, loading, error, refresh } = useAniData();
@@ -28,11 +30,18 @@ export default function App() {
 
     const today = Object.keys(data)[0];
     const aniList = data[today] as Ani[];
+    const filtered = aniList.filter(a => !clearedIds.has(getAniId(a)));
 
     return (
         <div className="App">
-            <Header title={today} total={aniList.length} loading={loading} onRefresh={refresh} />
-            <AniList list={aniList} clearedIds={clearedIds} onClear={handleClear} />
+            {/* 固定在右上角的刷新按钮 */}
+            <RefreshButton loading={loading} onClick={refresh} />
+
+            {/* 只显示标题和总数 */}
+            <Header weekday={today} total={aniList.length} />
+
+            {/* 番剧列表 */}
+            <AniList list={filtered} clearedIds={clearedIds} onClear={handleClear} />
         </div>
     );
 }

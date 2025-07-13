@@ -106,3 +106,54 @@
   border-color:   #e55353;        /* 更鲜艳的红色边框 */
   color:          #721c24;        /* 更深的警告文字 */
 }
+
+
+.App {
+  position: relative;
+  min-height: 100vh;
+  padding: 1rem;
+}
+
+/* 刷新按钮统一样式 */
+.refresh-btn {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #fff;
+  background-color: #3498db;
+  border: none;
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  cursor: pointer;
+  transition:
+          background-color 0.2s ease,
+          transform 0.1s ease,
+          box-shadow 0.2s ease;
+}
+
+.refresh-btn:hover:not(:disabled) {
+  background-color: #2980b9;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  transform: translateY(-1px);
+}
+
+.refresh-btn:active:not(:disabled) {
+  background-color: #1f618d;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  transform: translateY(0);
+}
+
+.refresh-btn:disabled {
+  background-color: #95a5a6;
+  cursor: not-allowed;
+  box-shadow: none;
+  opacity: 0.8;
+}
+
