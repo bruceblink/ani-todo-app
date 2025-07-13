@@ -1,16 +1,16 @@
 // src/App.tsx
 import './App.css';
-import AniItem, { type Ani } from "./components/AniItem";
-import { useState, useEffect } from "react";
-import { getAniId, loadAniData } from "./utils/utils";
+import AniItem, { type Ani } from './components/AniItem';
+import { useState, useEffect } from 'react';
+import { getAniId, loadAniData } from './utils/utils';
 
 export default function App() {
-    // 1. state：保存后端返回的整个 JSON 数据
-    const [data, setData] = useState<Record<string, Ani[]> | null>(null);
+    // 1. 全部数据
+    const [data, setData] = useState<Record<string, Ani[]>>({});
+    // 2. 错误 & 加载状态
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
-
-    // 2. state：管理已清除的番剧 id
+    // 3. 已清除集合
     const [clearedIds, setClearedIds] = useState<Set<string>>(() => {
         const saved = localStorage.getItem('clearedAni');
         return saved ? new Set(JSON.parse(saved)) : new Set();
@@ -20,52 +20,76 @@ export default function App() {
     useEffect(() => {
         (async () => {
             try {
-                const aniData = await loadAniData(
-                    "https://api.bilibili.com/pgc/web/timeline?types=4&before=6&after=6",
-                    "fetch_bilibili_ani_data"
+                const urls = [
+                    'https://api.bilibili.com/pgc/web/timeline?types=4&before=6&after=6',
+                    'https://api.bilibili.com/pgc/web/timeline?types=1&before=6&after=6',
+                ];
+
+                // 显式声明 Promise 类型，告诉 TS 返回 Record<string, Ani[]>
+                const promises: Promise<Record<string, Ani[]>>[] = urls.map((url) =>
+                    loadAniData(url, 'fetch_bilibili_ani_data') as Promise<Record<string, Ani[]>>
                 );
-                setData(aniData);
-            } catch (e) {
-                const err = e as Error;
-                console.error("loadAniData failed", err);
-                setError(err.message || "未知错误");
+
+                const results = await Promise.all(promises);
+
+                const merged = results.reduce<Record<string, Ani[]>>((acc, cur) => {
+                    // cur 已知是 Record<string, Ani[]>
+                    (Object.entries(cur) as [string, Ani[]][]).forEach(([weekday, list]) => {
+                        if (!acc[weekday]) {
+                            acc[weekday] = [];
+                        }
+                        // list 现在被 TS 识别为 Ani[]，可以安全 concat
+                        acc[weekday] = acc[weekday]!.concat(list);
+                    });
+                    return acc;
+                }, {});
+
+                setData(merged);
+            } catch (e: unknown) {
+                const err = e instanceof Error ? e : new Error('未知错误');
+                console.error('loadAniData failed', err);
+                setError(err.message);
             } finally {
                 setLoading(false);
             }
         })();
     }, []);
 
-
+    // 清除单个番剧
     const handleClear = (id: string) => {
-        setClearedIds(prev => {
-            const next = new Set(prev).add(id);
+        setClearedIds((prev) => {
+            const next = new Set(prev);
+            next.add(id);
             localStorage.setItem('clearedAni', JSON.stringify(Array.from(next)));
             return next;
         });
     };
 
-    // 4. 渲染逻辑
+    // 渲染逻辑
     if (loading) {
         return <div className="App">加载中…</div>;
     }
     if (error) {
         return <div className="App">出错了：{error}</div>;
     }
-    if (!data) {
+    // 如果没有任何数据
+    const weekdays = Object.keys(data);
+    if (weekdays.length === 0) {
         return <div className="App">无数据</div>;
     }
 
-    // 假设取第一个 key 作为 today
-    const today = Object.keys(data)[0];
+    // 取第一个 key 作为今天，其他可以自行切换
+    const today = weekdays[0];
     const aniList = data[today] || [];
-    // 过滤已清除的
-    const filtered = aniList.filter(ani => !clearedIds.has(getAniId(ani)));
+    const filtered = aniList.filter((ani) => !clearedIds.has(getAniId(ani)));
 
     return (
         <div className="App">
-            <h1>{today} 更新番剧 共 {aniList.length} 部</h1>
+            <h1>
+                {today} 更新番剧 共 {aniList.length} 部
+            </h1>
             <div className="ani-list">
-                {filtered.map(ani => (
+                {filtered.map((ani) => (
                     <AniItem
                         key={getAniId(ani)}
                         ani={ani}
