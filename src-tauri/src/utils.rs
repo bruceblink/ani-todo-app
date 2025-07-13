@@ -8,12 +8,10 @@ pub fn get_week_day_of_today() -> String{
     let today: Weekday = now.weekday();
 
     // 如果你只想要数字（0 = Mon, …, 6 = Sun）
-    let num = today.number_from_monday() - 1;
+    let _num = today.number_from_monday() - 1;
     // 或者：从周日开始 0..6
-    let num_sun = today.num_days_from_sunday();
-
-    println!("Today is {:?} (from Monday = {}, from Sunday = {})", today, num, num_sun);
-
+    let _num_sun = today.num_days_from_sunday();
+    
     // 如果想要中文输出，可以自己 match
     let cn = match today {
         Weekday::Mon => "星期一",
