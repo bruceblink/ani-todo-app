@@ -1,5 +1,5 @@
 import AniImage from "./AniImage";
-import {getAniId} from "../utils/utils.ts";
+import { getAniId } from "../utils/utils";
 
 interface Ani {
     title: string;
@@ -16,19 +16,29 @@ interface Props {
     onClear: (id: string) => void;
 }
 
+export default function AniItem({ ani, onClear }: Props) {
+    const id = getAniId(ani);
 
-export default function AniItem({ani, onClear}: Props) {
-    const id = getAniId(ani)
+    // 点击清除按钮时调用
+    const handleClearClick = () => {
+        const confirmed = window.confirm(
+            `你确定要清除《${ani.title}》这条番剧吗？`
+        );
+        if (confirmed) {
+            onClear(id);
+        }
+    };
+
     return (
         <div
             className="ani-item"
             key={id}
-            style={{display: 'flex', alignItems: 'center', marginBottom: 16}}
+            style={{ display: 'flex', alignItems: 'center', marginBottom: 16 }}
         >
             <a href={ani.detail_url} target="_blank" rel="noopener noreferrer">
-                <AniImage url={ani.image_url} alt={ani.title} className="ani-img"/>
+                <AniImage url={ani.image_url} alt={ani.title} className="ani-img" />
             </a>
-            <div className="ani-info" style={{flex: 1}}>
+            <div className="ani-info" style={{ flex: 1 }}>
                 <div className="ani-title">{ani.title}</div>
                 <div className="ani-update-info">{ani.update_time} 更新</div>
                 {ani.update_count ? (
@@ -38,7 +48,11 @@ export default function AniItem({ani, onClear}: Props) {
                 )}
                 <div className="ani-platform">{ani.platform}</div>
             </div>
-            <button className="clear-btn" onClick={() => onClear(id)} style={{marginLeft: 12}}>
+            <button
+                className="clear-btn"
+                onClick={handleClearClick}
+                style={{ marginLeft: 12 }}
+            >
                 清除
             </button>
         </div>
@@ -46,4 +60,4 @@ export default function AniItem({ani, onClear}: Props) {
 }
 
 // 导出类型定义
-export type {Ani};
+export type { Ani };
