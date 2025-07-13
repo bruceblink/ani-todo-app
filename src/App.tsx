@@ -20,11 +20,15 @@ export default function App() {
     useEffect(() => {
         (async () => {
             try {
-                const aniData = await loadAniData("https://api.bilibili.com/pgc/web/timeline?types=4&before=6&after=6", "fetch_bilibili_ani_data");
+                const aniData = await loadAniData(
+                    "https://api.bilibili.com/pgc/web/timeline?types=4&before=6&after=6",
+                    "fetch_bilibili_ani_data"
+                );
                 setData(aniData);
-            } catch (e: any) {
-                console.error("loadAniData failed", e);
-                setError(e.message || "未知错误");
+            } catch (e) {
+                const err = e as Error;
+                console.error("loadAniData failed", err);
+                setError(err.message || "未知错误");
             } finally {
                 setLoading(false);
             }
