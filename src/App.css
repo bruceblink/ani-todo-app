@@ -116,7 +116,7 @@
 
 /* 刷新按钮统一样式 */
 .refresh-btn {
-  position: absolute;
+  position: fixed;
   top: 1rem;
   right: 1rem;
 

@@ -1,3 +1,4 @@
+import {RefreshCcw} from "lucide-react";
 
 interface RefreshButtonProps {
     loading: boolean;
@@ -10,9 +11,27 @@ export default function RefreshButton({ loading, onClick }: RefreshButtonProps) 
             className="refresh-btn"
             onClick={onClick}
             disabled={loading}
-            aria-label="刷新"
+            style={{
+                position: 'fixed',
+                top: '16px',
+                right: '16px',
+                background: 'white',
+                border: '1px solid #ccc',
+                borderRadius: '50%',
+                padding: '8px',
+                cursor: loading ? 'not-allowed' : 'pointer',
+                zIndex: 1000,
+                boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                opacity: loading ? 0.5 : 1,
+                transition: 'transform 0.3s ease-in-out',
+            }}
+            title="刷新"
         >
-            {loading ? '刷新中…' : '刷新'}
+            <RefreshCcw
+                size={20}
+                color={loading ? '#aaa' : '#333'}
+                className={loading ? 'spin' : ''}
+            />
         </button>
     );
 }
