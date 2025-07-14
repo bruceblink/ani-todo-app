@@ -11,7 +11,7 @@ export async function loadAniData(url: string, cmd: string) {
         const jsonStr = await invoke<string>(cmd, { url });
         // 解析成对象
         const data = JSON.parse(jsonStr);
-        console.log('拿到的数据：', data);
+        console.log('fetch data：', data);
         return data;
     } catch (e) {
         console.error('fetchAniData 失败', e);
