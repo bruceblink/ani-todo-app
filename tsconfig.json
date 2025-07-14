@@ -9,8 +9,14 @@
     }
   ],
   "compilerOptions": {
+    "moduleResolution": "bundler", // ✅ 或 node16 / nodenext
+    "module": "ESNext",            // 推荐和上面配合
+    "target": "ESNext",            // Tailwind 用 ES module
+    "allowJs": true,
+    "esModuleInterop": true,
     "types": [
-      "@tauri-apps/api"
+      "@tauri-apps/api",
+      "tailwindcss"
     ]
   }
 }
