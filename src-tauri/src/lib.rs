@@ -5,6 +5,7 @@ use crate::platforms::{fetch_bilibili_ani_data, fetch_bilibili_image};
 use chrono::Local; 
 use std::fmt;
 use tauri_plugin_log::fern;
+use crate::platforms::iqiyi::fetch_iqiyi_ani_data;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -31,7 +32,11 @@ pub fn run() {
             }
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![fetch_bilibili_image, fetch_bilibili_ani_data])
+        .invoke_handler(tauri::generate_handler![
+            fetch_bilibili_image,
+            fetch_bilibili_ani_data,
+            fetch_iqiyi_ani_data
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
