@@ -20,12 +20,16 @@ export function useAniData(): UseAniData {
         try {
             const sources = [
                 {
-                    url: 'https://api.bilibili.com/pgc/web/timeline?types=4&before=6&after=6',
+                    url: 'https://api.bilibili.com/pgc/web/timeline?types=4&before=6&after=6',  //哔哩哔哩国创
                     cmd: 'fetch_bilibili_ani_data'
                 },
                 {
                     url: 'https://api.bilibili.com/pgc/web/timeline?types=1&before=6&after=6',  //哔哩哔哩番剧
                     cmd: 'fetch_bilibili_ani_data',
+                },
+                {
+                    url: 'https://mesh.if.iqiyi.com/portal/lw/v7/channel/cartoon',  //爱奇艺动漫
+                    cmd: 'fetch_iqiyi_ani_data',
                 },
                 // ...如果有更多接口
             ] as const;
