@@ -1,3 +1,5 @@
+pub mod http_client;
+
 use chrono::{Datelike, Local, Weekday};
 
 pub fn get_week_day_of_today() -> String{
@@ -89,8 +91,6 @@ pub fn today_compact_date() -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-
     #[test]
     fn test_formats() {
         let df = "";
