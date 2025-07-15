@@ -55,7 +55,7 @@ pub async fn fetch_qq_ani_data(url: String) -> Result<String, String> {
         .map_err(|e| e.to_string())?;
     debug!("解析从 腾讯视频 获取到的 HTML，前 200 字符：\n{}", &text[..200.min(text.len())]);
     // 1. 从 HTML 中提取嵌入的 JSON 数据
-    let data: Value = extract_vikor_json(&text).map_err(|e| e.to_string())?;
+    let data: Value = extract_vikor_json(text).map_err(|e| e.to_string())?;
     let pinia = data.get("_piniaState").and_then(Value::as_object).cloned().unwrap_or_default();
 
     // 2. 找到“每日更新”模块
@@ -87,15 +87,15 @@ pub async fn fetch_qq_ani_data(url: String) -> Result<String, String> {
     info!("成功提取到 {} 部今日更新的动漫。", comics.len());
     let mut result: AniResult = HashMap::new();
     result.insert(weekday, comics);
-    
+
 
     serde_json::to_string(&result).map_err(|e| e.to_string())
 }
 
 /// 从页面 HTML 中提取 window.__vikor__context__ 嵌入的 JSON
-pub fn extract_vikor_json(html: &str) -> Result<Value, Box<dyn Error>> {
+pub fn extract_vikor_json(html: String) -> Result<Value, Box<dyn Error>> {
     // 解析 HTML 文档
-    let document = Html::parse_document(html);
+    let document = Html::parse_document(&html);
 
     // 创建 script 标签选择器
     let selector = Selector::parse("script").unwrap();
@@ -108,7 +108,10 @@ pub fn extract_vikor_json(html: &str) -> Result<Value, Box<dyn Error>> {
 
     let script = match target_script {
         Some(s) => s,
-        None => return Err("未找到包含 window.__vikor__context__ 的 <script> 标签。".into()),
+        None => {
+            warn!("未找到包含 window.__vikor__context__ 的 <script> 标签。");
+            return Err("未找到包含 window.__vikor__context__ 的 <script> 标签。".into())
+        },
     };
 
     // 提取 JSON 字符串部分
