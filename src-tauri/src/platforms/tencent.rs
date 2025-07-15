@@ -77,7 +77,7 @@ pub async fn fetch_qq_ani_data(url: String) -> Result<String, String> {
 
     // 4. 构建结果并记录日志
     let mut comics: Vec<AniItem> = Vec::new();
-    for item in today_videos.iter().filter_map(|v| build_result_from_episode(v)) {
+    for item in today_videos.iter().filter_map(|v| build_aniitem(v)) {
         info!("识别到更新：{}, {}", item.title, item.update_info);
         comics.push(item);
     }
@@ -136,9 +136,9 @@ fn find_daily_card(pinia: &serde_json::Map<String, Value>) -> Option<Value> {
         .find(|c| c.get("moduleTitle").and_then(Value::as_str) == Some("每日更新"))
 }
 
-/// 根据 JSON 构建 Ani
-fn build_result_from_episode(item: &Value) -> Option<AniItem> {
-    let platform = "qq".to_string();
+/// 根据 JSON 构建 AniItem
+fn build_aniitem(item: &Value) -> Option<AniItem> {
+    let platform = "tencent".to_string();
     let title = item.get("title").and_then(Value::as_str).unwrap_or("").trim().to_string();
 
     let uni_img = item.get("uniImgTag").and_then(Value::as_str).unwrap_or("");
