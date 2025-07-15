@@ -70,7 +70,7 @@ fn process_json_value(json_value: &Value, result: &mut AniResult) {
         error!("接口返回数据异常：{}", json_value);
         return;
     }
-
+    info!("成功获取哔哩哔哩追番表数据");
     // 2. 找到 is_today == 1 的那一天
     let days = json_value.get("result").unwrap().as_array().unwrap();
     let today_opt = days.iter()

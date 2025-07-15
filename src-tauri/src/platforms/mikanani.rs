@@ -51,7 +51,7 @@ pub async fn fetch_mikanani_ani_data(url: String) -> Result<String, String> {
         .await
         .map_err(|e| e.to_string())?;
     debug!("解析从 Mikanani 获取到的 HTML，前 200 字符：\n{}", &body[..200.min(body.len())]);
-
+    info!("成功获取蜜柑计划追番表数据");
     // 解析 HTML
     let document = Html::parse_document(&body);
     // 找到所有 <li> 节点
