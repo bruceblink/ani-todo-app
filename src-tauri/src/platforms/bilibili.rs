@@ -101,7 +101,7 @@ fn process_json_value(json_value: &Value) -> AniResult {
         }
     }
 
-    info!("成功提取到 {} 部今日更新的动漫。", comics.len());
+    info!("成功提取到 {} 部今日更新的动漫", comics.len());
 
     // 5. 构建结果
     let mut result = HashMap::new();

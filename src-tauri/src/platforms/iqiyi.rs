@@ -103,7 +103,7 @@ fn process_json_value(json_value: &Value) -> AniResult {
                     info!("识别到更新：{} {}", res.title, res.update_info);
                 })
                 .collect();
-            info!("成功提取到 {} 部今日更新的动漫。", items.len());
+            info!("成功提取到 {} 部今日更新的动漫", items.len());
             result.insert(weekday_str, items);
             
         }

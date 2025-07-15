@@ -84,7 +84,7 @@ pub async fn fetch_qq_ani_data(url: String) -> Result<String, String> {
 
     // 5. 存储并返回
     let weekday = get_week_day_of_today();
-    info!("成功提取到 {} 部今日更新的动漫。", comics.len());
+    info!("成功提取到 {} 部今日更新的动漫", comics.len());
     let mut result: AniResult = HashMap::new();
     result.insert(weekday, comics);
 
