@@ -7,6 +7,26 @@
   text-align: center;
 }
 
+.header {
+  position: fixed;
+  display: flex;
+  align-items: center;
+  width: 600px;
+  justify-content: space-between;
+  padding: 16px;
+  background: rgba(124, 151, 198, 0.95);
+  border-radius: 8px;
+  z-index: 1000; /* 关键修复：确保 header 在最上层 */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(5px);
+  transition: all 0.3s ease;
+  alignItems: center;
+  justifyContent: space-between;
+  margin: 0 16px;
+  borderRadius: 8px;
+  marginBottom: 16px;
+}
+
 /* ----------------------------------------- */
 /* Ani 列表：垂直排列，并水平居中所有条目 */
 /* ----------------------------------------- */
@@ -29,6 +49,7 @@
   padding: 12px 16px;
   border: 1px solid #eee;
   border-radius: 8px;
+  background-color: #eee;
 
   /* 统一宽度 */
   width: 600px;           /* 固定宽度——无论条目多少都相同 */

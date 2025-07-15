@@ -7,23 +7,7 @@ interface Props {
 export default function Header({ weekday, total, watched }: Props) {
     const percentage = total > 0 ? Math.round((watched / total) * 100) : 0;
     return (
-        <div
-            className="header"
-            style={{
-                position: "fixed",
-                display: 'flex',
-                alignItems: 'center',
-                width: '600px',
-                justifyContent: 'space-between',
-                margin: '0 16px',
-                padding: '16px',
-                background: 'rgba(124, 151, 198)', // 使用rgba设置透明度
-                borderRadius: '8px',
-                marginBottom: '16px',
-                // 可选：添加模糊效果增强半透明效果
-                backdropFilter: 'blur(5px)',
-            }}
-        >
+        <div className="header">
             <div>
                 <h1 style={{ margin: 0, fontSize: '1.5rem' }}>
                     {weekday} 更新番剧 共 {total} 部
