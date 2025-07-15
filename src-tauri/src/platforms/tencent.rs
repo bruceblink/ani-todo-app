@@ -4,7 +4,7 @@ use base64::Engine;
 use base64::engine::general_purpose;
 use reqwest::Client;
 use serde_json::Value;
-use log::{info, warn};
+use log::{debug, info, warn};
 use scraper::{Html, Selector};
 use crate::platforms::{AniItem, AniResult};
 use crate::utils::date_utils::{get_week_day_of_today, today_iso_date_ld};
@@ -53,7 +53,7 @@ pub async fn fetch_qq_ani_data(url: String) -> Result<String, String> {
         .text()
         .await
         .map_err(|e| e.to_string())?;
-
+    debug!("解析从 腾讯视频 获取到的 HTML，前 200 字符：\n{}", &text[..200.min(text.len())]);
     // 1. 从 HTML 中提取嵌入的 JSON 数据
     let data: Value = extract_vikor_json(&text).map_err(|e| e.to_string())?;
     let pinia = data.get("_piniaState").and_then(Value::as_object).cloned().unwrap_or_default();
