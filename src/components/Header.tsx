@@ -13,7 +13,7 @@ export default function Header({ weekday, total, watched }: Props) {
                 position: "fixed",
                 display: 'flex',
                 alignItems: 'center',
-                width: '568px',
+                width: '600px',
                 justifyContent: 'space-between',
                 padding: '16px',
                 // 关键修改：添加透明度
