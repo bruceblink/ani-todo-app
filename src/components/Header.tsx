@@ -1,20 +1,47 @@
 interface Props {
-    weekday: string;
-    total: number;
+    weekday: string;  // 星期几
+    total: number;    // 总数
+    watched: number;  // 已观看
 }
 
-export default function Header({ weekday, total }: Props) {
+export default function Header({ weekday, total, watched }: Props) {
+    const percentage = total > 0 ? Math.round((watched / total) * 100) : 0;
     return (
         <div
             className="header"
             style={{
+                position: "fixed",
                 display: 'flex',
                 alignItems: 'center',
+                width: '568px',
+                justifyContent: 'space-between',
+                padding: '16px',
+                // 关键修改：添加透明度
+                background: 'rgba(124, 151, 198)', // 使用rgba设置透明度
+                borderRadius: '8px',
+                marginBottom: '16px',
+                // 可选：添加模糊效果增强半透明效果
+                backdropFilter: 'blur(5px)',
             }}
         >
-            <h1>
-                {weekday} 更新番剧 共 {total} 部
-            </h1>
+            <div>
+                <h1 style={{ margin: 0, fontSize: '1.5rem' }}>
+                    {weekday} 更新番剧 共 {total} 部
+                </h1>
+                <div style={{ marginTop: '8px', fontSize: '1rem', color: '#555' }}>
+                    已观看 {watched} 部 — {percentage}% 完成
+                </div>
+            </div>
+            <div style={{ width: '200px', height: '12px', background: '#ddd', borderRadius: '6px', overflow: 'hidden' }}>
+                <div
+                    style={{
+                        width: `${percentage}%`,
+                        height: '100%',
+                        background: '#afe1b0',
+                        transition: 'width 0.3s ease',
+                    }}
+                />
+            </div>
         </div>
     );
 }

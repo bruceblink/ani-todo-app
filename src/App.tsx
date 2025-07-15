@@ -38,7 +38,7 @@ export default function App() {
             <RefreshButton loading={loading} onClick={refresh} />
 
             {/* 只显示标题和总数 */}
-            <Header weekday={today} total={aniList.length} />
+            <Header weekday={today} total={aniList.length} watched={aniList.length - filtered.length}/>
 
             {/* 番剧列表 */}
             <AniList list={filtered} clearedIds={clearedIds} onClear={handleClear} />
