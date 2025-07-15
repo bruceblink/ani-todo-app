@@ -12,6 +12,7 @@
 /* Ani 列表：垂直排列，并水平居中所有条目 */
 /* ----------------------------------------- */
 .ani-list {
+  margin-top: 100px;
   display: flex;
   flex-direction: column;
   align-items: center; /* ← 关键：让子项在水平方向上居中对齐 */
