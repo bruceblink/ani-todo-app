@@ -1,10 +1,10 @@
 use std::collections::HashMap;
 use log::{debug, info};
 use crate::platforms::{AniItem, AniResult};
-use crate::utils::{get_week_day_of_today, today_iso_date_ld};
 use base64::{engine::general_purpose, Engine as _};
 use reqwest::Url;
 use scraper::{Html, Selector};
+use crate::utils::date_utils::{get_week_day_of_today, today_iso_date_ld};
 
 #[tauri::command]
 pub async fn fetch_mikanani_image(url: String) -> Result<String, String> {

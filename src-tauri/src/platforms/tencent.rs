@@ -7,7 +7,8 @@ use serde_json::Value;
 use log::{info, warn};
 use scraper::{Html, Selector};
 use crate::platforms::{AniItem, AniResult};
-use crate::utils::{get_week_day_of_today, extract_number, today_iso_date_ld};
+use crate::utils::date_utils::{get_week_day_of_today, today_iso_date_ld};
+use crate::utils::extract_number;
 use crate::utils::http_client::http_client;
 
 #[tauri::command]
@@ -63,6 +64,7 @@ pub async fn fetch_qq_ani_data(url: String) -> Result<String, String> {
         warn!("未找到“每日更新”模块，返回空结果。");
         return Ok(serde_json::to_string(&HashMap::<String, Vec<AniItem>>::new()).unwrap());
     }
+    info!("成功获取腾讯视频动漫追番表数据");
     let daily = daily.unwrap();
 
     // 3. 提取今日更新视频列表

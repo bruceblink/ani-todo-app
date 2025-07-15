@@ -3,8 +3,9 @@ use chrono::{Datelike, Local};
 use log::{error, info};
 use serde_json::Value;
 use crate::platforms::{AniItem, AniResult};
-use crate::utils::{clean_text, extract_number, get_week_day_of_today, today_iso_date_ld};
+use crate::utils::{clean_text, extract_number};
 use base64::{engine::general_purpose, Engine as _};
+use crate::utils::date_utils::{get_week_day_of_today, today_iso_date_ld};
 
 #[tauri::command]
 pub async fn fetch_iqiyi_image(url: String) -> Result<String, String> {
