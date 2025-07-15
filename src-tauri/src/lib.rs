@@ -8,6 +8,7 @@ use tauri_plugin_log::fern;
 use crate::platforms::iqiyi::{fetch_iqiyi_ani_data, fetch_iqiyi_image};
 use crate::platforms::mikanani::{fetch_mikanani_ani_data, fetch_mikanani_image};
 use crate::platforms::tencent::{fetch_qq_ani_data, fetch_qq_image};
+use crate::platforms::youku::{fetch_youku_ani_data, fetch_youku_image};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -42,7 +43,9 @@ pub fn run() {
             fetch_mikanani_image,
             fetch_mikanani_ani_data,
             fetch_qq_image,
-            fetch_qq_ani_data
+            fetch_qq_ani_data,
+            fetch_youku_image,
+            fetch_youku_ani_data
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
