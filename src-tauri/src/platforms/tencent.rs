@@ -153,7 +153,10 @@ fn build_aniitem(item: &Value) -> Option<AniItem> {
         .unwrap_or("");
     let update_count = extract_number(update_count)?.to_string();
 
+    let update_count_info = format!("更新至{}集", update_count);
     let update_info = item.get("topicLabel").and_then(Value::as_str).unwrap_or("").trim().to_string();
+    
+    let update_info = format!("{} {}", update_count_info, update_info);
 
     let image_url = item.get("coverPic").and_then(Value::as_str).unwrap_or("").trim().to_string();
 
