@@ -62,10 +62,10 @@ pub async fn fetch_mikanani_ani_data(url: String) -> Result<String, String> {
     // 3. 初始化一个空的 result
     let mut result:AniResult = HashMap::new();
     let weekday_str = get_week_day_of_today();
-    result.insert(weekday_str.clone(), Vec::new());
-
     // 今天的日期，比如 "2025/07/13"
     let today_date = today_iso_date_ld();
+    // 动漫aniitem的列表
+    let mut comics: Vec<AniItem> = Vec::new();
     // 过滤出符合条件的 <li>
     for li in document.select(&li_sel) {
         // 必须有 <div class="num-node text-center">
@@ -87,10 +87,11 @@ pub async fn fetch_mikanani_ani_data(url: String) -> Result<String, String> {
         // 构建 Ani 并加入结果
         if let Some(item) = build_mikanani_item(&base_url, &li) {
             info!("识别到更新：{} {}", item.title, item.update_info);
-            result.get_mut(&weekday_str).unwrap().push(item);
+            comics.push(item);
         }
     }
-
+    result.insert(weekday_str.clone(), comics.clone());
+    info!("成功提取到 {} 部今日更新的动漫。", comics.len());
     // 序列化返回
     serde_json::to_string(&result).map_err(|e| e.to_string())
 }
