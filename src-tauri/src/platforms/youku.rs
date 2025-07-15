@@ -218,7 +218,7 @@ fn build_aniitem(item: &serde_json::Map<String, Value>) -> AniItem {
         update_count,
         update_info: lb_texts,
         image_url,
-        detail_url: "https://www.youku.com/".to_string(),
+        detail_url: "https://www.youku.com/ku/webcomic".to_string(),
         update_time: today_iso_date_ld(),
     }
 }

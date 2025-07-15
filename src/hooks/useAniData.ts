@@ -39,6 +39,10 @@ export function useAniData(): UseAniData {
                     url: 'https://v.qq.com/channel/cartoon',  //腾讯视频
                     cmd: 'fetch_qq_ani_data',
                 },
+                {
+                    url: 'https://www.youku.com/ku/webcomic',  //优酷视频
+                    cmd: 'fetch_youku_ani_data',
+                },
                 // ...如果有更多接口
             ] as const;
 
