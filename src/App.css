@@ -9,6 +9,9 @@
 
 .header {
   position: fixed;
+  /* 关键修复：使用 left 和 transform 实现稳定居中 */
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
   align-items: center;
   width: 600px;
@@ -20,7 +23,6 @@
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
   backdrop-filter: blur(5px);
   transition: all 0.3s ease;
-  margin: 0 16px;
 }
 
 /* ----------------------------------------- */
@@ -33,6 +35,8 @@
   align-items: center; /* ← 关键：让子项在水平方向上居中对齐 */
   gap: 16px;            /* 每个 item 之间间距 */
   width: 100%;          /* 撑满父容器宽度 */
+  background: rgba(255, 255, 255, 0.7);
+  max-width: 600px;
 }
 
 /* ----------------------------------------- */

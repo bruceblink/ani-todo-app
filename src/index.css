@@ -1,6 +1,20 @@
 @import "tailwindcss/preflight";
 @tailwind utilities;
 
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    /* 关键修复：始终显示滚动条防止跳动 */
+    overflow-y: scroll;
+    /*padding: 100px 20px 40px;*/
+    background: #f5f7fa;
+    min-height: 100vh;
+}
+
 :root {
     font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
     line-height: 1.5;
