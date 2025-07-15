@@ -31,6 +31,10 @@ export function useAniData(): UseAniData {
                     url: 'https://mesh.if.iqiyi.com/portal/lw/v7/channel/cartoon',  //爱奇艺动漫
                     cmd: 'fetch_iqiyi_ani_data',
                 },
+                {
+                    url: 'https://mikanani.me',  //蜜柑计划
+                    cmd: 'fetch_mikanani_ani_data',
+                },
                 // ...如果有更多接口
             ] as const;
 
