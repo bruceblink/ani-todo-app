@@ -6,6 +6,7 @@ use chrono::Local;
 use std::fmt;
 use tauri_plugin_log::fern;
 use crate::platforms::iqiyi::{fetch_iqiyi_ani_data, fetch_iqiyi_image};
+use crate::platforms::mikanani::{fetch_mikanani_ani_data, fetch_mikanani_image};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -36,7 +37,9 @@ pub fn run() {
             fetch_bilibili_image,
             fetch_bilibili_ani_data,
             fetch_iqiyi_ani_data,
-            fetch_iqiyi_image
+            fetch_iqiyi_image,
+            fetch_mikanani_image,
+            fetch_mikanani_ani_data
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

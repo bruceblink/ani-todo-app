@@ -1,5 +1,6 @@
 pub mod bilibili;
 pub mod iqiyi;
+pub mod mikanani;
 
 use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
