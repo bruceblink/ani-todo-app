@@ -2,6 +2,7 @@ pub mod bilibili;
 pub mod iqiyi;
 pub mod mikanani;
 pub mod tencent;
+pub mod youku;
 
 use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
