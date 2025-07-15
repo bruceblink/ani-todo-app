@@ -35,6 +35,10 @@ export function useAniData(): UseAniData {
                     url: 'https://mikanani.me',  //蜜柑计划
                     cmd: 'fetch_mikanani_ani_data',
                 },
+                {
+                    url: 'https://v.qq.com/channel/cartoon',  //腾讯视频
+                    cmd: 'fetch_qq_ani_data',
+                },
                 // ...如果有更多接口
             ] as const;
 
