@@ -15,8 +15,8 @@ export default function Header({ weekday, total, watched }: Props) {
                 alignItems: 'center',
                 width: '600px',
                 justifyContent: 'space-between',
+                margin: '0 16px',
                 padding: '16px',
-                // 关键修改：添加透明度
                 background: 'rgba(124, 151, 198)', // 使用rgba设置透明度
                 borderRadius: '8px',
                 marginBottom: '16px',

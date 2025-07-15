@@ -33,15 +33,17 @@ export default function App() {
     const filtered = aniList.filter(a => !clearedIds.has(getAniId(a)));
 
     return (
-        <div className="App">
-            {/* 固定在右上角的刷新按钮 */}
-            <RefreshButton loading={loading} onClick={refresh} />
-
+        <>
             {/* 只显示标题和总数 */}
             <Header weekday={today} total={aniList.length} watched={aniList.length - filtered.length}/>
+            {/* 固定在右上角的刷新按钮 */}
+            <RefreshButton loading={loading} onClick={refresh} />
+            <div className="App">
 
-            {/* 番剧列表 */}
-            <AniList list={filtered} clearedIds={clearedIds} onClear={handleClear} />
-        </div>
+                {/* 番剧列表 */}
+                <AniList list={filtered} clearedIds={clearedIds} onClear={handleClear} />
+            </div>
+        </>
+
     );
 }
