@@ -1,4 +1,5 @@
 import AniItem, { type Ani } from './AniItem';
+import {getAniId} from "../utils/utils.ts";
 
 type Props = {
     list: Ani[];
@@ -9,9 +10,13 @@ type Props = {
 export default function AniList({ list, clearedIds, onClear }: Props) {
     return (
         <div className="ani-list">
-            {list.filter(a => !clearedIds.has(a.detail_url)).map(ani => (
-                <AniItem key={ani.detail_url} ani={ani} onClear={() => onClear(ani.detail_url)} />
-            ))}
+            {
+                list.filter(ani => !clearedIds.has(getAniId(ani)))
+                  .map(ani => (
+                     <AniItem key={getAniId(ani)} ani={ani} onClear={() => onClear(getAniId(ani))} />
+                    )
+                  )
+            }
         </div>
     );
 }
