@@ -90,8 +90,8 @@ pub async fn fetch_mikanani_ani_data(url: String) -> Result<String, String> {
             comics.push(item);
         }
     }
-    result.insert(weekday_str.clone(), comics.clone());
-    info!("成功提取到 {} 部今日更新的动漫。", comics.len());
+    info!("成功提取到 {} 部今日更新的动漫", comics.len());
+    result.insert(weekday_str, comics);
     // 序列化返回
     serde_json::to_string(&result).map_err(|e| e.to_string())
 }
