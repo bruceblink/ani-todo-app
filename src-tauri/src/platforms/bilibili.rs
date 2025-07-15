@@ -50,13 +50,10 @@ pub async fn fetch_bilibili_ani_data(url: String) -> Result<String, String> {
         .await
         .map_err(|e| e.to_string())?;
 
-    // 3. 初始化一个空的 result
-    let mut result: AniResult = HashMap::new();
+    // 3. 填充 result
+    let result: AniResult = process_json_value(&json_value);
 
-    // 4. 填充 result
-    process_json_value(&json_value, &mut result);
-
-    // 5. 序列化 result 并返回给前端
+    // 4. 序列化 result 并返回给前端
     let json_string = serde_json::to_string(&result)
         .map_err(|e| e.to_string())?;
 
@@ -64,42 +61,61 @@ pub async fn fetch_bilibili_ani_data(url: String) -> Result<String, String> {
 }
 
 /// 解析原始 JSON，往 `result` 中填充当天已发布的番剧更新
-fn process_json_value(json_value: &Value, result: &mut AniResult) {
-    // 1. code != 0 或者没有 result 字段，则记录错误并返回
+fn process_json_value(json_value: &Value) -> AniResult {
+    // 1. 验证响应状态和数据结构
     let code = json_value.get("code").and_then(Value::as_i64).unwrap_or(-1);
     if code != 0 || !json_value.get("result").map_or(false, Value::is_array) {
         error!("接口返回数据异常：{}", json_value);
-        return;
+        return HashMap::new();
     }
     info!("成功获取哔哩哔哩追番表数据");
-    // 2. 找到 is_today == 1 的那一天
-    let days = json_value.get("result").unwrap().as_array().unwrap();
-    let today_opt = days.iter()
-        .find(|day| day.get("is_today").and_then(Value::as_i64) == Some(1));
 
-    let today = match today_opt {
-        Some(d) => d,
+    // 2. 获取结果数组
+    let days = match json_value["result"].as_array() {
+        Some(arr) => arr,
         None => {
-            info!("今日没有更新");
-            return;
+            error!("result 字段不是数组: {}", json_value);
+            return HashMap::new();
         }
     };
 
-    // 3. 筛选出 published == 1 的剧集，并生成 AniItem 推入 result
+    // 3. 找到今天的数据 (is_today == 1)
+    let today = match days.iter().find(|day| day.get("is_today").and_then(Value::as_i64) == Some(1)) {
+        Some(day) => day,
+        None => {
+            info!("今日没有更新");
+            // 即使没有更新，也返回包含空列表的结果
+            return create_empty_result();
+        }
+    };
+
+    // 4. 处理剧集数据
+    let weekday = get_week_day_of_today();
+    let mut comics: Vec<AniItem> = Vec::new();
+
     if let Some(eps) = today.get("episodes").and_then(Value::as_array) {
-        // 获取星期字符串，例如 "星期日"
-        let weekday_str = get_week_day_of_today();
         for ep in eps.iter().filter(|e| e.get("published").and_then(Value::as_i64) == Some(1)) {
             let item = parse_item(ep);
             info!("识别到更新：{} {}", item.title, item.update_info);
-            result
-                .entry(weekday_str.clone())
-                .or_default()
-                .push(item);
+            comics.push(item);
         }
     }
+
+    info!("成功提取到 {} 部今日更新的动漫。", comics.len());
+
+    // 5. 构建结果
+    let mut result = HashMap::new();
+    result.insert(weekday, comics);
+    result
 }
 
+// 辅助函数：创建空结果
+fn create_empty_result() -> AniResult {
+    let weekday = get_week_day_of_today();
+    let mut result = HashMap::new();
+    result.insert(weekday, Vec::new());
+    result
+}
 /// 根据单个 episode JSON 构建 AniItem
 fn parse_item(ep: &Value) -> AniItem {
     // pub_index
