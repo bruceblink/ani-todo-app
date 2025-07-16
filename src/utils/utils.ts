@@ -15,6 +15,6 @@ export async function loadAniData(url: string, cmd: string) {
         return data;
     } catch (e) {
         console.error(`fetch data from ${url} 失败：`, e);
-        throw e;
+        return {};
     }
 }
