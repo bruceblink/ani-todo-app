@@ -1,11 +1,14 @@
 pub mod utils;
 pub mod platforms;
 pub mod configuration;
+pub mod db;
 
 use crate::platforms::{fetch_bilibili_ani_data, fetch_bilibili_image};
 use chrono::Local; 
 use std::fmt;
+use tauri::async_runtime::block_on;
 use tauri_plugin_log::fern;
+use crate::db::sqlite::setup_app_db;
 use crate::platforms::iqiyi::{fetch_iqiyi_ani_data, fetch_iqiyi_image};
 use crate::platforms::mikanani::{fetch_mikanani_ani_data, fetch_mikanani_image};
 use crate::platforms::tencent::{fetch_qq_ani_data, fetch_qq_image};
@@ -15,6 +18,8 @@ use crate::platforms::youku::{fetch_youku_ani_data, fetch_youku_image};
 pub fn run() {
     tauri::Builder::default()
         .setup(|app| {
+            // 同步执行数据库初始化
+            block_on(setup_app_db(app))?;
             if cfg!(debug_assertions) {
                 // 自定义日志格式（使用本地时区）
                 let format = move |out: fern::FormatCallback, message: &fmt::Arguments, record: &log::Record| {

@@ -22,10 +22,10 @@ log = "0.4"
 tauri = { version = "2", features = [] }
 tauri-plugin-log = "2"
 # 如需异步运行时支持
-tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
+tokio = { version = "1", features = ["full"] }
 
-# 示例：使用 SQLx 访问 PostgreSQL，可根据需要替换
-sqlx = { version = "0.8", features = ["runtime-tokio-rustls", "postgres", "macros"] }
+# 示例：使用 SQLx 访问 sqlite，可根据需要替换
+sqlx = { version = "0.8", features = ["sqlite", "macros", "runtime-tokio-rustls"] }
 
 # 序列化库
 serde = { version = "1.0", features = ["derive"] }
@@ -38,3 +38,5 @@ once_cell = "1.21.3"
 scraper = "0.23.1"
 anyhow = "1"
 config = "0.15"
+
+[dev-dependencies]  # 仅用于测试
