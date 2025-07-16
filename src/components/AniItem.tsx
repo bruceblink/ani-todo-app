@@ -1,5 +1,6 @@
 import AniImage from "./AniImage";
 import { getAniId } from "../utils/utils";
+import toast from "react-hot-toast";
 
 export interface Ani {
     title: string;
@@ -22,10 +23,11 @@ export default function AniItem({ ani, onClear }: Props) {
     // 点击清除按钮时调用
     const handleClearClick = () => {
         const confirmed = window.confirm(
-            `你确定要清除《${ani.title}》这条番剧吗？`
+            `你确定要清除《${ani.title}》这部番剧吗？`
         );
         if (confirmed) {
             onClear(id);
+            toast.success(`已经清除了《${ani.title}》这部番剧`);
         }
     };
 

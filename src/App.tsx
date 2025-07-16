@@ -6,6 +6,7 @@ import AniList from './components/AniList';
 import { useAniData } from './hooks/useAniData';
 import { getAniId } from './utils/utils';
 import RefreshButton from './components/RefreshButton';
+import {Toaster} from "react-hot-toast";
 
 export default function App() {
     const { data, loading, error, refresh } = useAniData();
@@ -43,6 +44,13 @@ export default function App() {
                 {/* 番剧列表 */}
                 <AniList list={filtered} clearedIds={clearedIds} onClear={handleClear} />
             </div>
+            <Toaster
+                position="top-center"
+                toastOptions={{
+                    className:
+                        'bg-gray-50 dark:bg-slate-600 dark:text-white rounded-md shadow-md',
+                }}
+            />
         </>
 
     );
