@@ -34,7 +34,7 @@ export default function App() {
 
     return (
         <>
-            {/* 只显示标题和总数 */}
+            {/* 显示标题和总数和已观看数目 */}
             <Header weekday={today} total={aniList.length} watched={aniList.length - filtered.length}/>
             {/* 固定在右上角的刷新按钮 */}
             <RefreshButton loading={loading} onClick={refresh} />
