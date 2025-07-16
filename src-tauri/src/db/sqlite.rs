@@ -41,7 +41,11 @@ async fn init_db(app: &AppHandle) -> Result<Pool<Sqlite>> {
     Ok(pool)
 }
 
-/// 创建数据库连接池 :db_path 为.db文件的路径 ：eg:"C:\Users\likanug\AppData\Roaming\com.likanug.dev\data\app_data.db"
+/// 创建数据库连接池 
+/// # 参数
+/// - `db_path`: 为.db文件的路径 eg:"C:\Users\likanug\AppData\Roaming\com.likanug.dev\data\app_data.db"
+/// # 返回值
+/// 返回一个 Pool<Sqlite> 类型的Result
 async fn creat_database_connection_pool(db_path: String) -> Result<Pool<Sqlite>, Error> {
     // 创建连接选项
     let connect_options = SqliteConnectOptions::from_str(&format!("file:{}?mode=rwc", db_path))?
