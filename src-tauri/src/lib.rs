@@ -1,5 +1,6 @@
 pub mod utils;
 pub mod platforms;
+pub mod configuration;
 
 use crate::platforms::{fetch_bilibili_ani_data, fetch_bilibili_image};
 use chrono::Local; 
