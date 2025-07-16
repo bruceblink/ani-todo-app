@@ -7,14 +7,6 @@
     box-sizing: border-box;
 }
 
-body {
-    /* 关键修复：始终显示滚动条防止跳动 */
-    overflow-y: scroll;
-    /*padding: 100px 20px 40px;*/
-    background: #f5f7fa;
-    min-height: 100vh;
-}
-
 :root {
     font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
     line-height: 1.5;
@@ -28,6 +20,10 @@ body {
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    font-family: -apple-system,
+    BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
 }
 
 a {
@@ -46,6 +42,10 @@ body {
     place-items: center;
     min-width: 320px;
     min-height: 100vh;
+    /* 关键修复：始终显示滚动条防止跳动 */
+    overflow-y: scroll;
+    /*padding: 100px 20px 40px;*/
+    background: #f5f7fa;
 }
 
 h1 {
