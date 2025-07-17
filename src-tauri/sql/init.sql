@@ -8,5 +8,6 @@ CREATE TABLE IF NOT EXISTS ani_items (
    detail_url TEXT NOT NULL,                       -- 番剧观看地址
    update_time TEXT NOT NULL,                      -- 番剧更新时间
    platform TEXT NOT NULL,                         -- 番剧的视频平台
+   watched INTEGER NOT NULL DEFAULT 0,             -- 是否已观看，0为false，1为true
    UNIQUE(title, platform)                         -- 唯一约束
 );

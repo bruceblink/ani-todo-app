@@ -165,7 +165,7 @@ fn build_aniitem(item: &Value) -> Option<AniItem> {
 
     let update_time = today_iso_date_ld();
 
-    Some(AniItem { platform, title, update_count, update_info, image_url, detail_url, update_time })
+    Some(AniItem { platform, title, update_count, update_info, image_url, detail_url, update_time, watched: false, })
 }
 
 /// 生成腾讯视频播放链接
