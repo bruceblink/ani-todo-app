@@ -6,14 +6,14 @@ use std::str::FromStr;
 use tauri::{path::BaseDirectory, AppHandle, Manager};
 
 /// 获取tauri应用 的应用数据目录
-fn get_app_data_dir(app: &AppHandle) -> std::path::PathBuf {
+pub fn get_app_data_dir(app: &AppHandle) -> std::path::PathBuf {
     app.path()
         .resolve("data", BaseDirectory::AppData) // 自动处理跨平台路径
         .expect("Failed to resolve path")
 }
 
 /// 获取数据库文件路径
-fn get_or_set_db_path(app_data_dir: std::path::PathBuf) -> Result<String> {
+pub fn get_or_set_db_path(app_data_dir: std::path::PathBuf) -> Result<String> {
     // 构建数据库路径
     let db_path = app_data_dir.join("app_data.db");
     info!("数据库文件存放路径为{:?}", db_path);
@@ -46,7 +46,7 @@ async fn init_db(app: &AppHandle) -> Result<Pool<Sqlite>> {
 /// - `db_path`: 为.db文件的路径 eg:"C:\Users\likanug\AppData\Roaming\com.likanug.dev\data\app_data.db"
 /// # 返回值
 /// 返回一个 Pool<Sqlite> 类型的Result
-async fn creat_database_connection_pool(db_path: String) -> Result<Pool<Sqlite>, Error> {
+pub async fn creat_database_connection_pool(db_path: String) -> Result<Pool<Sqlite>, Error> {
     // 创建连接选项
     let connect_options = SqliteConnectOptions::from_str(&format!("file:{}?mode=rwc", db_path))?
         .create_if_missing(true)
