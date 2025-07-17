@@ -1,6 +1,6 @@
 use anyhow::{Context, Error, Result};
 use log::info;
-use sqlx::{sqlite::{SqliteConnectOptions, SqlitePoolOptions}, FromRow, Pool, Sqlite, SqlitePool};
+use sqlx::{sqlite::{SqliteConnectOptions, SqlitePoolOptions}, Pool, Sqlite, SqlitePool};
 use std::fs;
 use std::str::FromStr;
 use tauri::{path::BaseDirectory, AppHandle, Manager};
@@ -90,21 +90,15 @@ pub async fn setup_app_db(app: &mut tauri::App) -> Result<(), Box<dyn std::error
     Ok(())
 }
 
-#[derive(Debug, FromRow)]
-pub struct User {
-    pub id: i64,
-    pub name: String,
-    pub age: i32,
-}
-
 
 #[cfg(test)]
 mod tests {
-    use crate::db::sqlite::{creat_database_connection_pool, init_db_schema, User};
+    use crate::db::sqlite::{creat_database_connection_pool, init_db_schema};
     use sqlx::{Pool, Sqlite, SqlitePool};
     use std::fs::File;
     use std::io::{Seek, SeekFrom, Write};
     use tempfile::NamedTempFile;
+    use crate::platforms::AniItem;
 
     #[test]
     fn test_with_temp_file() -> std::io::Result<()> {
@@ -146,62 +140,155 @@ mod tests {
         let pool = SqlitePool::connect("sqlite::memory:").await.unwrap();
         init_db_schema(&pool).await.expect("建表失败");
         // 执行sql
-        sqlx::query("INSERT INTO ani_items (title, age) VALUES (?, ?)")
-            .bind("Alice")
-            .bind(30i32)
+        sqlx::query("INSERT INTO ani_items (title, 
+                                               update_count, 
+                                               update_info, 
+                                               image_url,
+                                               detail_url,
+                                               update_time,
+                                               platform
+                                               ) VALUES
+                                              (?, ? ,? ,? ,? ,? ,?);")
+            .bind("名侦探柯南")
+            .bind("1234")
+            .bind("2025/07/13 更新")
+            .bind("https://mikanani.me/images/Bangumi/201310/91d95f43.jpg?width=400&height=400&format=webp")
+            .bind("https://mikanani.me/Home/Bangumi/227")
+            .bind("2025/07/13")
+            .bind("mikanani")
             .execute(&pool)
             .await
             .unwrap();
-        sqlx::query("INSERT INTO users (name, age) VALUES (?, ?)")
-            .bind("John")
-            .bind(18i32)
+        sqlx::query("INSERT INTO ani_items (title, 
+                                               update_count, 
+                                               update_info, 
+                                               image_url,
+                                               detail_url,
+                                               update_time,
+                                               platform
+                                               ) VALUES
+                                              (?, ? ,? ,? ,? ,? ,?);")
+            .bind("You and idol 光之美少女♪")
+            .bind("2")
+            .bind("2025/07/13 更新")
+            .bind("https://mikanani.me/images/Bangumi/202502/4462a4be.jpg?width=400&height=400&format=webp")
+            .bind("https://mikanani.me/Home/Bangumi/3570")
+            .bind("2025/07/13")
+            .bind("mikanani")
             .execute(&pool)
             .await
             .unwrap();
 
-        let users = sqlx::query_as::<_, User>("SELECT id, name, age FROM users;")
+        sqlx::query("INSERT INTO ani_items (title, 
+                                               update_count, 
+                                               update_info, 
+                                               image_url,
+                                               detail_url,
+                                               update_time,
+                                               platform
+                                               ) VALUES
+                                              (?, ? ,? ,? ,? ,? ,?);")
+            .bind("魔女守护者")
+            .bind("2")
+            .bind("2025/07/13 更新")
+            .bind("https://mikanani.me/images/Bangumi/202504/ff5c2429.jpg?width=400&height=400&format=webp")
+            .bind("https://mikanani.me/Home/Bangumi/3587")
+            .bind("2025/07/13")
+            .bind("mikanani")
+            .execute(&pool)
+            .await
+            .unwrap();
+
+        sqlx::query("INSERT INTO ani_items (title, 
+                                               update_count, 
+                                               update_info, 
+                                               image_url,
+                                               detail_url,
+                                               update_time,
+                                               platform
+                                               ) VALUES
+                                              (?, ? ,? ,? ,? ,? ,?);")
+            .bind("凸变英雄X")
+            .bind("21")
+            .bind("2025/07/13 更新")
+            .bind("https://mikanani.me/images/Bangumi/202504/9b18d132.jpg?width=400&height=400&format=webp")
+            .bind("https://mikanani.me/Home/Bangumi/3640")
+            .bind("2025/07/13")
+            .bind("mikanani")
+            .execute(&pool)
+            .await
+            .unwrap();
+
+        sqlx::query("INSERT INTO ani_items (title, 
+                                               update_count, 
+                                               update_info, 
+                                               image_url,
+                                               detail_url,
+                                               update_time,
+                                               platform
+                                               ) VALUES
+                                              (?, ? ,? ,? ,? ,? ,?);")
+            .bind("琉璃的宝石")
+            .bind("16")
+            .bind("2025/07/13 更新")
+            .bind("https://mikanani.me/images/Bangumi/202507/18470785.jpg?width=400&height=400&format=webp")
+            .bind("https://mikanani.me/Home/Bangumi/3663")
+            .bind("2025/07/13")
+            .bind("mikanani")
+            .execute(&pool)
+            .await
+            .unwrap();
+
+        // 这里要求查询字段与结构体AniItem中 定义的字段个数和名称要一致
+        let ani_items = sqlx::query_as::<_, AniItem>("SELECT title, update_count, update_info, platform, image_url, detail_url, update_time, platform FROM ani_items;")
             .fetch_all(&pool)
             .await
             .unwrap();
-        assert_eq!(users.len(), 2);
-        assert_eq!(users[0].name, "Alice");
+        assert_eq!(ani_items.len(), 5);
+        assert_eq!(ani_items[0].title, "名侦探柯南");
 
-        let user = sqlx::query_as::<_, User>("SELECT id, name, age FROM users WHERE name = ?;")
-            .bind("John")
+        let ani_item = sqlx::query_as::<_, AniItem>("SELECT title, update_count, update_info, platform, image_url, detail_url, update_time, platform FROM ani_items;")
+            .bind("名侦探柯南")
             .fetch_one(&pool)
             .await
             .unwrap();
-        assert_eq!(user.age, 18);
+        assert_eq!(ani_item.update_count, "1234");
 
         // update sql 测试
-        sqlx::query("UPDATE users SET age = ? WHERE name = ?;")
-            .bind(21)
-            .bind("John")
+        sqlx::query("UPDATE ani_items SET update_count = ? WHERE title = ?;")
+            .bind("2100")
+            .bind("名侦探柯南")
             .execute(&pool)
             .await
             .unwrap();
-        let user = sqlx::query_as::<_, User>("SELECT id, name, age FROM users WHERE name = ?;")
-            .bind("John")
+        let ani_item = sqlx::query_as::<_, AniItem>("SELECT title, update_count, update_info, platform, image_url, detail_url, update_time, platform FROM ani_items WHERE title = ?;")
+            .bind("名侦探柯南")
             .fetch_one(&pool)
             .await
             .unwrap();
-        assert_eq!(user.age, 21);
+        assert_eq!(ani_item.update_count, "2100");
 
-        sqlx::query("DELETE FROM users WHERE NAME = ?")
-            .bind("Alice")
+        sqlx::query("DELETE FROM ani_items WHERE title = ?")
+            .bind("名侦探柯南")
             .execute(&pool)
             .await
             .unwrap();
 
         // 查询一个不存在的用户
-        let user = sqlx::query_as::<_, User>("SELECT id, name, age FROM users WHERE name = ?")
-            .bind("Alice")
+        let ani_item = sqlx::query_as::<_, AniItem>("SELECT title, update_count, update_info, platform, image_url, detail_url, update_time, platform FROM ani_items where title = ?;")
+            .bind("名侦探柯南")
             .fetch_optional(&pool)
             .await
             .expect("数据库查询出错");
 
         // 断言确实为空
-        assert!(user.is_none(), "期望用户不存在，但查询到了结果");
+        assert!(ani_item.is_none(), "期望用户不存在，但查询到了结果");
+        let ani_items = sqlx::query_as::<_, AniItem>("SELECT title, update_count, update_info, platform, image_url, detail_url, update_time, platform FROM ani_items;")
+            .fetch_all(&pool)
+            .await
+            .unwrap();
+        assert_eq!(ani_items.len(), 4);
+        assert_ne!(ani_items[0].title, "名侦探柯南");
     }
 
 }
