@@ -12,7 +12,7 @@ export default function AniList({ list, clearedIds, onClear }: Props) {
         <div className="ani-list">
             {
                 list.filter(ani => !clearedIds.has(getAniId(ani)))
-                  .map(ani => (
+                     .map(ani => (
                      <AniItem key={getAniId(ani)} ani={ani} onClear={() => onClear(getAniId(ani))} />
                     )
                   )
