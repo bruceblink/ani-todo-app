@@ -2,7 +2,7 @@ use serde::Deserialize;
 use std::collections::HashMap;
 
 #[derive(Debug, Deserialize)]
-struct DataSource {
+pub struct DataSource {
     name: String,
     url: String,
     cmd: String,
@@ -10,12 +10,12 @@ struct DataSource {
 
 // 不再需要 DataSourceCategory 结构体
 #[derive(Debug, Deserialize)]
-struct AppConfig {
+pub struct AppConfig {
     datasource: HashMap<String, Vec<DataSource>>, // 直接映射到 Vec<DataSource>
 }
 
 // 读取配置文件
-fn load_configuration() -> Result<AppConfig, config::ConfigError> {
+pub fn load_configuration() -> Result<AppConfig, config::ConfigError> {
     // 获取根目录路径
     let base_path = std::env::current_dir().expect("Failed to determine the current directory");
     // 读取配置文件目录
