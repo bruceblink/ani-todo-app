@@ -63,18 +63,23 @@ async fn creat_database_connection_pool(db_path: String) -> Result<Pool<Sqlite>,
     pool
 }
 
+async fn load_sql_script() -> Result<String, std::io::Error> {
+    let mut path = std::env::current_dir()?;
+    path.push("sql");
+    path.push("init.sql");
+    fs::read_to_string(path)
+}
+
 /// 初始化数据库结构
-async fn init_db_schema(pool: &SqlitePool) -> Result<()> {
-    let init_sql = r#"
-        CREATE TABLE IF NOT EXISTS users (
-            id   INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            age  INTEGER NOT NULL
-        );
-        "#;
-    sqlx::query(init_sql)
-        .execute(pool)
-        .await?;
+pub async fn init_db_schema(pool: &SqlitePool) -> Result<(), sqlx::Error> {
+    let script = load_sql_script().await.map_err(|e| sqlx::Error::Io(e))?;
+
+    for stmt in script.split(';') {
+        let stmt = stmt.trim();
+        if !stmt.is_empty() {
+            sqlx::query(stmt).execute(pool).await?;
+        }
+    }
     Ok(())
 }
 
@@ -141,7 +146,7 @@ mod tests {
         let pool = SqlitePool::connect("sqlite::memory:").await.unwrap();
         init_db_schema(&pool).await.expect("建表失败");
         // 执行sql
-        sqlx::query("INSERT INTO users (name, age) VALUES (?, ?)")
+        sqlx::query("INSERT INTO ani_items (title, age) VALUES (?, ?)")
             .bind("Alice")
             .bind(30i32)
             .execute(&pool)
