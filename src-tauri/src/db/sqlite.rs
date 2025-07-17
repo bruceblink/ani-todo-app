@@ -239,6 +239,41 @@ mod tests {
             .await
             .unwrap();
 
+        sqlx::query(r#"INSERT INTO ani_items (
+                                                title,
+                                                update_count,
+                                                update_info,
+                                                image_url,
+                                                detail_url,
+                                                update_time,
+                                                platform
+                                            ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                                            ON CONFLICT(title, platform) DO UPDATE SET
+                                                update_count = excluded.update_count,
+                                                update_info = excluded.update_info,
+                                                image_url = excluded.image_url,
+                                                detail_url = excluded.detail_url,
+                                                update_time = excluded.update_time;
+                                            "#
+                )
+            .bind("琉璃的宝石")
+            .bind("18")
+            .bind("2025/07/13 更新")
+            .bind("https://mikanani.me/images/Bangumi/202507/18470785.jpg?width=400&height=400&format=webp")
+            .bind("https://mikanani.me/Home/Bangumi/3663")
+            .bind("2025/07/13")
+            .bind("mikanani")
+            .execute(&pool)
+            .await
+            .expect("插入或更新失败");
+        // 测试违反唯一约束更新更新数据
+        let ani_item = sqlx::query_as::<_, AniItem>("SELECT title, update_count, update_info, platform, image_url, detail_url, update_time, platform FROM ani_items WHERE title = ?;")
+            .bind("琉璃的宝石")
+            .fetch_one(&pool)
+            .await
+            .unwrap();
+        assert_eq!(ani_item.update_count, "18");
+        
         // 这里要求查询字段与结构体AniItem中 定义的字段个数和名称要一致
         let ani_items = sqlx::query_as::<_, AniItem>("SELECT title, update_count, update_info, platform, image_url, detail_url, update_time, platform FROM ani_items;")
             .fetch_all(&pool)
