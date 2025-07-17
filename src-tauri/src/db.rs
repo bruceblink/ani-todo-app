@@ -1,3 +1,4 @@
+use log::info;
 use serde_json::json;
 use sqlx::{Arguments, Pool, Sqlite};
 
@@ -60,5 +61,32 @@ pub async fn save_ani_item_data(app: AppHandle, ani_data: &str) -> Result<String
     Ok(json!({
             "status": "ok",
             "message": "save success"
+        }).to_string())
+}
+
+
+#[tauri::command]
+pub async fn remove_ani_item_data(app: AppHandle, ani_id: &str) -> Result<String, String> {
+    let db_path = get_or_set_db_path(get_app_data_dir(&app)).map_err(|e| e.to_string())?;
+    let pool: Pool<Sqlite> = creat_database_connection_pool(db_path)
+        .await
+        .map_err(|e| e.to_string())?;
+    
+    if let Some((title, platform)) = ani_id.split_once("---") {
+        sqlx::query("UPDATE ani_items SET watched = ? WHERE title = ? AND platform = ?")
+            .bind(1u8)
+            .bind(title)
+            .bind(platform)
+            .execute(&pool)
+            .await.expect("更新失败");
+        info!("已经删除 title: {}, platform: {}", title, platform);
+    } else {
+        info!("ani_id: {} 的格式错误", ani_id);
+        
+    }
+    
+    Ok(json!({
+            "status": "ok",
+            "message": "remove success"
         }).to_string())
 }

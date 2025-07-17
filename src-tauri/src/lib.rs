@@ -8,7 +8,7 @@ use chrono::Local;
 use std::fmt;
 use tauri::async_runtime::block_on;
 use tauri_plugin_log::fern;
-use crate::db::save_ani_item_data;
+use crate::db::{remove_ani_item_data, save_ani_item_data};
 use crate::db::sqlite::setup_app_db;
 use crate::platforms::iqiyi::{fetch_iqiyi_ani_data, fetch_iqiyi_image};
 use crate::platforms::mikanani::{fetch_mikanani_ani_data, fetch_mikanani_image};
@@ -53,7 +53,8 @@ pub fn run() {
             fetch_qq_ani_data,
             fetch_youku_image,
             fetch_youku_ani_data,
-            save_ani_item_data
+            save_ani_item_data,
+            remove_ani_item_data,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -4,7 +4,7 @@ import { type Ani } from './components/AniItem';
 import Header from './components/Header';
 import AniList from './components/AniList';
 import { useAniData } from './hooks/useAniData';
-import { getAniId } from './utils/utils';
+import {getAniId, removeAniItemFromDatabase} from './utils/utils';
 import RefreshButton from './components/RefreshButton';
 import {Toaster} from "react-hot-toast";
 
@@ -17,6 +17,7 @@ export default function App() {
         return saved ? new Set(JSON.parse(saved)) : new Set();
     });
     const handleClear = (id: string) => {
+        void removeAniItemFromDatabase(id);
         setClearedIds(prev => {
             const next = new Set(prev);
             next.add(id);

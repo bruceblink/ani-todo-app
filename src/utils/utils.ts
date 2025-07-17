@@ -33,3 +33,16 @@ export async function saveLoadedAniData2Database(aniData: Record<string, Ani[]>)
         return {};
     }
 }
+
+export async function removeAniItemFromDatabase(aniId: string) {
+    try {
+        const jsonStr = await invoke<string>("remove_ani_item_data", { aniId: aniId});
+        // 解析成对象
+        const data = JSON.parse(jsonStr);
+        console.log(`remove ${aniId} from db success!`);
+        return data;
+    } catch (e) {
+        console.error(`remove ${aniId} from db failed：`, e);
+        return {};
+    }
+}
