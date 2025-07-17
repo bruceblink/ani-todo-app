@@ -40,3 +40,4 @@ anyhow = "1"
 config = "0.15"
 
 [dev-dependencies]  # 仅用于测试
+tempfile = "3"

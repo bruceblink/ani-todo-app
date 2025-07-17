@@ -1,8 +1,8 @@
-use std::fs;
-use sqlx::{sqlite::{SqliteConnectOptions, SqlitePoolOptions}, FromRow, Pool, Sqlite, SqlitePool};
-use anyhow::{Result, Context, Error};
-use std::str::FromStr;
+use anyhow::{Context, Error, Result};
 use log::info;
+use sqlx::{sqlite::{SqliteConnectOptions, SqlitePoolOptions}, FromRow, Pool, Sqlite, SqlitePool};
+use std::fs;
+use std::str::FromStr;
 use tauri::{path::BaseDirectory, AppHandle, Manager};
 
 /// 获取tauri应用 的应用数据目录
@@ -97,12 +97,108 @@ pub struct User {
 
 #[cfg(test)]
 mod tests {
-    use sqlx::sqlite::SqlitePoolOptions;
-    use crate::db::sqlite::init_db;
+    use crate::db::sqlite::{creat_database_connection_pool, init_db_schema, User};
+    use sqlx::{Pool, Sqlite};
+    use std::fs::File;
+    use std::io::{Seek, SeekFrom, Write};
+    use tempfile::NamedTempFile;
+
+    #[test]
+    fn test_with_temp_file() -> std::io::Result<()> {
+        // 创建临时文件，自动位于系统临时目录，测试结束后自动删除
+        let mut tmp_file = NamedTempFile::new()?;
+        println!("{:?}", tmp_file);
+
+        // 写入数据
+        writeln!(tmp_file, "line 1")?;
+        writeln!(tmp_file, "line 2")?;
+
+        // 为了演示，重新打开临时文件以读取内容
+        let mut file = File::open(tmp_file.path())?;
+        file.seek(SeekFrom::Start(0))?;
+
+        // 执行测试断言逻辑...
+        let content = std::fs::read_to_string(tmp_file.path())?;
+        assert!(content.contains("line 1"));
+
+        Ok(())
+    }
+
+    async fn get_test_db_connection_pool() -> Pool<Sqlite>{
+        let tmp_file = NamedTempFile::new();
+        let db_url = tmp_file.unwrap().path().to_str().unwrap().to_string();
+        //let db_url = "C:\\Users\\likanug\\AppData\\Roaming\\com.likanug.dev\\data\\app_data.db".to_string();
+        creat_database_connection_pool(db_url).await.unwrap()
+    }
 
     #[tokio::test]
-    async fn test_insert2db() {
-        todo!()
+    async fn test_get_db_connecting_pool() {
+        let pool = get_test_db_connection_pool();
+        assert_eq!(pool.await.size(), 1);
+    }
+
+    #[tokio::test]
+    async fn db_operation() {
+        // 获取数据库连接池
+        let pool = get_test_db_connection_pool().await;
+        init_db_schema(&pool).await.expect("建表失败");
+        // 执行sql
+        sqlx::query("INSERT INTO users (name, age) VALUES (?, ?)")
+            .bind("Alice")
+            .bind(30i32)
+            .execute(&pool)
+            .await
+            .unwrap();
+        sqlx::query("INSERT INTO users (name, age) VALUES (?, ?)")
+            .bind("John")
+            .bind(18i32)
+            .execute(&pool)
+            .await
+            .unwrap();
+
+        let users = sqlx::query_as::<_, User>("SELECT id, name, age FROM users;")
+            .fetch_all(&pool)
+            .await
+            .unwrap();
+        assert_eq!(users.len(), 2);
+        assert_eq!(users[0].name, "Alice");
+
+        let user = sqlx::query_as::<_, User>("SELECT id, name, age FROM users WHERE name = ?;")
+            .bind("John")
+            .fetch_one(&pool)
+            .await
+            .unwrap();
+        assert_eq!(user.age, 18);
+
+        // update sql 测试
+        sqlx::query("UPDATE users SET age = ? WHERE name = ?;")
+            .bind(21)
+            .bind("John")
+            .execute(&pool)
+            .await
+            .unwrap();
+        let user = sqlx::query_as::<_, User>("SELECT id, name, age FROM users WHERE name = ?;")
+            .bind("John")
+            .fetch_one(&pool)
+            .await
+            .unwrap();
+        assert_eq!(user.age, 21);
+
+        sqlx::query("DELETE FROM users WHERE NAME = ?")
+            .bind("Alice")
+            .execute(&pool)
+            .await
+            .unwrap();
+
+        // 查询一个不存在的用户
+        let user = sqlx::query_as::<_, User>("SELECT id, name, age FROM users WHERE name = ?")
+            .bind("Alice")
+            .fetch_optional(&pool)
+            .await
+            .expect("数据库查询出错");
+
+        // 断言确实为空
+        assert!(user.is_none(), "期望用户不存在，但查询到了结果");
     }
 
 }
