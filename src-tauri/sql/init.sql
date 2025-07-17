@@ -2,7 +2,7 @@
 CREATE TABLE IF NOT EXISTS ani_items (
    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,  -- 主键id
    title TEXT NOT NULL,                            -- 番剧标题
-   update_count TEXTL,                             -- 更新集数
+   update_count TEXT,                              -- 更新集数
    update_info TEXT NOT NULL,                      -- 更新信息
    image_url TEXT NOT NULL,                        -- 番剧的封面图片
    detail_url TEXT NOT NULL,                       -- 番剧观看地址
