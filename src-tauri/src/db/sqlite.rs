@@ -65,18 +65,16 @@ async fn creat_database_connection_pool(db_path: String) -> Result<Pool<Sqlite>,
 
 /// 初始化数据库结构
 async fn init_db_schema(pool: &SqlitePool) -> Result<()> {
-    sqlx::query(
-        r#"
+    let init_sql = r#"
         CREATE TABLE IF NOT EXISTS users (
             id   INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
             age  INTEGER NOT NULL
         );
-        "#,
-        )
+        "#;
+    sqlx::query(init_sql)
         .execute(pool)
         .await?;
-
     Ok(())
 }
 
@@ -98,7 +96,7 @@ pub struct User {
 #[cfg(test)]
 mod tests {
     use crate::db::sqlite::{creat_database_connection_pool, init_db_schema, User};
-    use sqlx::{Pool, Sqlite};
+    use sqlx::{Pool, Sqlite, SqlitePool};
     use std::fs::File;
     use std::io::{Seek, SeekFrom, Write};
     use tempfile::NamedTempFile;
@@ -140,7 +138,7 @@ mod tests {
     #[tokio::test]
     async fn db_operation() {
         // 获取数据库连接池
-        let pool = get_test_db_connection_pool().await;
+        let pool = SqlitePool::connect("sqlite::memory:").await.unwrap();
         init_db_schema(&pool).await.expect("建表失败");
         // 执行sql
         sqlx::query("INSERT INTO users (name, age) VALUES (?, ?)")
