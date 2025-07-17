@@ -9,7 +9,7 @@ use crate::utils::date_utils::get_week_day_of_today;
 use tauri::AppHandle;
 
 #[tauri::command]
-pub async fn save_update_ani_item_data(app: AppHandle, ani_data: &str) -> Result<String, String> {
+pub async fn save_ani_item_data(app: AppHandle, ani_data: &str) -> Result<String, String> {
     let db_path = get_or_set_db_path(get_app_data_dir(&app)).map_err(|e| e.to_string())?;
     let pool: Pool<Sqlite> = creat_database_connection_pool(db_path)
         .await
