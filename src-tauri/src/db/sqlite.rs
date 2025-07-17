@@ -134,15 +134,14 @@ mod tests {
         assert_eq!(pool.await.size(), 1);
     }
 
-    #[tokio::test]
-    async fn db_operation() {
-        // 获取数据库连接池
-        let pool = SqlitePool::connect("sqlite::memory:").await.unwrap();
+    // 初始化测试数据
+    async fn init_test_table_data(pool: &Pool<Sqlite>) {
+
         init_db_schema(&pool).await.expect("建表失败");
         // 执行sql
-        sqlx::query("INSERT INTO ani_items (title, 
-                                               update_count, 
-                                               update_info, 
+        sqlx::query("INSERT INTO ani_items (title,
+                                               update_count,
+                                               update_info,
                                                image_url,
                                                detail_url,
                                                update_time,
@@ -156,12 +155,12 @@ mod tests {
             .bind("https://mikanani.me/Home/Bangumi/227")
             .bind("2025/07/13")
             .bind("mikanani")
-            .execute(&pool)
+            .execute(pool)
             .await
             .unwrap();
-        sqlx::query("INSERT INTO ani_items (title, 
-                                               update_count, 
-                                               update_info, 
+        sqlx::query("INSERT INTO ani_items (title,
+                                               update_count,
+                                               update_info,
                                                image_url,
                                                detail_url,
                                                update_time,
@@ -175,13 +174,13 @@ mod tests {
             .bind("https://mikanani.me/Home/Bangumi/3570")
             .bind("2025/07/13")
             .bind("mikanani")
-            .execute(&pool)
+            .execute(pool)
             .await
             .unwrap();
 
-        sqlx::query("INSERT INTO ani_items (title, 
-                                               update_count, 
-                                               update_info, 
+        sqlx::query("INSERT INTO ani_items (title,
+                                               update_count,
+                                               update_info,
                                                image_url,
                                                detail_url,
                                                update_time,
@@ -195,13 +194,13 @@ mod tests {
             .bind("https://mikanani.me/Home/Bangumi/3587")
             .bind("2025/07/13")
             .bind("mikanani")
-            .execute(&pool)
+            .execute(pool)
             .await
             .unwrap();
 
-        sqlx::query("INSERT INTO ani_items (title, 
-                                               update_count, 
-                                               update_info, 
+        sqlx::query("INSERT INTO ani_items (title,
+                                               update_count,
+                                               update_info,
                                                image_url,
                                                detail_url,
                                                update_time,
@@ -215,13 +214,13 @@ mod tests {
             .bind("https://mikanani.me/Home/Bangumi/3640")
             .bind("2025/07/13")
             .bind("mikanani")
-            .execute(&pool)
+            .execute(pool)
             .await
             .unwrap();
 
-        sqlx::query("INSERT INTO ani_items (title, 
-                                               update_count, 
-                                               update_info, 
+        sqlx::query("INSERT INTO ani_items (title,
+                                               update_count,
+                                               update_info,
                                                image_url,
                                                detail_url,
                                                update_time,
@@ -235,10 +234,16 @@ mod tests {
             .bind("https://mikanani.me/Home/Bangumi/3663")
             .bind("2025/07/13")
             .bind("mikanani")
-            .execute(&pool)
+            .execute(pool)
             .await
             .unwrap();
+    }
 
+    #[tokio::test]
+    async fn test_unique_insert() {
+        // 获取数据库连接池
+        let pool = SqlitePool::connect("sqlite::memory:").await.unwrap();
+        init_test_table_data(&pool).await;
         sqlx::query(r#"INSERT INTO ani_items (
                                                 title,
                                                 update_count,
@@ -254,8 +259,7 @@ mod tests {
                                                 image_url = excluded.image_url,
                                                 detail_url = excluded.detail_url,
                                                 update_time = excluded.update_time;
-                                            "#
-                )
+                                            "#)
             .bind("琉璃的宝石")
             .bind("18")
             .bind("2025/07/13 更新")
@@ -273,7 +277,35 @@ mod tests {
             .await
             .unwrap();
         assert_eq!(ani_item.update_count, "18");
-        
+    }
+
+    #[tokio::test]
+    async fn test_db_select_one() {
+        // 获取数据库连接池
+        let pool = SqlitePool::connect("sqlite::memory:").await.unwrap();
+        init_test_table_data(&pool).await;
+
+        // 这里要求查询字段与结构体AniItem中 定义的字段个数和名称要一致
+        let ani_item = sqlx::query_as::<_, AniItem>("SELECT title, update_count, update_info, platform, image_url, detail_url, update_time, platform FROM ani_items;")
+            .bind("名侦探柯南")
+            .fetch_one(&pool)
+            .await
+            .unwrap();
+        assert_eq!(ani_item.title, "名侦探柯南");
+        assert_eq!(ani_item.update_count, "1234");
+        assert_eq!(ani_item.update_info, "2025/07/13 更新");
+        assert_eq!(ani_item.platform, "mikanani");
+        assert_eq!(ani_item.image_url, "https://mikanani.me/images/Bangumi/201310/91d95f43.jpg?width=400&height=400&format=webp");
+        assert_eq!(ani_item.detail_url, "https://mikanani.me/Home/Bangumi/227");
+        assert_eq!(ani_item.update_time, "2025/07/13");
+    }
+
+    #[tokio::test]
+    async fn test_db_select_all() {
+        // 获取数据库连接池
+        let pool = SqlitePool::connect("sqlite::memory:").await.unwrap();
+        init_test_table_data(&pool).await;
+
         // 这里要求查询字段与结构体AniItem中 定义的字段个数和名称要一致
         let ani_items = sqlx::query_as::<_, AniItem>("SELECT title, update_count, update_info, platform, image_url, detail_url, update_time, platform FROM ani_items;")
             .fetch_all(&pool)
@@ -281,13 +313,13 @@ mod tests {
             .unwrap();
         assert_eq!(ani_items.len(), 5);
         assert_eq!(ani_items[0].title, "名侦探柯南");
+    }
 
-        let ani_item = sqlx::query_as::<_, AniItem>("SELECT title, update_count, update_info, platform, image_url, detail_url, update_time, platform FROM ani_items;")
-            .bind("名侦探柯南")
-            .fetch_one(&pool)
-            .await
-            .unwrap();
-        assert_eq!(ani_item.update_count, "1234");
+
+    #[tokio::test]
+    async fn test_db_update() {
+        let pool = SqlitePool::connect("sqlite::memory:").await.unwrap();
+        init_test_table_data(&pool).await;
 
         // update sql 测试
         sqlx::query("UPDATE ani_items SET update_count = ? WHERE title = ?;")
@@ -302,6 +334,13 @@ mod tests {
             .await
             .unwrap();
         assert_eq!(ani_item.update_count, "2100");
+    }
+
+    #[tokio::test]
+    async fn test_db_delete() {
+        // 获取数据库连接池
+        let pool = SqlitePool::connect("sqlite::memory:").await.unwrap();
+        init_test_table_data(&pool).await;
 
         sqlx::query("DELETE FROM ani_items WHERE title = ?")
             .bind("名侦探柯南")
