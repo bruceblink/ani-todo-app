@@ -2,7 +2,7 @@ import type {Ani} from "../components/AniItem";
 import {invoke} from '@tauri-apps/api/core';
 
 export function getAniId(ani: Ani): string {
-    return `${ani.title}-${ani.image_url}`;
+    return `${ani.title}---${ani.platform}`;
 }
 
 export async function loadAniData(url: string, cmd: string) {
