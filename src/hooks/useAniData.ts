@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import type {Ani} from "../components/AniItem.tsx";
-import {loadAniData} from "../utils/utils.ts";
+import {loadAniData, saveLoadedAniData2Database} from "../utils/utils.ts";
 
 // 定义请求结果类型 - 使用联合类型确保类型安全
 type RequestResult =
@@ -117,7 +117,7 @@ export function useAniData(): UseAniData {
                     });
                     return acc;
                 }, {});
-
+                await saveLoadedAniData2Database(merged);
                 setData(merged);
             } else if (Object.keys(newErrors).length > 0) {
                 // 所有请求都失败的情况
