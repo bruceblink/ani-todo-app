@@ -1,4 +1,4 @@
-use chrono::{Datelike, Local, Weekday};
+use chrono::{DateTime, Datelike, Local, TimeZone, Weekday};
 
 pub fn get_week_day_of_today() -> String{
     // 获取本地当前日期/时间
@@ -53,4 +53,54 @@ pub fn today_chinese_date() -> String {
 /// 返回 "yyMMdd"，例如 "250617"
 pub fn today_compact_date() -> String {
     Local::now().format("%y%m%d").to_string()
+}
+
+pub fn unix_seconds_to_timestamp(t: i64) -> DateTime<Local> {
+    let dt = Local.timestamp_opt(t, 0).unwrap();
+    dt
+}
+
+/// 将"2025-07-18 00:00:00 +08:00"格式的时间戳转换成 "2025-07-18" 格式的字符串
+pub fn timestamp_to_iso_date(dt: DateTime<Local>) -> String {
+    dt.format("%Y-%m-%d").to_string()
+}
+
+/// 将"2025-07-18 00:00:00 +08:00"格式的时间戳转换成 "2025/07/18" 格式的字符串
+pub fn timestamp_to_iso_date_ld(dt: DateTime<Local>) -> String {
+    dt.format("%Y/%m/%d").to_string()
+}
+
+/// 将"2025-07-18 00:00:00 +08:00"格式的时间戳转换成 "2025_07_18" 格式的字符串
+pub fn timestamp_to_iso_date_dd(dt: DateTime<Local>) -> String {
+    dt.format("%Y_%m_%d").to_string()
+}
+
+/// 将"2025-07-18 00:00:00 +08:00"格式的时间戳转换成 "2025-07-18 00:00:00" 格式的字符串
+pub fn timestamp_to_iso_datetime(dt: DateTime<Local>) -> String {
+    dt.format("%Y-%m-%d %H:%M:%S").to_string()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_format_unix_timestamp() {
+        let dt = unix_seconds_to_timestamp(1752768000);
+        assert_eq!(dt.to_string(), "2025-07-18 00:00:00 +08:00");
+    }
+
+    #[test]
+    fn test_timestamp_to_iso_date() {
+        let dt = unix_seconds_to_timestamp(1752768000);
+        let d = timestamp_to_iso_date(dt);
+        assert_eq!(d, "2025-07-18")
+    }
+
+    #[test]
+    fn test_timestamp_to_iso_date_ld() {
+        let dt = unix_seconds_to_timestamp(1752768000);
+        let d = timestamp_to_iso_date_ld(dt);
+        assert_eq!(d, "2025/07/18")
+    }
 }
