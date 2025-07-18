@@ -1,11 +1,11 @@
 use log::info;
 use serde_json::json;
-use sqlx::{Arguments, Pool, Sqlite};
+use sqlx::{Pool, Sqlite};
 
 pub mod sqlite;
 
 use crate::db::sqlite::{creat_database_connection_pool, get_app_data_dir, get_or_set_db_path};
-use crate::platforms::AniResult;
+use crate::platforms::{AniItem, AniResult};
 use crate::utils::date_utils::get_week_day_of_today;
 use tauri::AppHandle;
 
@@ -89,4 +89,32 @@ pub async fn remove_ani_item_data(app: AppHandle, ani_id: &str) -> Result<String
             "status": "ok",
             "message": "remove success"
         }).to_string())
+}
+
+
+#[tauri::command]
+pub async fn query_ani_item_data_list(app: AppHandle) -> Result<String, String> {
+    let db_path = get_or_set_db_path(get_app_data_dir(&app)).map_err(|e| e.to_string())?;
+    let pool: Pool<Sqlite> = creat_database_connection_pool(db_path)
+        .await
+        .map_err(|e| e.to_string())?;
+   
+    let ani_items = sqlx::query_as::<_, AniItem>(
+        r#"SELECT title, 
+                      update_count, 
+                      update_info, 
+                      platform, 
+                      image_url, 
+                      detail_url, 
+                      update_time, 
+                      platform
+                FROM ani_items;
+           "#)
+        .fetch_all(&pool)
+        .await
+        .unwrap();
+
+    let json_string = serde_json::to_string(&ani_items)
+        .map_err(|e| e.to_string())?;
+    Ok(json_string)
 }
