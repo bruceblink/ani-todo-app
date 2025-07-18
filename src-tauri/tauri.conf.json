@@ -1,7 +1,7 @@
 {
   "productName": "ani-todo-app",
   "version": "0.1.0",
-  "identifier": "com.likanug.dev",
+  "identifier": "top.likanug.dev",
   "plugins": {
     "http": {
       "version": "2.0.0"
