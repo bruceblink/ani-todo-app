@@ -10,7 +10,7 @@ export default function Header({ weekday, total, watched }: Props) {
         <div className="header">
             <div>
                 <h1 style={{ margin: 0, fontSize: '1.5rem' }}>
-                    {weekday} 更新番剧 共 {total} 部
+                    今日({weekday})更新番剧 共 {total} 部
                 </h1>
                 <div style={{ marginTop: '8px', fontSize: '1rem', color: '#555' }}>
                     已观看 {watched} 部 — {percentage}% 完成
