@@ -1,5 +1,5 @@
 use anyhow::{Context, Error, Result};
-use log::{debug, info};
+use log::{info};
 use sqlx::{sqlite::{SqliteConnectOptions, SqlitePoolOptions}, Pool, Sqlite, SqlitePool};
 use std::fs;
 use std::str::FromStr;
