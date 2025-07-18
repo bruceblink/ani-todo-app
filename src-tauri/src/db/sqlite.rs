@@ -16,7 +16,7 @@ pub fn get_app_data_dir(app: &AppHandle) -> std::path::PathBuf {
 pub fn get_or_set_db_path(app_data_dir: std::path::PathBuf) -> Result<String> {
     // 构建数据库路径
     let db_path = app_data_dir.join("app_data.db");
-    debug!("数据库文件存放路径为{:?}", db_path);
+    info!("数据库文件存放路径为{:?}", db_path);
     // 转换为字符串
     db_path.to_str()
         .map(|s| s.to_string())
@@ -60,6 +60,7 @@ pub async fn creat_database_connection_pool(db_path: String) -> Result<Pool<Sqli
         .connect_with(connect_options)
         .await
         .with_context(|| format!("无法连接数据库: {}", db_path));
+    info!("获取数据库连接池初成功!");
     pool
 }
 
