@@ -271,7 +271,7 @@ mod tests {
             .await
             .expect("插入或更新失败");
         // 测试违反唯一约束更新更新数据
-        let ani_item = sqlx::query_as::<_, AniItem>("SELECT title, update_count, update_info, platform, image_url, detail_url, update_time, platform FROM ani_items WHERE title = ?;")
+        let ani_item = sqlx::query_as::<_, AniItem>("SELECT title, update_count, update_info, platform, image_url, detail_url, update_time, platform, watched FROM ani_items WHERE title = ?;")
             .bind("琉璃的宝石")
             .fetch_one(&pool)
             .await
@@ -286,7 +286,7 @@ mod tests {
         init_test_table_data(&pool).await;
 
         // 这里要求查询字段与结构体AniItem中 定义的字段个数和名称要一致
-        let ani_item = sqlx::query_as::<_, AniItem>("SELECT title, update_count, update_info, platform, image_url, detail_url, update_time, platform FROM ani_items;")
+        let ani_item = sqlx::query_as::<_, AniItem>("SELECT title, update_count, update_info, platform, image_url, detail_url, update_time, platform, watched FROM ani_items;")
             .bind("名侦探柯南")
             .fetch_one(&pool)
             .await
@@ -307,7 +307,7 @@ mod tests {
         init_test_table_data(&pool).await;
 
         // 这里要求查询字段与结构体AniItem中 定义的字段个数和名称要一致
-        let ani_items = sqlx::query_as::<_, AniItem>("SELECT title, update_count, update_info, platform, image_url, detail_url, update_time, platform FROM ani_items;")
+        let ani_items = sqlx::query_as::<_, AniItem>("SELECT title, update_count, update_info, platform, image_url, detail_url, update_time, platform, watched FROM ani_items;")
             .fetch_all(&pool)
             .await
             .unwrap();
@@ -328,7 +328,7 @@ mod tests {
             .execute(&pool)
             .await
             .unwrap();
-        let ani_item = sqlx::query_as::<_, AniItem>("SELECT title, update_count, update_info, platform, image_url, detail_url, update_time, platform FROM ani_items WHERE title = ?;")
+        let ani_item = sqlx::query_as::<_, AniItem>("SELECT title, update_count, update_info, platform, image_url, detail_url, update_time, platform, watched FROM ani_items WHERE title = ?;")
             .bind("名侦探柯南")
             .fetch_one(&pool)
             .await
@@ -349,7 +349,7 @@ mod tests {
             .unwrap();
 
         // 查询一个不存在的用户
-        let ani_item = sqlx::query_as::<_, AniItem>("SELECT title, update_count, update_info, platform, image_url, detail_url, update_time, platform FROM ani_items where title = ?;")
+        let ani_item = sqlx::query_as::<_, AniItem>("SELECT title, update_count, update_info, platform, image_url, detail_url, update_time, platform, watched FROM ani_items where title = ?;")
             .bind("名侦探柯南")
             .fetch_optional(&pool)
             .await
@@ -357,7 +357,7 @@ mod tests {
 
         // 断言确实为空
         assert!(ani_item.is_none(), "期望用户不存在，但查询到了结果");
-        let ani_items = sqlx::query_as::<_, AniItem>("SELECT title, update_count, update_info, platform, image_url, detail_url, update_time, platform FROM ani_items;")
+        let ani_items = sqlx::query_as::<_, AniItem>("SELECT title, update_count, update_info, platform, image_url, detail_url, update_time, platform, watched FROM ani_items;")
             .fetch_all(&pool)
             .await
             .unwrap();

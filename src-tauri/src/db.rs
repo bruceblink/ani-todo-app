@@ -107,7 +107,8 @@ pub async fn query_ani_item_data_list(app: AppHandle) -> Result<String, String> 
                       image_url, 
                       detail_url, 
                       update_time, 
-                      platform
+                      platform,
+                      watched
                 FROM ani_items;
            "#)
         .fetch_all(&pool)
