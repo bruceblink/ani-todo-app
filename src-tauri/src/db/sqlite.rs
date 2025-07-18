@@ -1,5 +1,5 @@
 use anyhow::{Context, Error, Result};
-use log::info;
+use log::{debug, info};
 use sqlx::{sqlite::{SqliteConnectOptions, SqlitePoolOptions}, Pool, Sqlite, SqlitePool};
 use std::fs;
 use std::str::FromStr;
@@ -16,7 +16,7 @@ pub fn get_app_data_dir(app: &AppHandle) -> std::path::PathBuf {
 pub fn get_or_set_db_path(app_data_dir: std::path::PathBuf) -> Result<String> {
     // 构建数据库路径
     let db_path = app_data_dir.join("app_data.db");
-    info!("数据库文件存放路径为{:?}", db_path);
+    debug!("数据库文件存放路径为{:?}", db_path);
     // 转换为字符串
     db_path.to_str()
         .map(|s| s.to_string())
@@ -37,7 +37,7 @@ async fn init_db(app: &AppHandle) -> Result<Pool<Sqlite>> {
 
     // 初始化数据库结构
     init_db_schema(&pool).await?;
-
+    info!("数据库初始化成功!");
     Ok(pool)
 }
 
