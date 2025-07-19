@@ -289,7 +289,7 @@ mod tests {
             .unwrap();
         assert_eq!(ani_items.len(), 2);
         let ani_item = &ani_items[1];
-        assert_eq!(ani_item.update_count, None);
+        assert_eq!(ani_item.update_count, "");
         assert_eq!(ani_item.update_time, "2025/07/14");
     }
 
@@ -368,7 +368,7 @@ mod tests {
         println!("{:?}", ani_items);
         assert_eq!(ani_items.len(), 2);
         let ani_item = &ani_items[1];
-        assert_eq!(ani_item.update_count, Some("18".to_string()));
+        assert_eq!(ani_item.update_count, "18");
         assert_eq!(ani_item.update_time, "2025/07/13");
     }
     
@@ -417,7 +417,7 @@ mod tests {
             .fetch_one(&pool)
             .await
             .unwrap();
-        assert_eq!(ani_item.update_count, None);
+        assert_eq!(ani_item.update_count, "");
         assert_eq!(ani_item.update_time, "2025/07/14");
     }
 
@@ -469,7 +469,7 @@ mod tests {
             .unwrap();
         assert_eq!(ani_items.len(), 1);
         let ani_item = &ani_items[0];
-        assert_eq!(ani_item.update_count, Some("1234".to_string()));
+        assert_eq!(ani_item.update_count, "1234");
         assert_eq!(ani_item.update_time, "2025/07/13");
         assert_ne!(ani_item.update_time, "2025/07/14");
     }
@@ -523,7 +523,7 @@ mod tests {
             .unwrap();
         assert_eq!(ani_items.len(), 1);
         let ani_item = &ani_items[0];
-        assert_eq!(ani_item.update_count, Some("1234".to_string()));
+        assert_eq!(ani_item.update_count, "1234");
         assert_eq!(ani_item.update_time, "2025/07/14");
     }
 
@@ -540,7 +540,7 @@ mod tests {
             .await
             .unwrap();
         assert_eq!(ani_item.title, "名侦探柯南");
-        assert_eq!(ani_item.update_count, Some("1234".to_string()));
+        assert_eq!(ani_item.update_count,"1234");
         assert_eq!(ani_item.update_info, "2025/07/13 更新");
         assert_eq!(ani_item.platform, "mikanani");
         assert_eq!(ani_item.image_url, "https://mikanani.me/images/Bangumi/201310/91d95f43.jpg?width=400&height=400&format=webp");
@@ -585,7 +585,7 @@ mod tests {
             .fetch_one(&pool)
             .await
             .unwrap();
-        assert_eq!(ani_item.update_count, Some("2100".to_string()));
+        assert_eq!(ani_item.update_count, "2100");
     }
 
     #[tokio::test]
