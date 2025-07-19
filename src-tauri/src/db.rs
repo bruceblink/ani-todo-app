@@ -69,15 +69,16 @@ pub async fn remove_ani_item_data(app: AppHandle, ani_id: &str) -> Result<String
     let pool: Pool<Sqlite> = creat_database_connection_pool(db_path)
         .await
         .map_err(|e| e.to_string())?;
-    
-    if let Some((title, platform)) = ani_id.split_once("---") {
-        sqlx::query("UPDATE ani_items SET watched = ? WHERE title = ? AND platform = ?")
+    let parts: Vec<&str> = ani_id.split("---").collect();
+    if let [title, platform, update_count] = parts.as_slice() {
+        sqlx::query("UPDATE ani_items SET watched = ? WHERE title = ? AND platform = ? AND update_count = ?")
             .bind(1u8)
             .bind(title)
             .bind(platform)
+            .bind(update_count)
             .execute(&pool)
             .await.expect("更新失败");
-        info!("已经删除 title: {}, platform: {}", title, platform);
+        info!("已经删除 title: {}, platform: {}, update_count: {}", title, platform, update_count);
     } else {
         info!("ani_id: {} 的格式错误", ani_id);
         
