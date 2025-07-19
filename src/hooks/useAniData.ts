@@ -50,11 +50,11 @@ export function useAniData(): UseAniData {
                     url: 'https://mesh.if.iqiyi.com/portal/lw/v7/channel/cartoon',
                     cmd: 'fetch_iqiyi_ani_data',
                 },
-                {
+/*                {
                     name: '蜜柑计划',
                     url: 'https://mikanani.me',
                     cmd: 'fetch_mikanani_ani_data',
-                },
+                },*/
                 {
                     name: '腾讯视频',
                     url: 'https://v.qq.com/channel/cartoon',
@@ -64,6 +64,11 @@ export function useAniData(): UseAniData {
                     name: '优酷视频',
                     url: 'https://www.youku.com/ku/webcomic',
                     cmd: 'fetch_youku_ani_data',
+                },
+                {
+                    name: 'AGE动漫',
+                    url: 'https://www.agedm.vip/update',
+                    cmd: 'fetch_agedm_ani_data',
                 },
                 // ...其他接口
             ];
