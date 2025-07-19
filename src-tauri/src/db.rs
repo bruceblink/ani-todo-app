@@ -7,7 +7,7 @@ pub mod sqlite;
 
 use crate::db::sqlite::{creat_database_connection_pool, get_app_data_dir, get_or_set_db_path};
 use crate::platforms::{AniItem, AniResult};
-use crate::utils::date_utils::get_week_day_of_today;
+use crate::utils::date_utils::{get_week_day_of_today, today_iso_date_ld};
 use tauri::AppHandle;
 
 #[tauri::command]
@@ -98,7 +98,9 @@ pub async fn query_ani_item_data_list(app: AppHandle) -> Result<String, String> 
     let pool: Pool<Sqlite> = creat_database_connection_pool(db_path)
         .await
         .map_err(|e| e.to_string())?;
-   
+    // 今天的日期，比如 "2025/07/13"
+    let today_date = today_iso_date_ld();
+    // 查询当前更新的动漫
     let ani_items = sqlx::query_as::<_, AniItem>(
         r#"SELECT title, 
                       update_count, 
@@ -109,8 +111,11 @@ pub async fn query_ani_item_data_list(app: AppHandle) -> Result<String, String> 
                       update_time, 
                       platform,
                       watched
-                FROM ani_items;
-           "#)
+                FROM ani_items
+                WHERE
+                    update_time = ?
+           ;"#)
+        .bind(today_date)
         .fetch_all(&pool)
         .await
         .unwrap();
