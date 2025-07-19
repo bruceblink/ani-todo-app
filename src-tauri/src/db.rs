@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use log::info;
 use serde_json::json;
 use sqlx::{Pool, Sqlite};
@@ -114,7 +115,11 @@ pub async fn query_ani_item_data_list(app: AppHandle) -> Result<String, String> 
         .await
         .unwrap();
 
-    let json_string = serde_json::to_string(&ani_items)
+    let weekday = get_week_day_of_today();
+    let mut result: AniResult = HashMap::new();
+    result.insert(weekday, ani_items);
+    
+    let json_string = serde_json::to_string(&result)
         .map_err(|e| e.to_string())?;
     Ok(json_string)
 }
