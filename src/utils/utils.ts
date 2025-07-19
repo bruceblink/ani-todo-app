@@ -5,7 +5,7 @@ export function getAniId(ani: Ani): string {
     return `${ani.title}---${ani.platform}---${ani.update_count}`;
 }
 
-export async function loadAniData(url: string, cmd: string) {
+export async function fetchAniData(url: string, cmd: string) {
     try {
         // 调用命令，拿到 JSON 字符串
         const jsonStr = await invoke<string>(cmd, { url });
