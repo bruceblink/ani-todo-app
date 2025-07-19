@@ -1,5 +1,5 @@
 use anyhow::{Context, Error, Result};
-use log::{info};
+use log::info;
 use sqlx::{sqlite::{SqliteConnectOptions, SqlitePoolOptions}, Pool, Sqlite, SqlitePool};
 use std::fs;
 use std::str::FromStr;
@@ -95,11 +95,11 @@ pub async fn setup_app_db(app: &mut tauri::App) -> Result<(), Box<dyn std::error
 #[cfg(test)]
 mod tests {
     use crate::db::sqlite::{creat_database_connection_pool, init_db_schema};
+    use crate::platforms::AniItem;
     use sqlx::{Pool, Sqlite, SqlitePool};
     use std::fs::File;
     use std::io::{Seek, SeekFrom, Write};
     use tempfile::NamedTempFile;
-    use crate::platforms::AniItem;
 
     #[test]
     fn test_with_temp_file() -> std::io::Result<()> {
@@ -229,7 +229,7 @@ mod tests {
                                                ) VALUES
                                               (?, ? ,? ,? ,? ,? ,?);")
             .bind("琉璃的宝石")
-            .bind("16")
+            .bind(None::<String>)
             .bind("2025/07/13 更新")
             .bind("https://mikanani.me/images/Bangumi/202507/18470785.jpg?width=400&height=400&format=webp")
             .bind("https://mikanani.me/Home/Bangumi/3663")
@@ -240,8 +240,9 @@ mod tests {
             .unwrap();
     }
 
+    // 测试 插入空的唯一约束值
     #[tokio::test]
-    async fn test_unique_insert() {
+    async fn test_unique_insert_null_value() {
         // 获取数据库连接池
         let pool = SqlitePool::connect("sqlite::memory:").await.unwrap();
         init_test_table_data(&pool).await;
@@ -254,12 +255,62 @@ mod tests {
                                                 update_time,
                                                 platform
                                             ) VALUES (?, ?, ?, ?, ?, ?, ?)
-                                            ON CONFLICT(title, platform) DO UPDATE SET
-                                                update_count = excluded.update_count,
+                                            ON CONFLICT(title, platform, update_count) DO UPDATE SET
                                                 update_info = excluded.update_info,
                                                 image_url = excluded.image_url,
-                                                detail_url = excluded.detail_url,
-                                                update_time = excluded.update_time;
+                                                detail_url = excluded.detail_url
+                                            "#)
+            .bind("琉璃的宝石")
+            .bind(None::<String>)
+            .bind("2025/07/13 更新")
+            .bind("https://mikanani.me/images/Bangumi/202507/18470785.jpg?width=400&height=400&format=webp")
+            .bind("https://mikanani.me/Home/Bangumi/3663")
+            .bind("2025/07/14")
+            .bind("mikanani")
+            .execute(&pool)
+            .await
+            .expect("插入或更新失败");
+        // 测试违反唯一约束更新更新数据
+        let ani_items = sqlx::query_as::<_, AniItem>(r#"SELECT title, 
+                                                                           update_count, 
+                                                                           update_info, 
+                                                                           platform, 
+                                                                           image_url, 
+                                                                           detail_url, 
+                                                                           update_time, 
+                                                                           platform, 
+                                                                           watched 
+                                                                    FROM ani_items WHERE 
+                                                                          title = ? 
+                                                                 "#)
+            .bind("琉璃的宝石")
+            .fetch_all(&pool)
+            .await
+            .unwrap();
+        assert_eq!(ani_items.len(), 2);
+        let ani_item = &ani_items[1];
+        assert_eq!(ani_item.update_count, None);
+        assert_eq!(ani_item.update_time, "2025/07/14");
+    }
+
+    #[tokio::test]
+    async fn test_unique_insert_diff_update_time() {
+        // 获取数据库连接池
+        let pool = SqlitePool::connect("sqlite::memory:").await.unwrap();
+        init_test_table_data(&pool).await;
+        sqlx::query(r#"INSERT INTO ani_items (
+                                                title,
+                                                update_count,
+                                                update_info,
+                                                image_url,
+                                                detail_url,
+                                                update_time,
+                                                platform
+                                            ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                                            ON CONFLICT(title, platform, update_count) DO UPDATE SET
+                                                update_info = excluded.update_info,
+                                                image_url = excluded.image_url,
+                                                detail_url = excluded.detail_url
                                             "#)
             .bind("琉璃的宝石")
             .bind("18")
@@ -271,13 +322,209 @@ mod tests {
             .execute(&pool)
             .await
             .expect("插入或更新失败");
+
+        sqlx::query(r#"INSERT INTO ani_items (
+                                                title,
+                                                update_count,
+                                                update_info,
+                                                image_url,
+                                                detail_url,
+                                                update_time,
+                                                platform
+                                            ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                                            ON CONFLICT(title, platform, update_count) DO UPDATE SET
+                                                update_info = excluded.update_info,
+                                                image_url = excluded.image_url,
+                                                detail_url = excluded.detail_url
+                                            "#)
+            .bind("琉璃的宝石")
+            .bind("18")
+            .bind("2025/07/13 更新")
+            .bind("https://mikanani.me/images/Bangumi/202507/18470785.jpg?width=400&height=400&format=webp")
+            .bind("https://mikanani.me/Home/Bangumi/3663")
+            .bind("2025/07/14")
+            .bind("mikanani")
+            .execute(&pool)
+            .await
+            .expect("插入或更新失败");
+        
         // 测试违反唯一约束更新更新数据
-        let ani_item = sqlx::query_as::<_, AniItem>("SELECT title, update_count, update_info, platform, image_url, detail_url, update_time, platform, watched FROM ani_items WHERE title = ?;")
+        let ani_items = sqlx::query_as::<_, AniItem>(r#"SELECT title, 
+                                                                           update_count, 
+                                                                           update_info, 
+                                                                           platform, 
+                                                                           image_url, 
+                                                                           detail_url, 
+                                                                           update_time, 
+                                                                           platform, 
+                                                                           watched 
+                                                                    FROM ani_items WHERE 
+                                                                          title = ? 
+                                                                 "#)
+            .bind("琉璃的宝石")
+            .fetch_all(&pool)
+            .await
+            .unwrap();
+        println!("{:?}", ani_items);
+        assert_eq!(ani_items.len(), 2);
+        let ani_item = &ani_items[1];
+        assert_eq!(ani_item.update_count, Some("18".to_string()));
+        assert_eq!(ani_item.update_time, "2025/07/13");
+    }
+    
+    #[tokio::test]
+    async fn test_unique_insert2() {
+        // 获取数据库连接池
+        let pool = SqlitePool::connect("sqlite::memory:").await.unwrap();
+        init_test_table_data(&pool).await;
+        sqlx::query(r#"INSERT INTO ani_items (
+                                                title,
+                                                update_count,
+                                                update_info,
+                                                image_url,
+                                                detail_url,
+                                                update_time,
+                                                platform
+                                            ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                                            ON CONFLICT(title, platform, update_count) DO UPDATE SET
+                                                update_info = excluded.update_info,
+                                                image_url = excluded.image_url,
+                                                detail_url = excluded.detail_url
+                                            "#)
+            .bind("琉璃的宝石")
+            .bind(None::<String>)
+            .bind("2025/07/13 更新")
+            .bind("https://mikanani.me/images/Bangumi/202507/18470785.jpg?width=400&height=400&format=webp")
+            .bind("https://mikanani.me/Home/Bangumi/3663")
+            .bind("2025/07/14")
+            .bind("mikanani")
+            .execute(&pool)
+            .await
+            .expect("插入或更新失败");
+        // 测试违反唯一约束更新更新数据
+        let ani_item = sqlx::query_as::<_, AniItem>(r#"SELECT title, 
+                                                                           update_count, 
+                                                                           update_info, 
+                                                                           platform, 
+                                                                           image_url, 
+                                                                           detail_url, 
+                                                                           update_time, 
+                                                                           platform, 
+                                                                           watched 
+                                                                    FROM ani_items WHERE 
+                                                                          title = ? ORDER BY id DESC LIMIT 1;"#)
             .bind("琉璃的宝石")
             .fetch_one(&pool)
             .await
             .unwrap();
-        assert_eq!(ani_item.update_count, "18");
+        assert_eq!(ani_item.update_count, None);
+        assert_eq!(ani_item.update_time, "2025/07/14");
+    }
+
+    #[tokio::test]
+    async fn test_unique_insert3() {
+        // 获取数据库连接池
+        let pool = SqlitePool::connect("sqlite::memory:").await.unwrap();
+        init_test_table_data(&pool).await;
+        sqlx::query(r#"INSERT INTO ani_items (
+                                                title,
+                                                update_count,
+                                                update_info,
+                                                image_url,
+                                                detail_url,
+                                                update_time,
+                                                platform
+                                            ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                                            ON CONFLICT(title, platform, update_count) DO UPDATE SET
+                                                update_info = excluded.update_info,
+                                                image_url = excluded.image_url,
+                                                detail_url = excluded.detail_url
+                                            "#)
+            .bind("名侦探柯南")
+            .bind("1234")
+            .bind("2025/07/13 更新")
+            .bind("https://mikanani.me/images/Bangumi/201310/91d95f43.jpg?width=400&height=400&format=webp")
+            .bind("https://mikanani.me/Home/Bangumi/227")
+            .bind("2025/07/14")
+            .bind("mikanani")
+            .execute(&pool)
+            .await
+            .expect("插入或更新失败");
+        // 测试违反唯一约束更新更新数据
+        let ani_items = sqlx::query_as::<_, AniItem>(r#"SELECT title, 
+                                                                           update_count, 
+                                                                           update_info, 
+                                                                           platform, 
+                                                                           image_url, 
+                                                                           detail_url, 
+                                                                           update_time, 
+                                                                           platform, 
+                                                                           watched 
+                                                                    FROM ani_items WHERE 
+                                                                          title = ? 
+                                                                    "#)
+            .bind("名侦探柯南")
+            .fetch_all(&pool)
+            .await
+            .unwrap();
+        assert_eq!(ani_items.len(), 1);
+        let ani_item = &ani_items[0];
+        assert_eq!(ani_item.update_count, Some("1234".to_string()));
+        assert_eq!(ani_item.update_time, "2025/07/13");
+        assert_ne!(ani_item.update_time, "2025/07/14");
+    }
+
+    #[tokio::test]
+    async fn test_unique_insert4() {
+        // 获取数据库连接池
+        let pool = SqlitePool::connect("sqlite::memory:").await.unwrap();
+        init_test_table_data(&pool).await;
+        sqlx::query(r#"INSERT INTO ani_items (
+                                                title,
+                                                update_count,
+                                                update_info,
+                                                image_url,
+                                                detail_url,
+                                                update_time,
+                                                platform
+                                            ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                                            ON CONFLICT(title, platform, update_count) DO UPDATE SET
+                                                update_info = excluded.update_info,
+                                                image_url = excluded.image_url,
+                                                detail_url = excluded.detail_url,
+                                                update_time = excluded.update_time
+                                            "#)
+            .bind("名侦探柯南")
+            .bind("1234")
+            .bind("2025/07/13 更新")
+            .bind("https://mikanani.me/images/Bangumi/201310/91d95f43.jpg?width=400&height=400&format=webp")
+            .bind("https://mikanani.me/Home/Bangumi/227")
+            .bind("2025/07/14")
+            .bind("mikanani")
+            .execute(&pool)
+            .await
+            .expect("插入或更新失败");
+        // 测试违反唯一约束更新更新数据
+        let ani_items = sqlx::query_as::<_, AniItem>(r#"SELECT title, 
+                                                                           update_count, 
+                                                                           update_info, 
+                                                                           platform, 
+                                                                           image_url, 
+                                                                           detail_url, 
+                                                                           update_time, 
+                                                                           platform, 
+                                                                           watched 
+                                                                    FROM ani_items WHERE 
+                                                                          title = ? 
+                                                                    "#)
+            .bind("名侦探柯南")
+            .fetch_all(&pool)
+            .await
+            .unwrap();
+        assert_eq!(ani_items.len(), 1);
+        let ani_item = &ani_items[0];
+        assert_eq!(ani_item.update_count, Some("1234".to_string()));
+        assert_eq!(ani_item.update_time, "2025/07/14");
     }
 
     #[tokio::test]
@@ -293,7 +540,7 @@ mod tests {
             .await
             .unwrap();
         assert_eq!(ani_item.title, "名侦探柯南");
-        assert_eq!(ani_item.update_count, "1234");
+        assert_eq!(ani_item.update_count, Some("1234".to_string()));
         assert_eq!(ani_item.update_info, "2025/07/13 更新");
         assert_eq!(ani_item.platform, "mikanani");
         assert_eq!(ani_item.image_url, "https://mikanani.me/images/Bangumi/201310/91d95f43.jpg?width=400&height=400&format=webp");
@@ -329,12 +576,16 @@ mod tests {
             .execute(&pool)
             .await
             .unwrap();
-        let ani_item = sqlx::query_as::<_, AniItem>("SELECT title, update_count, update_info, platform, image_url, detail_url, update_time, platform, watched FROM ani_items WHERE title = ?;")
+        let ani_item = sqlx::query_as::<_, AniItem>(r#"SELECT 
+                                        title, update_count, update_info, 
+                                        platform, image_url, detail_url, 
+                                        update_time, platform, watched 
+                                FROM ani_items WHERE title = ?;"#)
             .bind("名侦探柯南")
             .fetch_one(&pool)
             .await
             .unwrap();
-        assert_eq!(ani_item.update_count, "2100");
+        assert_eq!(ani_item.update_count, Some("2100".to_string()));
     }
 
     #[tokio::test]
