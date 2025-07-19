@@ -3,6 +3,7 @@ pub mod iqiyi;
 pub mod mikanani;
 pub mod tencent;
 pub mod youku;
+pub mod agedm;
 
 use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
