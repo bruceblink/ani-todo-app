@@ -5,6 +5,11 @@ export function getAniId(ani: Ani): string {
     return `${ani.title}---${ani.platform}---${ani.update_count}`;
 }
 
+/**
+ *  从各个视频网站获取最新的动漫更新数据
+ * @param url
+ * @param cmd
+ */
 export async function fetchAniData(url: string, cmd: string) {
     try {
         // 调用命令，拿到 JSON 字符串
@@ -19,7 +24,11 @@ export async function fetchAniData(url: string, cmd: string) {
     }
 }
 
-export async function saveLoadedAniData2Database(aniData: Record<string, Ani[]>) {
+/**
+ * 持久化动漫数据到数据库
+ * @param aniData
+ */
+export async function saveAniData2Database(aniData: Record<string, Ani[]>) {
     try {
         const jsonString: string = JSON.stringify(aniData)
         // 调用命令，拿到 JSON 字符串
@@ -43,6 +52,24 @@ export async function removeAniItemFromDatabase(aniId: string) {
         return data;
     } catch (e) {
         console.error(`remove ${aniId} from db failed：`, e);
+        return {};
+    }
+}
+
+/**
+ * 从数据库加载动漫的数据
+ * @param cmd
+ */
+export async function loadAniData(cmd: string) {
+    try {
+        // 调用命令，拿到 JSON 字符串
+        const jsonStr = await invoke<string>(cmd);
+        // 解析成对象
+        const data = JSON.parse(jsonStr);
+        console.log(`fetch data from ${cmd}：`, data);
+        return data;
+    } catch (e) {
+        console.error(`fetch data from ${cmd} 失败：`, e);
         return {};
     }
 }
