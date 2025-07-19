@@ -39,12 +39,10 @@ pub async fn save_ani_item_data(app: AppHandle, ani_data: &str) -> Result<String
                 update_time,
                 platform
             ) VALUES (?, ?, ?, ?, ?, ?, ?)
-            ON CONFLICT(title, platform) DO UPDATE SET
-                update_count = excluded.update_count,
+            ON CONFLICT(title, platform, update_count) DO UPDATE SET
                 update_info = excluded.update_info,
                 image_url = excluded.image_url,
-                detail_url = excluded.detail_url,
-                update_time = excluded.update_time;
+                detail_url = excluded.detail_url
         "#)
             .bind(&item.title)
             .bind(&item.update_count)
