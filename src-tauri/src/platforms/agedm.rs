@@ -105,7 +105,15 @@ pub async fn fetch_agedm_ani_data(url: String) -> Result<String, String> {
         let (title, detail_url) = col.select(&a_sel)
             .next()
             .map(|a| {
-                let href = a.value().attr("href").unwrap_or_default().to_string();
+                let href = a.value()
+                    .attr("href")
+                    .unwrap_or_default()                   // &str
+                    .replacen("http://", "https://", 1)    // 先把协议换好
+                    .replacen("/detail/", "/play/", 1)     // 再把路径段换好
+                    .trim_end_matches('/')                 // 去掉末尾多余斜杠（可选）
+                    .to_string();                          // 拷贝成 String
+                let href = format!("{}/1/{}", href, update_count);
+                
                 let txt  = a.text().collect::<Vec<_>>().join("").trim().to_string();
                 (txt, href)
             })
