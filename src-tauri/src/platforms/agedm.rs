@@ -2,9 +2,9 @@ use std::collections::HashMap;
 use log::{debug, info};
 use crate::platforms::{AniItem, AniResult};
 use base64::{engine::general_purpose, Engine as _};
-use reqwest::Url;
 use scraper::{Html, Selector};
 use crate::utils::date_utils::{get_week_day_of_today, today_iso_date_ld};
+use crate::utils::extract_number;
 use crate::utils::http_client::http_client;
 
 #[tauri::command]
@@ -93,10 +93,13 @@ pub async fn fetch_agedm_ani_data(url: String) -> Result<String, String> {
             .to_string();
 
         // 当前更新到第几集
-        let update_count = col.select(&span_sel)
+        let update_info = col.select(&span_sel)
             .next()
             .map(|span| span.text().collect::<Vec<_>>().join("").trim().to_string())
             .unwrap_or_default();
+
+        //更新集数字
+        let update_count = extract_number(&update_info).map(|n| n.to_string()).unwrap_or_default();
 
         // 标题和详情链接
         let (title, detail_url) = col.select(&a_sel)
@@ -115,7 +118,7 @@ pub async fn fetch_agedm_ani_data(url: String) -> Result<String, String> {
             platform: "agedm".to_string(),
             image_url,
             update_count,
-            update_info: "".to_string(),
+            update_info,
             watched: false,
         };
         info!("识别到更新：{} {}", ani_item.title, ani_item.update_info);
