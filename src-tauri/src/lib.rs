@@ -10,6 +10,7 @@ use tauri::async_runtime::block_on;
 use tauri_plugin_log::fern;
 use crate::db::{remove_ani_item_data, save_ani_item_data};
 use crate::db::sqlite::setup_app_db;
+use crate::platforms::agedm::{fetch_agedm_ani_data, fetch_agedm_image};
 use crate::platforms::iqiyi::{fetch_iqiyi_ani_data, fetch_iqiyi_image};
 use crate::platforms::mikanani::{fetch_mikanani_ani_data, fetch_mikanani_image};
 use crate::platforms::tencent::{fetch_qq_ani_data, fetch_qq_image};
@@ -55,6 +56,8 @@ pub fn run() {
             fetch_youku_ani_data,
             save_ani_item_data,
             remove_ani_item_data,
+            fetch_agedm_ani_data,
+            fetch_agedm_image,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
