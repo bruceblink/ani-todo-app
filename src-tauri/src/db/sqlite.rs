@@ -9,7 +9,7 @@ use std::fs;
 use std::str::FromStr;
 use tauri::{path::BaseDirectory, AppHandle, Manager};
 
-pub static MIGRATOR: Migrator = sqlx::migrate!(); // 自动读取 /migrations 目录
+pub static MIGRATOR: Migrator = sqlx::migrate!(); // 自动读取 src-tauri/migrations 目录下的所有sql脚本
 /// 获取tauri应用 的应用数据目录
 pub fn get_app_data_dir(app: &AppHandle) -> std::path::PathBuf {
     app.path()
