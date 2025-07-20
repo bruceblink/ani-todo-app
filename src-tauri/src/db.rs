@@ -70,33 +70,36 @@ pub async fn save_ani_item_data(app: AppHandle, ani_data: &str) -> Result<String
 }
 
 #[tauri::command]
-pub async fn remove_ani_item_data(app: AppHandle, ani_id: &str) -> Result<String, String> {
-    let db_path = get_or_set_db_path(get_app_data_dir(&app)).map_err(|e| e.to_string())?;
+pub async fn remove_ani_item_data(
+    app: AppHandle,
+    ani_id: String
+) -> Result<String, String> {
+    // 1. 打开数据库
+    let db_path = get_or_set_db_path(get_app_data_dir(&app))
+        .map_err(|e| e.to_string())?;
     let pool: Pool<Sqlite> = creat_database_connection_pool(db_path)
         .await
         .map_err(|e| e.to_string())?;
-    let parts: Vec<&str> = ani_id.split("---").collect();
-    if let [title, platform, update_count] = parts.as_slice() {
-        sqlx::query("UPDATE ani_items SET watched = ? WHERE title = ? AND platform = ? AND update_count = ?")
-            .bind(1u8)
-            .bind(title)
-            .bind(platform)
-            .bind(update_count)
-            .execute(&pool)
-            .await.expect("更新失败");
-        info!(
-            "已经删除 title: {}, platform: {}, update_count: {}",
-            title, platform, update_count
-        );
-    } else {
-        info!("ani_id: {} 的格式错误", ani_id);
-    }
 
+    // 2. 解析 ID 为 i64
+    let id: i64 = ani_id
+        .parse()
+        .map_err(|e| format!("无效的 ani_id (`{}`): {}", ani_id, e))?;
+
+    // 3. 执行更新
+    sqlx::query("UPDATE ani_items SET watched = 1 WHERE id = ?")
+        .bind(id)
+        .execute(&pool)
+        .await
+        .map_err(|e| e.to_string())?;
+
+    info!("标记 watched: id = {}", id);
+    // 4. 返回统一的 JSON 字符串
     Ok(json!({
-        "status": "ok",
+        "status":  "ok",
         "message": "remove success"
     })
-    .to_string())
+        .to_string())
 }
 
 #[tauri::command]
@@ -109,8 +112,8 @@ pub async fn query_ani_item_data_list(app: AppHandle) -> Result<String, String> 
     let today_date = today_iso_date_ld();
     // 查询当前更新的动漫
     let ani_items = sqlx::query_as::<_, Ani>(
-        r#"SELECT id, 
-                      title, 
+        r#"SELECT id,
+                      title,
                       update_count, 
                       update_info, 
                       platform, 
@@ -150,8 +153,8 @@ pub async fn get_watched_ani_item_list(app: AppHandle) -> Result<String, String>
     let today_date = today_iso_date_ld();
     // 查询当前更新的动漫
     let ani_items = sqlx::query_as::<_, Ani>(
-        r#"SELECT id, 
-                      title, 
+        r#"SELECT id,
+                      title,
                       update_count, 
                       update_info, 
                       platform, 
