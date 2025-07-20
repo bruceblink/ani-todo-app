@@ -4,12 +4,14 @@ use sqlx::{Pool, Sqlite};
 use std::collections::HashMap;
 
 pub mod sqlite;
-
+pub mod po;
 use crate::db::sqlite::{creat_database_connection_pool, get_app_data_dir, get_or_set_db_path};
-use crate::platforms::{AniItem, AniResult};
+use crate::platforms::{ AniItem, AniItemResult};
 use crate::utils::date_utils::{get_week_day_of_today, today_iso_date_ld};
 use tauri::AppHandle;
+use crate::db::po::{Ani, AniIResult};
 
+pub type AniResult = HashMap<String, Vec<AniItem>>;
 #[tauri::command]
 pub async fn save_ani_item_data(app: AppHandle, ani_data: &str) -> Result<String, String> {
     let db_path = get_or_set_db_path(get_app_data_dir(&app)).map_err(|e| e.to_string())?;
@@ -17,7 +19,7 @@ pub async fn save_ani_item_data(app: AppHandle, ani_data: &str) -> Result<String
         .await
         .map_err(|e| e.to_string())?;
 
-    let ani_map: AniResult = serde_json::from_str(ani_data).map_err(|e| e.to_string())?;
+    let ani_map: AniItemResult = serde_json::from_str(ani_data).map_err(|e| e.to_string())?;
     let ani_items = ani_map
         .get(&get_week_day_of_today())
         .ok_or("获取今日动漫数据失败")?;
@@ -106,8 +108,9 @@ pub async fn query_ani_item_data_list(app: AppHandle) -> Result<String, String> 
     // 今天的日期，比如 "2025/07/13"
     let today_date = today_iso_date_ld();
     // 查询当前更新的动漫
-    let ani_items = sqlx::query_as::<_, AniItem>(
-        r#"SELECT title, 
+    let ani_items = sqlx::query_as::<_, Ani>(
+        r#"SELECT id, 
+                      title, 
                       update_count, 
                       update_info, 
                       platform, 
@@ -129,7 +132,50 @@ pub async fn query_ani_item_data_list(app: AppHandle) -> Result<String, String> 
     .unwrap();
 
     let weekday = get_week_day_of_today();
-    let mut result: AniResult = HashMap::new();
+    let mut result: AniIResult = HashMap::new();
+    result.insert(weekday, ani_items);
+
+    let json_string = serde_json::to_string(&result).map_err(|e| e.to_string())?;
+    Ok(json_string)
+}
+
+
+#[tauri::command]
+pub async fn get_watched_ani_item_list(app: AppHandle) -> Result<String, String> {
+    let db_path = get_or_set_db_path(get_app_data_dir(&app)).map_err(|e| e.to_string())?;
+    let pool: Pool<Sqlite> = creat_database_connection_pool(db_path)
+        .await
+        .map_err(|e| e.to_string())?;
+    // 今天的日期，比如 "2025/07/13"
+    let today_date = today_iso_date_ld();
+    // 查询当前更新的动漫
+    let ani_items = sqlx::query_as::<_, Ani>(
+        r#"SELECT id, 
+                      title, 
+                      update_count, 
+                      update_info, 
+                      platform, 
+                      image_url, 
+                      detail_url, 
+                      update_time, 
+                      platform,
+                      watched
+                FROM ani_items
+                WHERE
+                    update_time = ? AND 
+                    watched = ?
+                ORDER BY
+                    title
+           ;"#,
+    )
+        .bind(today_date)
+        .bind(true)
+        .fetch_all(&pool)
+        .await
+        .unwrap();
+
+    let weekday = get_week_day_of_today();
+    let mut result: AniIResult = HashMap::new();
     result.insert(weekday, ani_items);
 
     let json_string = serde_json::to_string(&result).map_err(|e| e.to_string())?;
