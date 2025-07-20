@@ -1,5 +1,4 @@
 import AniImage from "./AniImage";
-import { getAniId } from "../utils/utils";
 import toast from "react-hot-toast";
 
 export interface Ani {
@@ -15,11 +14,10 @@ export interface Ani {
 
 interface Props {
     ani: Ani;
-    onClear: (id: string) => void;
+    onClear: (id: number) => void;
 }
 
 export default function AniItem({ ani, onClear }: Props) {
-    const id = getAniId(ani);
 
     // 点击清除按钮时调用
     const handleClearClick = () => {
@@ -27,7 +25,7 @@ export default function AniItem({ ani, onClear }: Props) {
             `你确定要清除《${ani.title}》这部番剧吗？`
         );
         if (confirmed) {
-            onClear(id);
+            onClear(ani.id);
             toast.success(`已经清除了《${ani.title}》这部番剧`);
         }
     };
@@ -35,7 +33,7 @@ export default function AniItem({ ani, onClear }: Props) {
     return (
         <div
             className="ani-item"
-            key={id}
+            key={ani.id}
             style={{ display: 'flex', alignItems: 'center', marginBottom: 16 }}
         >
             <a href={ani.detail_url} target="_blank" rel="noopener noreferrer">
