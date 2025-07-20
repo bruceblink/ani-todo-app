@@ -1,6 +1,6 @@
 [package]
 name = "ani-todo-app"               # Crate 名称，对应二进制的 name
-version = "0.1.1"
+version = "0.1.2"
 authors = ["likanug <likanug.g@qq.com>"]
 edition = "2021"
 description = "A Tauri‑based Todo App (v2.0 +)"
