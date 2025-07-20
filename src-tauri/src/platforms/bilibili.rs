@@ -1,4 +1,4 @@
-use crate::platforms::{AniItem, AniResult};
+use crate::platforms::{AniItem, AniItemResult};
 use crate::utils::date_utils::{get_week_day_of_today, today_iso_date_ld};
 use crate::utils::{clean_text, extract_number};
 use base64::{engine::general_purpose, Engine as _};
@@ -48,7 +48,7 @@ pub async fn fetch_bilibili_ani_data(url: String) -> Result<String, String> {
     let json_value: Value = response.json().await.map_err(|e| e.to_string())?;
 
     // 3. 填充 result
-    let result: AniResult = process_json_value(&json_value);
+    let result: AniItemResult = process_json_value(&json_value);
 
     // 4. 序列化 result 并返回给前端
     let json_string = serde_json::to_string(&result).map_err(|e| e.to_string())?;
@@ -57,7 +57,7 @@ pub async fn fetch_bilibili_ani_data(url: String) -> Result<String, String> {
 }
 
 /// 解析原始 JSON，往 `result` 中填充当天已发布的番剧更新
-fn process_json_value(json_value: &Value) -> AniResult {
+fn process_json_value(json_value: &Value) -> AniItemResult {
     // 1. 验证响应状态和数据结构
     let code = json_value.get("code").and_then(Value::as_i64).unwrap_or(-1);
     if code != 0 || !json_value.get("result").map_or(false, Value::is_array) {
@@ -112,7 +112,7 @@ fn process_json_value(json_value: &Value) -> AniResult {
 }
 
 // 辅助函数：创建空结果
-fn create_empty_result() -> AniResult {
+fn create_empty_result() -> AniItemResult {
     let weekday = get_week_day_of_today();
     let mut result = HashMap::new();
     result.insert(weekday, Vec::new());

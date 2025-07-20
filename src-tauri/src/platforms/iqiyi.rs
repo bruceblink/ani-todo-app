@@ -1,4 +1,4 @@
-use crate::platforms::{AniItem, AniResult};
+use crate::platforms::{AniItem, AniItemResult};
 use crate::utils::date_utils::{get_week_day_of_today, today_iso_date_ld};
 use crate::utils::{clean_text, extract_number};
 use base64::{engine::general_purpose, Engine as _};
@@ -49,7 +49,7 @@ pub async fn fetch_iqiyi_ani_data(url: String) -> Result<String, String> {
     let json_value: Value = response.json().await.map_err(|e| e.to_string())?;
 
     // 3. 处理解析json
-    let result: AniResult = process_json_value(&json_value);
+    let result: AniItemResult = process_json_value(&json_value);
 
     // 4. 序列化 result 并返回给前端
     let json_string = serde_json::to_string(&result).map_err(|e| e.to_string())?;
@@ -57,7 +57,7 @@ pub async fn fetch_iqiyi_ani_data(url: String) -> Result<String, String> {
     Ok(json_string)
 }
 
-fn process_json_value(json_value: &Value) -> AniResult {
+fn process_json_value(json_value: &Value) -> AniItemResult {
     // 验证响应格式
     if json_value.get("code") != Some(&Value::from(0)) {
         error!("接口返回错误状态: {}", json_value);

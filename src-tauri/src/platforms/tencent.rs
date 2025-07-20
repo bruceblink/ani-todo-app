@@ -1,4 +1,4 @@
-use crate::platforms::{AniItem, AniResult};
+use crate::platforms::{AniItem, AniItemResult};
 use crate::utils::date_utils::{get_week_day_of_today, today_iso_date_ld};
 use crate::utils::extract_number;
 use crate::utils::http_client::http_client;
@@ -95,7 +95,7 @@ pub async fn fetch_qq_ani_data(url: String) -> Result<String, String> {
     // 5. 存储并返回
     let weekday = get_week_day_of_today();
     info!("成功提取到 {} 部今日更新的动漫", comics.len());
-    let mut result: AniResult = HashMap::new();
+    let mut result: AniItemResult = HashMap::new();
     result.insert(weekday, comics);
 
     serde_json::to_string(&result).map_err(|e| e.to_string())

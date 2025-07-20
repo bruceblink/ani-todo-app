@@ -1,4 +1,4 @@
-use crate::platforms::{AniItem, AniResult};
+use crate::platforms::{AniItem, AniItemResult};
 use crate::utils::date_utils::{get_week_day_of_today, today_iso_date_ld};
 use crate::utils::extract_number;
 use crate::utils::http_client::http_client;
@@ -67,7 +67,7 @@ pub async fn fetch_youku_ani_data(url: String) -> Result<String, String> {
     info!("成功提取到 {} 部今日更新的动漫", comics_found.len());
 
     let weekday = get_week_day_of_today();
-    let mut result: AniResult = HashMap::new();
+    let mut result: AniItemResult = HashMap::new();
     result.insert(weekday, comics_found);
 
     serde_json::to_string(&result).map_err(|e| e.to_string())

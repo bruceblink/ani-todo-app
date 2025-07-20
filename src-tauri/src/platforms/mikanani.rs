@@ -1,4 +1,4 @@
-use crate::platforms::{AniItem, AniResult};
+use crate::platforms::{AniItem, AniItemResult};
 use crate::utils::date_utils::{get_week_day_of_today, today_iso_date_ld};
 use base64::{engine::general_purpose, Engine as _};
 use log::{debug, info};
@@ -59,7 +59,7 @@ pub async fn fetch_mikanani_ani_data(url: String) -> Result<String, String> {
     let base_url = Url::parse(&url).map_err(|e| e.to_string())?;
 
     // 3. 初始化一个空的 result
-    let mut result: AniResult = HashMap::new();
+    let mut result: AniItemResult = HashMap::new();
     let weekday_str = get_week_day_of_today();
     // 今天的日期，比如 "2025/07/13"
     let today_date = today_iso_date_ld();

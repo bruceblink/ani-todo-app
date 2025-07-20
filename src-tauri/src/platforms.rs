@@ -11,7 +11,7 @@ use sqlx::FromRow;
 use std::collections::HashMap;
 
 /// 定义结果类型：星期字符串 -> 番剧更新列表
-pub type AniResult = HashMap<String, Vec<AniItem>>;
+pub type AniItemResult = HashMap<String, Vec<AniItem>>;
 
 #[derive(Debug, Clone, FromRow, Deserialize, Serialize)]
 pub struct AniItem {

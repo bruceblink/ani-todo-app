@@ -1,4 +1,4 @@
-use crate::platforms::{AniItem, AniResult};
+use crate::platforms::{AniItem, AniItemResult};
 use crate::utils::date_utils::{get_week_day_of_today, today_iso_date_ld};
 use crate::utils::extract_number;
 use crate::utils::http_client::http_client;
@@ -76,7 +76,7 @@ pub async fn fetch_agedm_ani_data(url: String) -> Result<String, String> {
     let a_sel = Selector::parse("div.video_item-title a").unwrap();
 
     // 3. 初始化一个空的 result
-    let mut result: AniResult = HashMap::new();
+    let mut result: AniItemResult = HashMap::new();
     let weekday_str = get_week_day_of_today();
     // 今天的日期，比如 "2025/07/13"
     let today_date = today_iso_date_ld();
