@@ -1,10 +1,13 @@
+import {useCleared} from "@/hooks/useCleared.ts";
+
 interface Props {
     weekday: string;  // 星期几
     total: number;    // 总数
-    watched: number;  // 已观看
 }
 
-export default function Header({ weekday, total, watched }: Props) {
+export default function Header({ weekday, total}: Props) {
+    const { clearedIds } = useCleared()
+    const watched = clearedIds.size
     const percentage = total > 0 ? Math.round((watched / total) * 100) : 0;
     return (
         <div className="header">

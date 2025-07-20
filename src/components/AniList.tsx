@@ -1,21 +1,20 @@
 import AniItem, { type Ani } from './AniItem';
-import {getAniId} from "../utils/utils.ts";
+import {useCleared} from "@/hooks/useCleared.ts";
 
-type Props = {
-    list: Ani[];
-    clearedIds: Set<string>;
-    onClear: (id: string) => void;
-};
 
-export default function AniList({ list, clearedIds, onClear }: Props) {
+export default function AniList({ list }: { list: Ani[] }) {
+    const {clear, clearedIds } = useCleared()
+    const watchingToday = list.filter( ani => !clearedIds.has(ani.id))
     return (
         <div className="ani-list">
             {
-                list.filter(ani => !clearedIds.has(getAniId(ani)))
-                     .map(ani => (
-                     <AniItem key={getAniId(ani)} ani={ani} onClear={() => onClear(getAniId(ani))} />
-                    )
-                  )
+                watchingToday.map(ani => (
+                    <AniItem
+                        key={ani.id}
+                        ani={ani}
+                        onClear={() => clear(ani.id)}
+                    />
+                ))
             }
         </div>
     );
