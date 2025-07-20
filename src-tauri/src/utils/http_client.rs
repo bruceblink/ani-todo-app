@@ -9,15 +9,25 @@ pub fn http_client() -> Result<Client, String> {
         "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7"
     ));
     // headers.insert("Accept-Encoding", HeaderValue::from_static("gzip, deflate, br, zstd"));
-    headers.insert("Accept-Language", HeaderValue::from_static("zh-CN,zh;q=0.9,en;q=0.8"));
+    headers.insert(
+        "Accept-Language",
+        HeaderValue::from_static("zh-CN,zh;q=0.9,en;q=0.8"),
+    );
     headers.insert("Cache-Control", HeaderValue::from_static("no-cache"));
     headers.insert("Cookie", HeaderValue::from_static("cleanMode=0"));
     headers.insert("DNT", HeaderValue::from_static("1"));
     headers.insert("Pragma", HeaderValue::from_static("no-cache"));
     headers.insert("priority", HeaderValue::from_static("u=0, i"));
-    headers.insert("Sec-Ch-Ua", HeaderValue::from_static(
-        "Not)A;Brand\";v=\"8\", \"Chromium\";v=\"138\", \"Google Chrome\";v=\"138\""));
-    headers.insert("sec-ch-ua-platform", HeaderValue::from_static("\"Windows\""));
+    headers.insert(
+        "Sec-Ch-Ua",
+        HeaderValue::from_static(
+            "Not)A;Brand\";v=\"8\", \"Chromium\";v=\"138\", \"Google Chrome\";v=\"138\"",
+        ),
+    );
+    headers.insert(
+        "sec-ch-ua-platform",
+        HeaderValue::from_static("\"Windows\""),
+    );
     headers.insert("Sec-Fetch-Dest", HeaderValue::from_static("document"));
     headers.insert("Sec-Fetch-Mode", HeaderValue::from_static("navigate"));
     headers.insert("Sec-Fetch-Site", HeaderValue::from_static("none"));

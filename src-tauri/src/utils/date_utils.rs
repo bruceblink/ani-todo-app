@@ -1,6 +1,6 @@
 use chrono::{DateTime, Datelike, Local, TimeZone, Weekday};
 
-pub fn get_week_day_of_today() -> String{
+pub fn get_week_day_of_today() -> String {
     // 获取本地当前日期/时间
     let now = Local::now();
 

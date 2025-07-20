@@ -1,10 +1,10 @@
-use std::collections::HashMap;
+use crate::platforms::{AniItem, AniResult};
+use crate::utils::date_utils::{get_week_day_of_today, today_iso_date_ld};
+use crate::utils::{clean_text, extract_number};
 use base64::{engine::general_purpose, Engine as _};
 use log::{error, info};
 use serde_json::Value;
-use crate::platforms::{AniItem, AniResult};
-use crate::utils::{clean_text, extract_number};
-use crate::utils::date_utils::{get_week_day_of_today, today_iso_date_ld};
+use std::collections::HashMap;
 
 #[tauri::command]
 pub async fn fetch_bilibili_image(url: String) -> Result<String, String> {
@@ -45,17 +45,13 @@ pub async fn fetch_bilibili_ani_data(url: String) -> Result<String, String> {
         .map_err(|e| e.to_string())?;
 
     // 2. 反序列化成 serde_json::Value
-    let json_value: Value = response
-        .json()
-        .await
-        .map_err(|e| e.to_string())?;
+    let json_value: Value = response.json().await.map_err(|e| e.to_string())?;
 
     // 3. 填充 result
     let result: AniResult = process_json_value(&json_value);
 
     // 4. 序列化 result 并返回给前端
-    let json_string = serde_json::to_string(&result)
-        .map_err(|e| e.to_string())?;
+    let json_string = serde_json::to_string(&result).map_err(|e| e.to_string())?;
 
     Ok(json_string)
 }
@@ -80,7 +76,10 @@ fn process_json_value(json_value: &Value) -> AniResult {
     };
 
     // 3. 找到今天的数据 (is_today == 1)
-    let today = match days.iter().find(|day| day.get("is_today").and_then(Value::as_i64) == Some(1)) {
+    let today = match days
+        .iter()
+        .find(|day| day.get("is_today").and_then(Value::as_i64) == Some(1))
+    {
         Some(day) => day,
         None => {
             info!("今日没有更新");
@@ -94,7 +93,10 @@ fn process_json_value(json_value: &Value) -> AniResult {
     let mut comics: Vec<AniItem> = Vec::new();
 
     if let Some(eps) = today.get("episodes").and_then(Value::as_array) {
-        for ep in eps.iter().filter(|e| e.get("published").and_then(Value::as_i64) == Some(1)) {
+        for ep in eps
+            .iter()
+            .filter(|e| e.get("published").and_then(Value::as_i64) == Some(1))
+        {
             let item = parse_item(ep);
             info!("识别到更新：{} {}", item.title, item.update_info);
             comics.push(item);
@@ -142,7 +144,10 @@ fn parse_item(ep: &Value) -> AniItem {
         .to_string();
 
     // detail_url
-    let episode_id = ep.get("episode_id").and_then(Value::as_i64).unwrap_or_default();
+    let episode_id = ep
+        .get("episode_id")
+        .and_then(Value::as_i64)
+        .unwrap_or_default();
     let detail_url = format!("https://www.bilibili.com/bangumi/play/ep{}", episode_id);
 
     // title 清理

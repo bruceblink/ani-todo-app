@@ -1,5 +1,5 @@
-pub mod http_client;
 pub mod date_utils;
+pub mod http_client;
 
 /// 从文本中提取第一个连续数字序列，解析为 i32，若没有则返回 None。
 pub fn extract_number(text: &str) -> Option<i32> {
@@ -7,7 +7,8 @@ pub fn extract_number(text: &str) -> Option<i32> {
     use regex::Regex;
 
     static DIGIT_RE: Lazy<Regex> = Lazy::new(|| Regex::new(r"\d+").unwrap());
-    DIGIT_RE.find(text)
+    DIGIT_RE
+        .find(text)
         .and_then(|m| m.as_str().parse::<i32>().ok())
 }
 

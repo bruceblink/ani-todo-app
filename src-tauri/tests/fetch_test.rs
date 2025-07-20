@@ -33,7 +33,6 @@ async fn test_qq_cartoon_data() {
     println!("{:?}", res.to_string());
 }
 
-
 #[tokio::test]
 async fn test_youku_cartoon_data() {
     let url = "https://www.youku.com/ku/webcomic".to_string();

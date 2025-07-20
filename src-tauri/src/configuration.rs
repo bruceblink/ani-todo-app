@@ -21,13 +21,17 @@ pub fn load_configuration() -> Result<AppConfig, config::ConfigError> {
     // 读取配置文件目录
     let configuration_directory = base_path.join("configuration");
     let settings = config::Config::builder()
-        .add_source(config::File::from(configuration_directory.join("config.yaml")))
-        .add_source(config::Environment::with_prefix("APP").prefix_separator("_").separator("__"))
+        .add_source(config::File::from(
+            configuration_directory.join("config.yaml"),
+        ))
+        .add_source(
+            config::Environment::with_prefix("APP")
+                .prefix_separator("_")
+                .separator("__"),
+        )
         .build()?;
     settings.try_deserialize::<AppConfig>()
 }
-
-
 
 #[cfg(test)]
 mod tests {
@@ -48,16 +52,25 @@ mod tests {
 
         let configuration = load_configuration().expect("Failed to read configuration.");
         println!("{:#?}", configuration);
-        
+
         // 验证 anime 分类
-        let anime_sources = configuration.datasource.get("anime").expect("Missing anime category");
+        let anime_sources = configuration
+            .datasource
+            .get("anime")
+            .expect("Missing anime category");
         assert_eq!(anime_sources.len(), 6);
         assert_eq!(anime_sources[0].name, "哔哩哔哩国创");
-        assert_eq!(anime_sources[0].url, "https://api.bilibili.com/pgc/web/timeline?types=4");
+        assert_eq!(
+            anime_sources[0].url,
+            "https://api.bilibili.com/pgc/web/timeline?types=4"
+        );
         assert_eq!(anime_sources[0].cmd, "bilibili_parser");
 
         // 验证 drama 分类
-        let drama_sources = configuration.datasource.get("drama").expect("Missing drama category");
+        let drama_sources = configuration
+            .datasource
+            .get("drama")
+            .expect("Missing drama category");
         assert_eq!(drama_sources.len(), 1);
         assert_eq!(drama_sources[0].name, "腾讯视频");
     }

@@ -1,11 +1,11 @@
-use std::collections::HashMap;
+use crate::platforms::{AniItem, AniResult};
+use crate::utils::date_utils::{get_week_day_of_today, today_iso_date_ld};
+use crate::utils::{clean_text, extract_number};
+use base64::{engine::general_purpose, Engine as _};
 use chrono::{Datelike, Local};
 use log::{error, info};
 use serde_json::Value;
-use crate::platforms::{AniItem, AniResult};
-use crate::utils::{clean_text, extract_number};
-use base64::{engine::general_purpose, Engine as _};
-use crate::utils::date_utils::{get_week_day_of_today, today_iso_date_ld};
+use std::collections::HashMap;
 
 #[tauri::command]
 pub async fn fetch_iqiyi_image(url: String) -> Result<String, String> {
@@ -34,7 +34,6 @@ pub async fn fetch_iqiyi_image(url: String) -> Result<String, String> {
     Ok(format!("data:{};base64,{}", ct, b64))
 }
 
-
 #[tauri::command]
 pub async fn fetch_iqiyi_ani_data(url: String) -> Result<String, String> {
     // 1. 发请求拿 JSON
@@ -47,17 +46,13 @@ pub async fn fetch_iqiyi_ani_data(url: String) -> Result<String, String> {
         .map_err(|e| e.to_string())?;
 
     // 2. 反序列化成 serde_json::Value
-    let json_value: Value = response
-        .json()
-        .await
-        .map_err(|e| e.to_string())?;
+    let json_value: Value = response.json().await.map_err(|e| e.to_string())?;
 
     // 3. 处理解析json
-    let result :AniResult = process_json_value(&json_value);
+    let result: AniResult = process_json_value(&json_value);
 
     // 4. 序列化 result 并返回给前端
-    let json_string = serde_json::to_string(&result)
-        .map_err(|e| e.to_string())?;
+    let json_string = serde_json::to_string(&result).map_err(|e| e.to_string())?;
 
     Ok(json_string)
 }
@@ -84,7 +79,8 @@ fn process_json_value(json_value: &Value) -> AniResult {
     let weekday_str = get_week_day_of_today();
 
     // 查找追番表数据
-    let today_data = items.iter()
+    let today_data = items
+        .iter()
         .find(|item| item.get("title") == Some(&Value::from("追番表")))
         .and_then(|item| item.get("video"))
         .and_then(|video| video.as_array())
@@ -97,7 +93,8 @@ fn process_json_value(json_value: &Value) -> AniResult {
 
     match today_data {
         Some(list) if !list.is_empty() => {
-            let items: Vec<AniItem> = list.iter()
+            let items: Vec<AniItem> = list
+                .iter()
                 .filter_map(parse_item)
                 .inspect(|res| {
                     info!("识别到更新：{} {}", res.title, res.update_info);
@@ -105,9 +102,9 @@ fn process_json_value(json_value: &Value) -> AniResult {
                 .collect();
             info!("成功提取到 {} 部今日更新的动漫", items.len());
             result.insert(weekday_str, items);
-            
         }
-        Some(_) => { // 空数组
+        Some(_) => {
+            // 空数组
             info!("今日没有更新");
             result.insert(weekday_str, vec![]);
         }
@@ -121,17 +118,27 @@ fn process_json_value(json_value: &Value) -> AniResult {
 
 fn parse_item(ep: &Value) -> Option<AniItem> {
     let title = ep.get("display_name")?.as_str().unwrap_or("").to_string();
-    let raw_update_info = ep.get("dq_updatestatus")?.as_str().unwrap_or("").trim().to_string();
+    let raw_update_info = ep
+        .get("dq_updatestatus")?
+        .as_str()
+        .unwrap_or("")
+        .trim()
+        .to_string();
     let update_count = extract_number(&raw_update_info)?.to_string();
 
-    let image_url = ep.get("image_cover")
+    let image_url = ep
+        .get("image_cover")
         .or_else(|| ep.get("image_url_normal"))
         .and_then(|v| v.as_str())
         .unwrap_or("")
         .to_string();
     //let image_url = image_url.replace("http", "https");
 
-    let detail_url = ep.get("page_url").and_then(|v| v.as_str()).unwrap_or("").to_string();
+    let detail_url = ep
+        .get("page_url")
+        .and_then(|v| v.as_str())
+        .unwrap_or("")
+        .to_string();
 
     Some(AniItem {
         platform: "iqiyi".to_string(), // 平台名可以写死或传参

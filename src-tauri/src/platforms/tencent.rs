@@ -1,15 +1,15 @@
-use std::collections::HashMap;
-use std::error::Error;
-use base64::Engine;
-use base64::engine::general_purpose;
-use reqwest::Client;
-use serde_json::Value;
-use log::{debug, info, warn};
-use scraper::{Html, Selector};
 use crate::platforms::{AniItem, AniResult};
 use crate::utils::date_utils::{get_week_day_of_today, today_iso_date_ld};
 use crate::utils::extract_number;
 use crate::utils::http_client::http_client;
+use base64::engine::general_purpose;
+use base64::Engine;
+use log::{debug, info, warn};
+use reqwest::Client;
+use scraper::{Html, Selector};
+use serde_json::Value;
+use std::collections::HashMap;
+use std::error::Error;
 
 #[tauri::command]
 pub async fn fetch_qq_image(url: String) -> Result<String, String> {
@@ -38,7 +38,6 @@ pub async fn fetch_qq_image(url: String) -> Result<String, String> {
     Ok(format!("data:{};base64,{}", ct, b64))
 }
 
-
 /// 获取腾讯视频动漫频道今日更新数据
 #[tauri::command]
 pub async fn fetch_qq_ani_data(url: String) -> Result<String, String> {
@@ -49,14 +48,18 @@ pub async fn fetch_qq_ani_data(url: String) -> Result<String, String> {
         .send()
         .await
         .map_err(|e| e.to_string())?;
-    let text = resp
-        .text()
-        .await
-        .map_err(|e| e.to_string())?;
-    debug!("解析从 腾讯视频 获取到的 HTML，前 200 字符：\n{}", &text[..200.min(text.len())]);
+    let text = resp.text().await.map_err(|e| e.to_string())?;
+    debug!(
+        "解析从 腾讯视频 获取到的 HTML，前 200 字符：\n{}",
+        &text[..200.min(text.len())]
+    );
     // 1. 从 HTML 中提取嵌入的 JSON 数据
     let data: Value = extract_vikor_json(text).map_err(|e| e.to_string())?;
-    let pinia = data.get("_piniaState").and_then(Value::as_object).cloned().unwrap_or_default();
+    let pinia = data
+        .get("_piniaState")
+        .and_then(Value::as_object)
+        .cloned()
+        .unwrap_or_default();
 
     // 2. 找到“每日更新”模块
     let daily = find_daily_card(&pinia);
@@ -68,12 +71,19 @@ pub async fn fetch_qq_ani_data(url: String) -> Result<String, String> {
     let daily = daily.unwrap();
 
     // 3. 提取今日更新视频列表
-    let tab_id = daily.get("selectedTabId").and_then(Value::as_str).unwrap_or("");
+    let tab_id = daily
+        .get("selectedTabId")
+        .and_then(Value::as_str)
+        .unwrap_or("");
     let today_videos = daily
-        .get("videoBannerMap").and_then(Value::as_object)
-        .and_then(|m| m.get(tab_id)).and_then(Value::as_object)
-        .and_then(|m| m.get("videoList")).and_then(Value::as_array)
-        .cloned().unwrap_or_default();
+        .get("videoBannerMap")
+        .and_then(Value::as_object)
+        .and_then(|m| m.get(tab_id))
+        .and_then(Value::as_object)
+        .and_then(|m| m.get("videoList"))
+        .and_then(Value::as_array)
+        .cloned()
+        .unwrap_or_default();
 
     // 4. 构建结果并记录日志
     let mut comics: Vec<AniItem> = Vec::new();
@@ -87,7 +97,6 @@ pub async fn fetch_qq_ani_data(url: String) -> Result<String, String> {
     info!("成功提取到 {} 部今日更新的动漫", comics.len());
     let mut result: AniResult = HashMap::new();
     result.insert(weekday, comics);
-
 
     serde_json::to_string(&result).map_err(|e| e.to_string())
 }
@@ -110,16 +119,17 @@ pub fn extract_vikor_json(html: String) -> Result<Value, Box<dyn Error>> {
         Some(s) => s,
         None => {
             warn!("未找到包含 window.__vikor__context__ 的 <script> 标签。");
-            return Err("未找到包含 window.__vikor__context__ 的 <script> 标签。".into())
-        },
+            return Err("未找到包含 window.__vikor__context__ 的 <script> 标签。".into());
+        }
     };
 
     // 提取 JSON 字符串部分
     let prefix = "window.__vikor__context__=";
-    let raw_json = script.split_once(prefix)
+    let raw_json = script
+        .split_once(prefix)
         .ok_or("脚本内容格式不正确，无法提取 JSON。")?
         .1
-        .trim_end_matches(';');  // 移除可能存在的结尾分号
+        .trim_end_matches(';'); // 移除可能存在的结尾分号
 
     // 替换 undefined 为 null 并解析 JSON
     let fixed_json = raw_json.replace("undefined", "null");
@@ -130,42 +140,74 @@ pub fn extract_vikor_json(html: String) -> Result<Value, Box<dyn Error>> {
 
 /// 在 _piniaState 中定位 moduleTitle 为 “每日更新” 的卡片数据
 fn find_daily_card(pinia: &serde_json::Map<String, Value>) -> Option<Value> {
-    let cards = pinia.get("channelPageData")
+    let cards = pinia
+        .get("channelPageData")
         .and_then(Value::as_object)
-        .and_then(|m| m.get("channelsModulesMap")).and_then(Value::as_object)
-        .and_then(|m| m.get("100119")).and_then(Value::as_object)
-        .and_then(|m| m.get("cardListData")).and_then(Value::as_array)
-        .cloned().unwrap_or_default();
-    cards.into_iter()
+        .and_then(|m| m.get("channelsModulesMap"))
+        .and_then(Value::as_object)
+        .and_then(|m| m.get("100119"))
+        .and_then(Value::as_object)
+        .and_then(|m| m.get("cardListData"))
+        .and_then(Value::as_array)
+        .cloned()
+        .unwrap_or_default();
+    cards
+        .into_iter()
         .find(|c| c.get("moduleTitle").and_then(Value::as_str) == Some("每日更新"))
 }
 
 /// 根据 JSON 构建 AniItem
 fn build_aniitem(item: &Value) -> Option<AniItem> {
     let platform = "tencent".to_string();
-    let title = item.get("title").and_then(Value::as_str).unwrap_or("").trim().to_string();
+    let title = item
+        .get("title")
+        .and_then(Value::as_str)
+        .unwrap_or("")
+        .trim()
+        .to_string();
 
     let uni_img = item.get("uniImgTag").and_then(Value::as_str).unwrap_or("");
     let update_info_obj: Value = serde_json::from_str(uni_img).ok()?;
     let update_count = update_info_obj
-        .get("tag_4").and_then(Value::as_object)
-        .and_then(|o| o.get("text")).and_then(Value::as_str)
+        .get("tag_4")
+        .and_then(Value::as_object)
+        .and_then(|o| o.get("text"))
+        .and_then(Value::as_str)
         .unwrap_or("");
     let update_count = extract_number(update_count)?.to_string();
 
     let update_count_info = format!("更新至{}集", update_count);
-    let update_info = item.get("topicLabel").and_then(Value::as_str).unwrap_or("").trim().to_string();
-    
+    let update_info = item
+        .get("topicLabel")
+        .and_then(Value::as_str)
+        .unwrap_or("")
+        .trim()
+        .to_string();
+
     let update_info = format!("{} {}", update_count_info, update_info);
 
-    let image_url = item.get("coverPic").and_then(Value::as_str).unwrap_or("").trim().to_string();
+    let image_url = item
+        .get("coverPic")
+        .and_then(Value::as_str)
+        .unwrap_or("")
+        .trim()
+        .to_string();
 
     let cid = item.get("cid").and_then(Value::as_str).unwrap_or("");
     let detail_url = get_qq_video_url(cid);
 
     let update_time = today_iso_date_ld();
 
-    Some(AniItem { platform, title, update_count, update_info, image_url, detail_url, update_time, watched: false, })
+    Some(AniItem {
+        platform,
+        title,
+        update_count,
+        update_info,
+        image_url,
+        detail_url,
+        update_time,
+        watched: false,
+    })
 }
 
 /// 生成腾讯视频播放链接

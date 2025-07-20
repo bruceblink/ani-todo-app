@@ -1,10 +1,10 @@
-use std::collections::HashMap;
-use log::{debug, info};
 use crate::platforms::{AniItem, AniResult};
+use crate::utils::date_utils::{get_week_day_of_today, today_iso_date_ld};
 use base64::{engine::general_purpose, Engine as _};
+use log::{debug, info};
 use reqwest::Url;
 use scraper::{Html, Selector};
-use crate::utils::date_utils::{get_week_day_of_today, today_iso_date_ld};
+use std::collections::HashMap;
 
 #[tauri::command]
 pub async fn fetch_mikanani_image(url: String) -> Result<String, String> {
@@ -33,7 +33,6 @@ pub async fn fetch_mikanani_image(url: String) -> Result<String, String> {
     Ok(format!("data:{};base64,{}", ct, b64))
 }
 
-
 #[tauri::command]
 pub async fn fetch_mikanani_ani_data(url: String) -> Result<String, String> {
     // 1. 发请求拿 响应
@@ -46,11 +45,11 @@ pub async fn fetch_mikanani_ani_data(url: String) -> Result<String, String> {
         .map_err(|e| e.to_string())?;
 
     // 2. 将响应解析成text的html
-    let body = response
-        .text()
-        .await
-        .map_err(|e| e.to_string())?;
-    debug!("解析从 Mikanani 获取到的 HTML，前 200 字符：\n{}", &body[..200.min(body.len())]);
+    let body = response.text().await.map_err(|e| e.to_string())?;
+    debug!(
+        "解析从 Mikanani 获取到的 HTML，前 200 字符：\n{}",
+        &body[..200.min(body.len())]
+    );
     info!("成功获取蜜柑计划追番表数据");
     // 解析 HTML
     let document = Html::parse_document(&body);
@@ -60,7 +59,7 @@ pub async fn fetch_mikanani_ani_data(url: String) -> Result<String, String> {
     let base_url = Url::parse(&url).map_err(|e| e.to_string())?;
 
     // 3. 初始化一个空的 result
-    let mut result:AniResult = HashMap::new();
+    let mut result: AniResult = HashMap::new();
     let weekday_str = get_week_day_of_today();
     // 今天的日期，比如 "2025/07/13"
     let today_date = today_iso_date_ld();
@@ -69,9 +68,11 @@ pub async fn fetch_mikanani_ani_data(url: String) -> Result<String, String> {
     // 过滤出符合条件的 <li>
     for li in document.select(&li_sel) {
         // 必须有 <div class="num-node text-center">
-        if li.select(
-            &Selector::parse("div.num-node.text-center").unwrap()
-        ).next().is_none() {
+        if li
+            .select(&Selector::parse("div.num-node.text-center").unwrap())
+            .next()
+            .is_none()
+        {
             continue;
         }
         // 且 <div class="date-text"> 包含 today_date
@@ -111,7 +112,11 @@ fn build_mikanani_item(base_url: &Url, li: &scraper::element_ref::ElementRef) ->
         .unwrap_or_default();
 
     // update_time 取空格前部分
-    let update_time = update_info.split_whitespace().next().unwrap_or("").to_string();
+    let update_time = update_info
+        .split_whitespace()
+        .next()
+        .unwrap_or("")
+        .to_string();
 
     // 图片 URL 在 <span class="js-expand_bangumi" data-src="...">
     let span_sel = Selector::parse("span.js-expand_bangumi").unwrap();

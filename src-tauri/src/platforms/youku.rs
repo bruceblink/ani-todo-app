@@ -1,15 +1,15 @@
-use std::collections::HashMap;
-use std::error::Error;
-use serde_json::Value;
-use log::{debug, info};
-use scraper::{Html, Selector};
-use anyhow::{Context, anyhow};
-use base64::Engine;
-use base64::engine::general_purpose;
 use crate::platforms::{AniItem, AniResult};
 use crate::utils::date_utils::{get_week_day_of_today, today_iso_date_ld};
 use crate::utils::extract_number;
 use crate::utils::http_client::http_client;
+use anyhow::{anyhow, Context};
+use base64::engine::general_purpose;
+use base64::Engine;
+use log::{debug, info};
+use scraper::{Html, Selector};
+use serde_json::Value;
+use std::collections::HashMap;
+use std::error::Error;
 
 #[tauri::command]
 pub async fn fetch_youku_image(url: String) -> Result<String, String> {
@@ -48,16 +48,17 @@ pub async fn fetch_youku_ani_data(url: String) -> Result<String, String> {
         .send()
         .await
         .map_err(|e| e.to_string())?;
-    
-    let text = resp
-        .text()
-        .await
-        .map_err(|e| e.to_string())?;
-    debug!("解析从优酷动漫获取到的 HTML，前 200 字符：\n{}", &text[..200.min(text.len())]);
-    let data = extract_initial_data(text)
-        .map_err(|e| format!("提取__INITIAL_DATA__数据失败: {}", e))?;
 
-    let module_list = data.get("moduleList")
+    let text = resp.text().await.map_err(|e| e.to_string())?;
+    debug!(
+        "解析从优酷动漫获取到的 HTML，前 200 字符：\n{}",
+        &text[..200.min(text.len())]
+    );
+    let data =
+        extract_initial_data(text).map_err(|e| format!("提取__INITIAL_DATA__数据失败: {}", e))?;
+
+    let module_list = data
+        .get("moduleList")
         .and_then(Value::as_array)
         .ok_or("缺少 moduleList 数组".to_string())?;
 
@@ -72,14 +73,13 @@ pub async fn fetch_youku_ani_data(url: String) -> Result<String, String> {
     serde_json::to_string(&result).map_err(|e| e.to_string())
 }
 
-
 // 提取 INITIAL_DATA 函数
 fn extract_initial_data(html: String) -> Result<Value, Box<dyn Error>> {
     let document = Html::parse_document(&html);
-    let selector = Selector::parse("script")
-        .map_err(|e| anyhow!("解析选择器失败: {}", e))?;
+    let selector = Selector::parse("script").map_err(|e| anyhow!("解析选择器失败: {}", e))?;
 
-    let script_content = document.select(&selector)
+    let script_content = document
+        .select(&selector)
         .filter_map(|tag| tag.text().next())
         .find(|text| text.contains("__INITIAL_DATA__"))
         .context("未找到包含 __INITIAL_DATA__ 的 <script> 标签")?;
@@ -99,17 +99,16 @@ fn extract_initial_data(html: String) -> Result<Value, Box<dyn Error>> {
 
 fn process_module_list(module_list: &[Value]) -> Result<Vec<AniItem>, String> {
     // 步骤1: 找到所有 title 为 '每日更新' 的 component
-    let daily_update_components = module_list.iter()
+    let daily_update_components = module_list
+        .iter()
         .flat_map(|card_mod| {
-            card_mod.get("components")
+            card_mod
+                .get("components")
                 .and_then(Value::as_array)
                 .map(|arr| arr.iter())
                 .unwrap_or_else(|| [].iter())
         })
-        .filter(|comp| {
-            comp.get("title")
-                .and_then(Value::as_str) == Some("每日更新")
-        });
+        .filter(|comp| comp.get("title").and_then(Value::as_str) == Some("每日更新"));
 
     // 步骤2: 从这些 component 中提取所有 item，并扁平化
     let all_raw_items = daily_update_components
@@ -131,10 +130,7 @@ fn process_module_list(module_list: &[Value]) -> Result<Vec<AniItem>, String> {
 
     // 步骤3: 过滤出 updateTips 为 '有更新' 的 item
     let updated_items = all_raw_items
-        .filter(|item| {
-            item.get("updateTips")
-                .and_then(Value::as_str) == Some("有更新")
-        })
+        .filter(|item| item.get("updateTips").and_then(Value::as_str) == Some("有更新"))
         .filter_map(|item| item.as_object());
 
     // 步骤4: 根据过滤后的 item 创建 AniItem 对象
@@ -162,7 +158,8 @@ fn process_module_list(module_list: &[Value]) -> Result<Vec<AniItem>, String> {
 }
 
 fn build_aniitem(item: &serde_json::Map<String, Value>) -> AniItem {
-    let title = item.get("title")
+    let title = item
+        .get("title")
         .and_then(Value::as_str)
         .unwrap_or("")
         .trim()
@@ -171,18 +168,18 @@ fn build_aniitem(item: &serde_json::Map<String, Value>) -> AniItem {
     // 处理 lbTexts 可能是字符串或数组的情况
     let lb_texts = match item.get("lbTexts") {
         Some(Value::String(s)) => s.trim().to_string(),
-        Some(Value::Array(arr)) => {
-            arr.iter()
-                .filter_map(Value::as_str)
-                .map(|s| s.trim())
-                .collect::<Vec<_>>()
-                .join(" ")
-        }
+        Some(Value::Array(arr)) => arr
+            .iter()
+            .filter_map(Value::as_str)
+            .map(|s| s.trim())
+            .collect::<Vec<_>>()
+            .join(" "),
         _ => "".to_string(),
     };
 
     // 尝试从 updateCount 获取更新数量
-    let update_count = item.get("updateCount")
+    let update_count = item
+        .get("updateCount")
         .and_then(|v| {
             if let Some(s) = v.as_str() {
                 s.parse::<u32>().ok().map(|n| n.to_string())
@@ -206,7 +203,8 @@ fn build_aniitem(item: &serde_json::Map<String, Value>) -> AniItem {
                 })
         });
 
-    let image_url = item.get("img")
+    let image_url = item
+        .get("img")
         .and_then(Value::as_str)
         .unwrap_or("")
         .trim()

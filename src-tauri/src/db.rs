@@ -1,7 +1,7 @@
-use std::collections::HashMap;
 use log::info;
 use serde_json::json;
 use sqlx::{Pool, Sqlite};
+use std::collections::HashMap;
 
 pub mod sqlite;
 
@@ -26,11 +26,13 @@ pub async fn save_ani_item_data(app: AppHandle, ani_data: &str) -> Result<String
         return Ok(json!({
             "status": "ok",
             "message": "没有可插入的数据"
-        }).to_string());
+        })
+        .to_string());
     }
 
     for item in ani_items {
-        sqlx::query(r#"
+        sqlx::query(
+            r#"
             INSERT INTO ani_items (
                 title,
                 update_count,
@@ -44,25 +46,26 @@ pub async fn save_ani_item_data(app: AppHandle, ani_data: &str) -> Result<String
                 update_info = excluded.update_info,
                 image_url = excluded.image_url,
                 detail_url = excluded.detail_url
-        "#)
-            .bind(&item.title)
-            .bind(&item.update_count)
-            .bind(&item.update_info)
-            .bind(&item.image_url)
-            .bind(&item.detail_url)
-            .bind(&item.update_time)
-            .bind(&item.platform)
-            .execute(&pool)
-            .await
-            .map_err(|e| format!("插入或更新失败: {}", e))?;
+        "#,
+        )
+        .bind(&item.title)
+        .bind(&item.update_count)
+        .bind(&item.update_info)
+        .bind(&item.image_url)
+        .bind(&item.detail_url)
+        .bind(&item.update_time)
+        .bind(&item.platform)
+        .execute(&pool)
+        .await
+        .map_err(|e| format!("插入或更新失败: {}", e))?;
     }
 
     Ok(json!({
-            "status": "ok",
-            "message": "save success"
-        }).to_string())
+        "status": "ok",
+        "message": "save success"
+    })
+    .to_string())
 }
-
 
 #[tauri::command]
 pub async fn remove_ani_item_data(app: AppHandle, ani_id: &str) -> Result<String, String> {
@@ -79,18 +82,20 @@ pub async fn remove_ani_item_data(app: AppHandle, ani_id: &str) -> Result<String
             .bind(update_count)
             .execute(&pool)
             .await.expect("更新失败");
-        info!("已经删除 title: {}, platform: {}, update_count: {}", title, platform, update_count);
+        info!(
+            "已经删除 title: {}, platform: {}, update_count: {}",
+            title, platform, update_count
+        );
     } else {
         info!("ani_id: {} 的格式错误", ani_id);
-        
     }
-    
-    Ok(json!({
-            "status": "ok",
-            "message": "remove success"
-        }).to_string())
-}
 
+    Ok(json!({
+        "status": "ok",
+        "message": "remove success"
+    })
+    .to_string())
+}
 
 #[tauri::command]
 pub async fn query_ani_item_data_list(app: AppHandle) -> Result<String, String> {
@@ -116,17 +121,17 @@ pub async fn query_ani_item_data_list(app: AppHandle) -> Result<String, String> 
                     update_time = ?
                 ORDER BY
                     title
-           ;"#)
-        .bind(today_date)
-        .fetch_all(&pool)
-        .await
-        .unwrap();
+           ;"#,
+    )
+    .bind(today_date)
+    .fetch_all(&pool)
+    .await
+    .unwrap();
 
     let weekday = get_week_day_of_today();
     let mut result: AniResult = HashMap::new();
     result.insert(weekday, ani_items);
-    
-    let json_string = serde_json::to_string(&result)
-        .map_err(|e| e.to_string())?;
+
+    let json_string = serde_json::to_string(&result).map_err(|e| e.to_string())?;
     Ok(json_string)
 }
