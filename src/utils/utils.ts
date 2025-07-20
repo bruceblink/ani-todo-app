@@ -43,7 +43,7 @@ export async function saveAniData2Database(aniData: Record<string, Ani[]>) {
     }
 }
 
-export async function removeAniItemFromDatabase(aniId: string) {
+export async function removeAniItemFromDatabase(aniId: number) {
     try {
         const jsonStr = await invoke<string>("remove_ani_item_data", { aniId: aniId});
         // 解析成对象
