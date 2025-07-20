@@ -1,10 +1,15 @@
 use anyhow::{Context, Error, Result};
 use log::info;
-use sqlx::{sqlite::{SqliteConnectOptions, SqlitePoolOptions}, Pool, Sqlite, SqlitePool};
+use sqlx::migrate::Migrator;
+use sqlx::{
+    sqlite::{SqliteConnectOptions, SqlitePoolOptions},
+    Pool, Sqlite, SqlitePool,
+};
 use std::fs;
 use std::str::FromStr;
 use tauri::{path::BaseDirectory, AppHandle, Manager};
 
+pub static MIGRATOR: Migrator = sqlx::migrate!(); // 自动读取 /migrations 目录
 /// 获取tauri应用 的应用数据目录
 pub fn get_app_data_dir(app: &AppHandle) -> std::path::PathBuf {
     app.path()
@@ -18,30 +23,33 @@ pub fn get_or_set_db_path(app_data_dir: std::path::PathBuf) -> Result<String> {
     let db_path = app_data_dir.join("app_data.db");
     info!("数据库文件存放路径为{:?}", db_path);
     // 转换为字符串
-    db_path.to_str()
+    db_path
+        .to_str()
         .map(|s| s.to_string())
         .ok_or_else(|| anyhow::anyhow!("无效的数据库路径"))
 }
 
 /// 初始化数据库连接池
-async fn init_db(app: &AppHandle) -> Result<Pool<Sqlite>> {
+async fn init_and_migrate_db(app: &AppHandle) -> Result<Pool<Sqlite>> {
     // 确保应用数据目录存在
     let app_data_dir = get_app_data_dir(app);
-    if !app_data_dir.exists() {  // 目录不存在则创建
-        fs::create_dir_all(&app_data_dir)?;
+    if !app_data_dir.exists() {
+        fs::create_dir_all(&app_data_dir).context("创建应用数据目录失败")?;
     }
-    // 获取数据库路径
-    let db_path = get_or_set_db_path(app_data_dir)?;
-    // 创建数据库连接池
-    let pool = creat_database_connection_pool(db_path).await.expect("创建数据库连接池失败");
 
-    // 初始化数据库结构
-    init_db_schema(&pool).await?;
-    info!("数据库初始化成功!");
+    let db_path = get_or_set_db_path(app_data_dir).context("获取数据库路径失败")?;
+    let pool = creat_database_connection_pool(db_path)
+        .await
+        .context("创建数据库连接池失败")?;
+
+    // 运行迁移
+    MIGRATOR.run(&pool).await.context("数据库迁移失败")?;
+
+    info!("数据库初始化成功！");
     Ok(pool)
 }
 
-/// 创建数据库连接池 
+/// 创建数据库连接池
 /// # 参数
 /// - `db_path`: 为.db文件的路径 eg:"C:\Users\likanug\AppData\Roaming\com.likanug.dev\data\app_data.db"
 /// # 返回值
@@ -66,8 +74,8 @@ pub async fn creat_database_connection_pool(db_path: String) -> Result<Pool<Sqli
 
 async fn load_sql_script() -> Result<String, std::io::Error> {
     let mut path = std::env::current_dir()?;
-    path.push("sql");
-    path.push("init.sql");
+    path.push("migrations");
+    path.push("20250720053547_create_ani_items.sql");
     fs::read_to_string(path)
 }
 
@@ -87,10 +95,11 @@ pub async fn init_db_schema(pool: &SqlitePool) -> Result<(), sqlx::Error> {
 // 初始化逻辑
 pub async fn setup_app_db(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     let app_handle = app.handle();
-    init_db(&app_handle).await.expect("database init failed!");
+    init_and_migrate_db(&app_handle)
+        .await
+        .expect("database init or migrate failed!");
     Ok(())
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -122,7 +131,7 @@ mod tests {
         Ok(())
     }
 
-    async fn get_test_db_connection_pool() -> Pool<Sqlite>{
+    async fn get_test_db_connection_pool() -> Pool<Sqlite> {
         let tmp_file = NamedTempFile::new();
         let db_url = tmp_file.unwrap().path().to_str().unwrap().to_string();
         //let db_url = "C:\\Users\\likanug\\AppData\\Roaming\\com.likanug.dev\\data\\app_data.db".to_string();
@@ -137,7 +146,6 @@ mod tests {
 
     // 初始化测试数据
     async fn init_test_table_data(pool: &Pool<Sqlite>) {
-
         init_db_schema(&pool).await.expect("建表失败");
         // 执行sql
         sqlx::query("INSERT INTO ani_items (title,
@@ -271,7 +279,8 @@ mod tests {
             .await
             .expect("插入或更新失败");
         // 测试违反唯一约束更新更新数据
-        let ani_items = sqlx::query_as::<_, AniItem>(r#"SELECT title, 
+        let ani_items = sqlx::query_as::<_, AniItem>(
+            r#"SELECT title, 
                                                                            update_count, 
                                                                            update_info, 
                                                                            platform, 
@@ -282,11 +291,12 @@ mod tests {
                                                                            watched 
                                                                     FROM ani_items WHERE 
                                                                           title = ? 
-                                                                 "#)
-            .bind("琉璃的宝石")
-            .fetch_all(&pool)
-            .await
-            .unwrap();
+                                                                 "#,
+        )
+        .bind("琉璃的宝石")
+        .fetch_all(&pool)
+        .await
+        .unwrap();
         assert_eq!(ani_items.len(), 2);
         let ani_item = &ani_items[1];
         assert_eq!(ani_item.update_count, "");
@@ -347,9 +357,10 @@ mod tests {
             .execute(&pool)
             .await
             .expect("插入或更新失败");
-        
+
         // 测试违反唯一约束更新更新数据
-        let ani_items = sqlx::query_as::<_, AniItem>(r#"SELECT title, 
+        let ani_items = sqlx::query_as::<_, AniItem>(
+            r#"SELECT title, 
                                                                            update_count, 
                                                                            update_info, 
                                                                            platform, 
@@ -360,18 +371,19 @@ mod tests {
                                                                            watched 
                                                                     FROM ani_items WHERE 
                                                                           title = ? 
-                                                                 "#)
-            .bind("琉璃的宝石")
-            .fetch_all(&pool)
-            .await
-            .unwrap();
+                                                                 "#,
+        )
+        .bind("琉璃的宝石")
+        .fetch_all(&pool)
+        .await
+        .unwrap();
         println!("{:?}", ani_items);
         assert_eq!(ani_items.len(), 2);
         let ani_item = &ani_items[1];
         assert_eq!(ani_item.update_count, "18");
         assert_eq!(ani_item.update_time, "2025/07/13");
     }
-    
+
     #[tokio::test]
     async fn test_unique_insert2() {
         // 获取数据库连接池
@@ -451,7 +463,8 @@ mod tests {
             .await
             .expect("插入或更新失败");
         // 测试违反唯一约束更新更新数据
-        let ani_items = sqlx::query_as::<_, AniItem>(r#"SELECT title, 
+        let ani_items = sqlx::query_as::<_, AniItem>(
+            r#"SELECT title, 
                                                                            update_count, 
                                                                            update_info, 
                                                                            platform, 
@@ -462,11 +475,12 @@ mod tests {
                                                                            watched 
                                                                     FROM ani_items WHERE 
                                                                           title = ? 
-                                                                    "#)
-            .bind("名侦探柯南")
-            .fetch_all(&pool)
-            .await
-            .unwrap();
+                                                                    "#,
+        )
+        .bind("名侦探柯南")
+        .fetch_all(&pool)
+        .await
+        .unwrap();
         assert_eq!(ani_items.len(), 1);
         let ani_item = &ani_items[0];
         assert_eq!(ani_item.update_count, "1234");
@@ -505,7 +519,8 @@ mod tests {
             .await
             .expect("插入或更新失败");
         // 测试违反唯一约束更新更新数据
-        let ani_items = sqlx::query_as::<_, AniItem>(r#"SELECT title, 
+        let ani_items = sqlx::query_as::<_, AniItem>(
+            r#"SELECT title, 
                                                                            update_count, 
                                                                            update_info, 
                                                                            platform, 
@@ -516,11 +531,12 @@ mod tests {
                                                                            watched 
                                                                     FROM ani_items WHERE 
                                                                           title = ? 
-                                                                    "#)
-            .bind("名侦探柯南")
-            .fetch_all(&pool)
-            .await
-            .unwrap();
+                                                                    "#,
+        )
+        .bind("名侦探柯南")
+        .fetch_all(&pool)
+        .await
+        .unwrap();
         assert_eq!(ani_items.len(), 1);
         let ani_item = &ani_items[0];
         assert_eq!(ani_item.update_count, "1234");
@@ -540,7 +556,7 @@ mod tests {
             .await
             .unwrap();
         assert_eq!(ani_item.title, "名侦探柯南");
-        assert_eq!(ani_item.update_count,"1234");
+        assert_eq!(ani_item.update_count, "1234");
         assert_eq!(ani_item.update_info, "2025/07/13 更新");
         assert_eq!(ani_item.platform, "mikanani");
         assert_eq!(ani_item.image_url, "https://mikanani.me/images/Bangumi/201310/91d95f43.jpg?width=400&height=400&format=webp");
@@ -563,7 +579,6 @@ mod tests {
         assert_eq!(ani_items[0].title, "名侦探柯南");
     }
 
-
     #[tokio::test]
     async fn test_db_update() {
         let pool = SqlitePool::connect("sqlite::memory:").await.unwrap();
@@ -576,15 +591,17 @@ mod tests {
             .execute(&pool)
             .await
             .unwrap();
-        let ani_item = sqlx::query_as::<_, AniItem>(r#"SELECT 
+        let ani_item = sqlx::query_as::<_, AniItem>(
+            r#"SELECT 
                                         title, update_count, update_info, 
                                         platform, image_url, detail_url, 
                                         update_time, platform, watched 
-                                FROM ani_items WHERE title = ?;"#)
-            .bind("名侦探柯南")
-            .fetch_one(&pool)
-            .await
-            .unwrap();
+                                FROM ani_items WHERE title = ?;"#,
+        )
+        .bind("名侦探柯南")
+        .fetch_one(&pool)
+        .await
+        .unwrap();
         assert_eq!(ani_item.update_count, "2100");
     }
 
@@ -616,5 +633,4 @@ mod tests {
         assert_eq!(ani_items.len(), 4);
         assert_ne!(ani_items[0].title, "名侦探柯南");
     }
-
 }

@@ -25,7 +25,7 @@ tauri-plugin-log = "2"
 tokio = { version = "1", features = ["full"] }
 
 # 示例：使用 SQLx 访问 sqlite，可根据需要替换
-sqlx = { version = "0.8", features = ["sqlite", "macros", "runtime-tokio-rustls"] }
+sqlx = { version = "0.8", features = ["sqlite", "macros", "runtime-tokio-rustls", "migrate"] }
 
 # 序列化库
 serde = { version = "1.0", features = ["derive"] }
