@@ -1,11 +1,11 @@
 [package]
-name = "ani-todo-app"
-version = "0.1.0"
-description = "A Tauri App"
-authors = ["you"]
-license = ""
-repository = ""
+name = "ani-todo-app"               # Crate 名称，对应二进制的 name
+version = "0.1.1"
+authors = ["likanug <likanug.g@qq.com>"]
 edition = "2021"
+description = "A Tauri‑based Todo App (v2.0 +)"
+license = "MIT"
+repository = "https://github.com/yourname/ani-todo-app"
 rust-version = "1.86"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
