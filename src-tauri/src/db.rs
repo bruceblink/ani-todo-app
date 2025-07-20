@@ -114,6 +114,8 @@ pub async fn query_ani_item_data_list(app: AppHandle) -> Result<String, String> 
                 FROM ani_items
                 WHERE
                     update_time = ?
+                ORDER BY
+                    title
            ;"#)
         .bind(today_date)
         .fetch_all(&pool)
