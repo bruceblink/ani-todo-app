@@ -3,6 +3,7 @@ import { getAniId } from "../utils/utils";
 import toast from "react-hot-toast";
 
 export interface Ani {
+    id: number;
     title: string;
     update_count: string;
     detail_url: string;
