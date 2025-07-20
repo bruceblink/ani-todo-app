@@ -72,7 +72,7 @@ pub async fn save_ani_item_data(app: AppHandle, ani_data: &str) -> Result<String
 #[tauri::command]
 pub async fn remove_ani_item_data(
     app: AppHandle,
-    ani_id: String
+    ani_id: i64
 ) -> Result<String, String> {
     // 1. 打开数据库
     let db_path = get_or_set_db_path(get_app_data_dir(&app))
@@ -81,19 +81,14 @@ pub async fn remove_ani_item_data(
         .await
         .map_err(|e| e.to_string())?;
 
-    // 2. 解析 ID 为 i64
-    let id: i64 = ani_id
-        .parse()
-        .map_err(|e| format!("无效的 ani_id (`{}`): {}", ani_id, e))?;
-
     // 3. 执行更新
     sqlx::query("UPDATE ani_items SET watched = 1 WHERE id = ?")
-        .bind(id)
+        .bind(ani_id)
         .execute(&pool)
         .await
         .map_err(|e| e.to_string())?;
 
-    info!("标记 watched: id = {}", id);
+    info!("标记 watched: id = {}", ani_id);
     // 4. 返回统一的 JSON 字符串
     Ok(json!({
         "status":  "ok",
