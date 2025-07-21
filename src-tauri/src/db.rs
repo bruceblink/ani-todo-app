@@ -1,6 +1,6 @@
 use log::info;
 use serde_json::json;
-use sqlx::{Pool, Sqlite, Transaction, Executor};
+use sqlx::{Pool, Sqlite};
 use std::collections::HashMap;
 
 pub mod sqlite;
@@ -209,11 +209,9 @@ pub async fn get_favorite_ani_item_list(app: AppHandle ) -> Result<String, Strin
 }
 
 
-/// 收藏或者取消收藏动漫
+/// 收藏动漫
 #[tauri::command]
-pub async fn collect_or_cancel_ani_item(app: AppHandle,
-                                        ani_id: i64,
-                                        is_favorite: bool) -> Result<String, String> {
+pub async fn collect_ani_item(app: AppHandle, ani_id: i64 ) -> Result<String, String> {
     // 1. 打开数据库
     let db_path = get_or_set_db_path(get_app_data_dir(&app))
         .map_err(|e| e.to_string())?;
@@ -223,45 +221,71 @@ pub async fn collect_or_cancel_ani_item(app: AppHandle,
     // 开启事务
     let mut tx = pool.begin().await.map_err(|e| e.to_string())?;
     // 更新ani_item表中的is_favorite状态
-    sqlx::query("UPDATE ani_items SET is_favorite = ? WHERE id = ?")
-        .bind(is_favorite)
+    sqlx::query("UPDATE ani_items SET is_favorite = 1 WHERE id = ?")
         .bind(ani_id)
         .execute(&mut *tx) // ⭐️ 显式解引用
         .await
         .map_err(|e| e.to_string())?;
-    if is_favorite {  // 如果收藏
-        sqlx::query(
-            r#"
-            INSERT INTO ani_collect (
-                ani_item_id,
-                collect_time,
-                watched
-            ) VALUES (?, ?, ?)
-            ON CONFLICT(ani_item_id) DO UPDATE SET
-                collect_time = excluded.collect_time
-        "#,
-        )
-            .bind(ani_id)
-            .bind(today_iso_date_ld())
-            .bind(false)
-            .execute(&mut *tx)
-            .await
-            .map_err(|e| format!("插入或更新失败: {}", e))?;
-    }else {  // 取消收藏
-        sqlx::query("DELETE FROM main.ani_collect WHERE id = ?")
-            .bind(ani_id)
-            .execute(&mut *tx) // ⭐️ 显式解引用
-            .await
-            .map_err(|e| e.to_string())?;
-    }
+
+    sqlx::query(
+        r#"
+        INSERT INTO ani_collect (
+            ani_item_id,
+            collect_time,
+            watched
+        ) VALUES (?, ?, ?)
+        ON CONFLICT(ani_item_id) 
+        DO UPDATE SET
+            collect_time = excluded.collect_time
+    "#,
+    )
+    .bind(ani_id)
+    .bind(today_iso_date_ld())
+    .bind(false)
+    .execute(&mut *tx)
+    .await
+    .map_err(|e| format!("插入或更新失败: {}", e))?;
     // 提交事务
     tx.commit().await.map_err(|e| e.to_string())?;
 
 
-    info!("标记 watched: id = {}", ani_id);
+    info!("标记collected: 动漫_id = {}", ani_id);
     // 4. 返回统一的 JSON 字符串
     Ok(json!({
         "status":  "ok",
-        "message": "remove success"
+        "message": "collect success"
+    }).to_string())
+}
+
+/// 收藏动漫
+#[tauri::command]
+pub async fn cancel_collect_ani_item(app: AppHandle, ani_id: i64) -> Result<String, String> {
+    // 1. 打开数据库
+    let db_path = get_or_set_db_path(get_app_data_dir(&app))
+        .map_err(|e| e.to_string())?;
+    let pool: Pool<Sqlite> = creat_database_connection_pool(db_path)
+        .await
+        .map_err(|e| e.to_string())?;
+    // 开启事务
+    let mut tx = pool.begin().await.map_err(|e| e.to_string())?;
+    // 更新ani_item表中的is_favorite状态
+    sqlx::query("UPDATE ani_items SET is_favorite = 0 WHERE id = ?")
+        .bind(ani_id)
+        .execute(&mut *tx) // ⭐️ 显式解引用
+        .await
+        .map_err(|e| e.to_string())?;
+    sqlx::query("DELETE FROM ani_collect WHERE ani_item_id = ?")
+        .bind(ani_id)
+        .execute(&mut *tx) // ⭐️ 显式解引用
+        .await
+        .map_err(|e| e.to_string())?;
+    // 提交事务
+    tx.commit().await.map_err(|e| e.to_string())?;
+    
+    info!("标记 cancel collect: 动漫_id = {}", ani_id);
+    // 4. 返回统一的 JSON 字符串
+    Ok(json!({
+        "status":  "ok",
+        "message": "cancel success"
     }).to_string())
 }
