@@ -8,6 +8,8 @@ use sqlx::{
 use std::fs;
 use std::str::FromStr;
 use tauri::{path::BaseDirectory, AppHandle, Manager};
+use std::fs::{File};
+use std::io::{Read};
 
 pub static MIGRATOR: Migrator = sqlx::migrate!(); // 自动读取 src-tauri/migrations 目录下的所有sql脚本
 /// 获取tauri应用 的应用数据目录
@@ -73,10 +75,27 @@ pub async fn creat_database_connection_pool(db_path: String) -> Result<Pool<Sqli
 }
 
 async fn load_sql_script() -> Result<String, std::io::Error> {
-    let mut path = std::env::current_dir()?;
-    path.push("migrations");
-    path.push("20250720053547_create_ani_items.sql");
-    fs::read_to_string(path)
+
+    let mut dir_path = std::env::current_dir()?;
+    dir_path.push("migrations");
+
+    let mut merged_content = String::new();
+    for entry in fs::read_dir(dir_path)? {
+        let entry = entry?;
+        let path = entry.path();
+
+        // 只处理文件（跳过文件夹）
+        if path.is_file() {
+            let mut file = File::open(&path)?;
+            let mut content = String::new();
+            file.read_to_string(&mut content)?;
+
+            // 添加换行符（可选）
+            merged_content.push_str(&content);
+            merged_content.push('\n');
+        }
+    }
+    Ok(merged_content)
 }
 
 /// 初始化数据库结构
@@ -103,12 +122,15 @@ pub async fn setup_app_db(app: &mut tauri::App) -> Result<(), Box<dyn std::error
 
 #[cfg(test)]
 mod tests {
+    use crate::db::Ani;
     use crate::db::sqlite::{creat_database_connection_pool, init_db_schema};
     use crate::platforms::AniItem;
     use sqlx::{Pool, Sqlite, SqlitePool};
     use std::fs::File;
     use std::io::{Seek, SeekFrom, Write};
     use tempfile::NamedTempFile;
+    use crate::db::po::AniCollect;
+    use crate::utils::date_utils::today_iso_date_ld;
 
     #[test]
     fn test_with_temp_file() -> std::io::Result<()> {
@@ -633,4 +655,88 @@ mod tests {
         assert_eq!(ani_items.len(), 4);
         assert_ne!(ani_items[0].title, "名侦探柯南");
     }
+
+    #[tokio::test]
+    async fn test_collect_ani_item() {
+        // 获取数据库连接池
+        let pool = SqlitePool::connect("sqlite::memory:").await.unwrap();
+        init_test_table_data(&pool).await;
+
+        // 开启事务
+        let mut tx = pool.begin().await.map_err(|e| e.to_string()).unwrap();
+        // 更新ani_item表中的is_favorite状态
+        let _ = sqlx::query("UPDATE ani_items SET is_favorite = ? WHERE id = ?")
+            .bind(true)
+            .bind(1i8)
+            .execute(&mut *tx) // ⭐️ 显式解引用
+            .await
+            .map_err(|e| e.to_string());
+        let _ = sqlx::query(
+            r#"
+            INSERT INTO ani_collect (
+                ani_item_id,
+                collect_time,
+                watched
+            ) VALUES (?, ?, ?)
+            ON CONFLICT(ani_item_id) DO UPDATE SET
+                collect_time = excluded.collect_time
+            "#,
+            )
+            .bind(1i8)
+            .bind(today_iso_date_ld())
+            .bind(false)
+            .execute(&mut *tx)
+            .await
+            .map_err(|e| format!("插入或更新失败: {}", e));
+        // 提交事务
+        let _ = tx.commit().await.map_err(|e| e.to_string());
+
+        let ani_item = sqlx::query_as::<_, Ani>("SELECT id, title, update_count, update_info, platform, image_url, detail_url, update_time, platform, watched, is_favorite FROM ani_items WHERE id = 1;")
+            .fetch_one(&pool)
+            .await
+            .unwrap();
+        assert_eq!(ani_item.is_favorite, true);
+
+
+        let ani_collects = sqlx::query_as::<_, AniCollect>("SELECT id, ani_item_id, collect_time, watched FROM ani_collect;")
+            .fetch_all(&pool)
+            .await
+            .unwrap();
+        assert_eq!(ani_collects.len(), 1);
+        let ani_collect = &ani_collects[0];
+        assert_eq!(ani_collect.ani_item_id, 1);
+        assert_eq!(ani_collect.collect_time, "2025/07/21");
+        assert_eq!(ani_collect.watched, false);
+        // 测试取消收藏
+        // 开启事务
+        let mut tx = pool.begin().await.map_err(|e| e.to_string()).unwrap();
+        let _ = sqlx::query("UPDATE ani_items SET is_favorite = ? WHERE id = ?")
+            .bind(false)
+            .bind(1)
+            .execute(&mut *tx) // ⭐️ 显式解引用
+            .await
+            .map_err(|e| e.to_string());
+
+
+        let _ = sqlx::query("DELETE FROM main.ani_collect WHERE id = ?")
+            .bind(1)
+            .execute(&mut *tx) // ⭐️ 显式解引用
+            .await
+            .map_err(|e| e.to_string());
+        // 提交事务
+        let _ = tx.commit().await.map_err(|e| e.to_string());
+
+        let ani_item = sqlx::query_as::<_, Ani>("SELECT id, title, update_count, update_info, platform, image_url, detail_url, update_time, platform, watched, is_favorite FROM ani_items WHERE id = 1;")
+            .fetch_one(&pool)
+            .await
+            .unwrap();
+        assert_eq!(ani_item.is_favorite, false);
+
+        let ani_collects = sqlx::query_as::<_, AniCollect>("SELECT id, ani_item_id, collect_time, watched FROM ani_collect;")
+            .fetch_optional(&pool)
+            .await
+            .unwrap();
+        assert_eq!(ani_collects, None::<AniCollect>);
+    }
+
 }

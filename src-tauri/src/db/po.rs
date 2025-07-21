@@ -18,7 +18,7 @@ pub struct Ani {
 
 pub type AniIResult = HashMap<String, Vec<Ani>>;
 
-#[derive(Debug, Clone, FromRow, Deserialize, Serialize)]
+#[derive(Debug, Clone, FromRow, PartialEq, Deserialize, Serialize)]
 pub struct AniCollect {
     pub id: i64,
     pub ani_item_id: i64,
