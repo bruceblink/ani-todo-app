@@ -13,6 +13,15 @@ pub struct Ani {
     pub update_time: String,
     pub platform: String,
     pub watched: bool,
+    pub is_favorite: bool,
 }
 
 pub type AniIResult = HashMap<String, Vec<Ani>>;
+
+#[derive(Debug, Clone, FromRow, Deserialize, Serialize)]
+pub struct AniCollect {
+    pub id: i64,
+    pub ani_item_id: i64,
+    pub collect_time: String,
+    pub watched: bool,
+}
