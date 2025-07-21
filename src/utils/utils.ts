@@ -73,3 +73,33 @@ export async function loadAniData(cmd: string) {
         return {};
     }
 }
+
+/**
+ *  调用tauri的command函数
+ * @param cmd 调用的后端command
+ * @param args command所需的参数
+ *
+ * usage:
+ * type Response = { status: string };
+ * type Args = { aniTitle: string; platform: string };
+ *
+ * const res = await invokeCommand<Response, Args>('remove_ani_item_data', {
+ *     aniTitle: '凉宫春日的忧郁',
+ *     platform: 'B站'
+ * });
+ *
+ *
+ */
+export async function invokeCommand<T, Args extends Record<string, unknown> = Record<string, unknown>>(
+    cmd: string,
+    args?: Args
+): Promise<T | undefined> {
+    try {
+        const result = await invoke<T>(cmd, args ?? {}); // args 默认为 {}
+        console.log(`invoke cmd ${cmd} args`, args, 'success!');
+        return result;
+    } catch (e) {
+        console.error(`invoke cmd ${cmd} args`, args, 'failed:', e);
+        return undefined;
+    }
+}
