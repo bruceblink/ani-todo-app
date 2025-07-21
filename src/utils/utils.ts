@@ -1,10 +1,5 @@
 import type {Ani} from "../components/AniItem";
 import {invoke} from '@tauri-apps/api/core';
-
-export function getAniId(ani: Ani): string {
-    return `${ani.title}---${ani.platform}---${ani.update_count}`;
-}
-
 /**
  *  从各个视频网站获取最新的动漫更新数据
  * @param url
@@ -95,9 +90,14 @@ export async function invokeCommand<T, Args extends Record<string, unknown> = Re
     args?: Args
 ): Promise<T | undefined> {
     try {
-        const result = await invoke<T>(cmd, args ?? {}); // args 默认为 {}
-        console.log(`invoke cmd ${cmd} args`, args, 'success!');
-        return result;
+        // 1) 强制用 string 拿回 JSON 字符串
+        const raw = await invoke<string>(cmd, args ?? {});
+
+        // 2) parse 出 R 类型
+        const data = JSON.parse(raw) as T;
+
+        console.log(`invoke cmd ${cmd} args`, args, 'success!', data);
+        return data;
     } catch (e) {
         console.error(`invoke cmd ${cmd} args`, args, 'failed:', e);
         return undefined;
