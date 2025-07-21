@@ -116,7 +116,8 @@ pub async fn query_ani_item_data_list(app: AppHandle) -> Result<String, String> 
                       detail_url, 
                       update_time, 
                       platform,
-                      watched
+                      watched,
+                      is_favorite
                 FROM ani_items
                 WHERE
                     update_time = ?
@@ -157,7 +158,8 @@ pub async fn get_watched_ani_item_list(app: AppHandle) -> Result<String, String>
                       detail_url, 
                       update_time, 
                       platform,
-                      watched
+                      watched,
+                      is_favorite
                 FROM ani_items
                 WHERE
                     update_time = ? AND 
