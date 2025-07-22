@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import {type Ani, api, dataSources} from "@/utils/api";
+import {mergeAniGroups} from "@/utils/utils";
 
 // 单个请求可能的结果
 type RequestResult =
@@ -68,15 +69,8 @@ export function useAniData(): UseAniData {
                 setError(`${first} 请求失败`);
                 return;
             }
-
             // 合并成功的数据
-            const merged = successList.reduce<Record<string, Ani[]>>((acc, cur) => {
-                Object.entries(cur).forEach(([week, list]) => {
-                    acc[week] = (acc[week] || []).concat(list);
-                });
-                return acc;
-            }, {});
-
+            const merged = mergeAniGroups(successList);
             // 保存到数据库
             await api.saveAniItems(merged);
             // 如果有部分失败，保留 errors 和摘要
