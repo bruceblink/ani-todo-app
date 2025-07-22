@@ -42,7 +42,7 @@ export interface ApiCommands {
         args: { aniData?: Record<string, Ani[]> }
         result: Record<string, string>
     },
-    get_watched_ani_item_list: {
+    query_watched_ani_item_list: {
         args: {filter?: string}
         result: Ani[]
     },
@@ -50,7 +50,7 @@ export interface ApiCommands {
         args: { aniId?: number }
         result: Record<string, string>
     },
-    get_favorite_ani_item_list: {
+    query_favorite_ani_item_list: {
         args: { filter?: string  }
         result: AniCollect[]
     }
@@ -95,13 +95,13 @@ export const api = {
         invokeApi('save_ani_item_data', {  aniData }),
 
     queryWatchedAniIds: () =>
-        invokeApi('get_watched_ani_item_list', { }),
+        invokeApi('query_watched_ani_item_list', { }),
 
     clearAni: (aniId: number) =>
         invokeApi('remove_ani_item_data', { aniId}),
 
     queryFavoriteAniList: () =>
-        invokeApi('get_favorite_ani_item_list', { }),
+        invokeApi('query_favorite_ani_item_list', { }),
 
     collectAni: (aniId: number) =>
         invokeApi('collect_ani_item', { aniId }),

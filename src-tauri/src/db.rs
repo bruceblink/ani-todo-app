@@ -134,7 +134,7 @@ pub async fn query_ani_item_data_list(app: AppHandle) -> Result<AniIResult, Stri
 
 
 #[tauri::command]
-pub async fn get_watched_ani_item_list(app: AppHandle) -> Result<Vec<Ani>, String> {
+pub async fn query_watched_ani_item_list(app: AppHandle) -> Result<Vec<Ani>, String> {
     let db_path = get_or_set_db_path(get_app_data_dir(&app)).map_err(|e| e.to_string())?;
     let pool: Pool<Sqlite> = creat_database_connection_pool(db_path)
         .await
@@ -173,7 +173,7 @@ pub async fn get_watched_ani_item_list(app: AppHandle) -> Result<Vec<Ani>, Strin
 
 /// 获取收藏动漫列表
 #[tauri::command]
-pub async fn get_favorite_ani_item_list(app: AppHandle ) -> Result<Vec<AniCollect>, String> {
+pub async fn query_favorite_ani_item_list(app: AppHandle ) -> Result<Vec<AniCollect>, String> {
     // 1. 打开数据库
     let db_path = get_or_set_db_path(get_app_data_dir(&app))
         .map_err(|e| e.to_string())?;
