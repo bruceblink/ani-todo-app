@@ -5,20 +5,20 @@ import type {Ani} from "@/components/AniItem.tsx";
 
 
 
-export function ClearedProvider({ children }: { children: ReactNode }) {
-    const [clearedIds, setClearedIds] = useState<Set<number>>(new Set())
+export function WatchedAniProvider({ children }: { children: ReactNode }) {
+    const [watchedAniIds, setWatchedAniIds] = useState<Set<number>>(new Set())
 
     useEffect(() => {
-        void fetchClearedIds()
+        void fetchWatchedAniIds()
     }, [])
 
-    const fetchClearedIds = async () => {
+    const fetchWatchedAniIds = async () => {
         try {
             const data = await loadAniData("get_watched_ani_item_list")
             const today = Object.keys(data)[0]
             const aniList = data[today] as Ani[]
-            const ids = aniList.map(ani => ani.id)
-            setClearedIds(new Set(ids))
+            const ids = new Set(aniList.map(ani => ani.id))
+            setWatchedAniIds(ids)
         } catch (err) {
             console.error("加载 watched 番剧失败:", err)
         }
@@ -27,7 +27,7 @@ export function ClearedProvider({ children }: { children: ReactNode }) {
     const clear = async (id: number) => {
         try {
             await removeAniItemFromDatabase(id)
-            setClearedIds(prev => {
+            setWatchedAniIds(prev => {
                 const updated = new Set(prev)
                 updated.add(id)
                 return updated
@@ -38,7 +38,7 @@ export function ClearedProvider({ children }: { children: ReactNode }) {
     }
 
     return (
-        <ClearedContext.Provider value={{ clearedIds, clear }}>
+        <ClearedContext.Provider value={{ clearedIds: watchedAniIds, clear }}>
             {children}
         </ClearedContext.Provider>
     )
