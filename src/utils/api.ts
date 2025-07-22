@@ -27,6 +27,55 @@ export interface AniCollect {
     watched: boolean,
 }
 
+// 数据源描述
+type DataSource = {
+    name: string;
+    url?: string;
+    cmd: string;
+};
+
+/**
+ * 定义所有获取动漫数据的数据源
+ */
+export const dataSources: DataSource[] = [
+    {
+        name: '哔哩哔哩国创',
+        url: 'https://api.bilibili.com/pgc/web/timeline?types=4&before=6&after=6',
+        cmd: 'fetch_bilibili_ani_data',
+    },
+    {
+        name: '哔哩哔哩番剧',
+        url: 'https://api.bilibili.com/pgc/web/timeline?types=1&before=6&after=6',
+        cmd: 'fetch_bilibili_ani_data',
+    },
+    {
+        name: '爱奇艺动漫',
+        url: 'https://mesh.if.iqiyi.com/portal/lw/v7/channel/cartoon',
+        cmd: 'fetch_iqiyi_ani_data',
+    },
+    /*                {
+                        name: '蜜柑计划',
+                        url: 'https://mikanani.me',
+                        cmd: 'fetch_mikanani_ani_data',
+                    },*/
+    {
+        name: '腾讯视频',
+        url: 'https://v.qq.com/channel/cartoon',
+        cmd: 'fetch_qq_ani_data',
+    },
+    {
+        name: '优酷视频',
+        url: 'https://www.youku.com/ku/webcomic',
+        cmd: 'fetch_youku_ani_data',
+    },
+    {
+        name: 'AGE动漫',
+        url: 'https://www.agedm.vip/update',
+        cmd: 'fetch_agedm_ani_data'
+    },
+    // ...其他接口
+];
+
 /**
  * 定义所有 Tauri 命令的签名映射
  * key：命令名；
@@ -34,6 +83,10 @@ export interface AniCollect {
  * result：命令返回的类型
  */
 export interface ApiCommands {
+    fetch_ani_data: {
+        args: { url?: string }
+        result: Record<string, Ani[]>
+    }
     query_ani_item_data_list: {
         args: { filter?: string }
         result: Record<string, Ani[]>
@@ -71,9 +124,9 @@ export interface ApiCommands {
  * @returns 对应命令的返回值
  */
 export async function invokeApi<K extends keyof ApiCommands>(
-    cmd: K,
-    args: ApiCommands[K]['args']
-): Promise<ApiCommands[K]['result']> {
+    cmd: K | string,
+    args: ApiCommands[K]["args"]
+): Promise<ApiCommands[K]["result"]> {
     try {
         // 只用一个泛型指定返回值类型，命令名由 K 保证安全
         return await invoke<ApiCommands[K]['result']>(cmd, args)
@@ -87,25 +140,46 @@ export async function invokeApi<K extends keyof ApiCommands>(
  * 语义化的 API 调用封装，供项目中直接使用
  */
 export const api = {
-    /** 获取动画列表，可选过滤 */
+    /**
+     * 获取指定源的动画数据
+     * @param cmd 命令名
+     * @param url 可选的 URL 参数
+     * */
+    fetchAniData: (cmd: string, url: string) =>
+        invokeApi(cmd, { url }),
+    /**
+     * 获取动画列表
+     * */
     queryAniList: () =>
-        invokeApi('query_ani_item_data_list', {  }),
-    /** 保存动画数据 */
+        invokeApi('query_ani_item_data_list', {}),
+    /**
+     * 保存动画数据
+     * */
     saveAniItems: (aniData: Record<string, Ani[]>) =>
-        invokeApi('save_ani_item_data', {  aniData }),
-    /** 查询已观看的动画 ID 列表 */
+        invokeApi('save_ani_item_data', {aniData}),
+    /**
+     * 查询已观看的动画 ID 列表
+     * */
     queryWatchedAniIds: () =>
-        invokeApi('query_watched_ani_item_list', { }),
-    /** 清除动漫(标记为已看) */
+        invokeApi('query_watched_ani_item_list', {}),
+    /**
+     * 清除动漫(标记为已看)
+     * */
     clearAni: (aniId: number) =>
-        invokeApi('remove_ani_item_data', { aniId}),
-    /** 查询收藏的动画列表 */
+        invokeApi('remove_ani_item_data', {aniId}),
+    /**
+     * 查询收藏的动画列表
+     * */
     queryFavoriteAniList: () =>
-        invokeApi('query_favorite_ani_item_list', { }),
-    /** 收藏动漫 */
+        invokeApi('query_favorite_ani_item_list', {}),
+    /**
+     * 收藏动漫
+     */
     collectAni: (aniId: number) =>
-        invokeApi('collect_ani_item', { aniId }),
-    /** 取消收藏动漫 */
+        invokeApi('collect_ani_item', {aniId}),
+    /**
+     * 取消收藏动漫
+     * */
     cancelCollectAni: (aniId: number) =>
-        invokeApi('cancel_collect_ani_item', { aniId }),
+        invokeApi('cancel_collect_ani_item', {aniId}),
 }

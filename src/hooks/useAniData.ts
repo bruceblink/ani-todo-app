@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { fetchAniData } from '@/utils/utils';
-import {type Ani, api} from "@/utils/api";
+import {type Ani, api, dataSources} from "@/utils/api";
 
 // 单个请求可能的结果
 type RequestResult =
@@ -17,12 +16,6 @@ export type UseAniData = {
     refresh: () => Promise<void>;
 };
 
-// 数据源描述
-type DataSource = {
-    name: string;
-    url?: string;
-    cmd: string;
-};
 
 export function useAniData(): UseAniData {
     const [data, setData] = useState<Record<string, Ani[]>>({});
@@ -41,48 +34,11 @@ export function useAniData(): UseAniData {
     const fetchData = useCallback(async () => {
         resetState();
         try {
-            const sources: DataSource[] = [
-                {
-                    name: '哔哩哔哩国创',
-                    url: 'https://api.bilibili.com/pgc/web/timeline?types=4&before=6&after=6',
-                    cmd: 'fetch_bilibili_ani_data',
-                },
-                {
-                    name: '哔哩哔哩番剧',
-                    url: 'https://api.bilibili.com/pgc/web/timeline?types=1&before=6&after=6',
-                    cmd: 'fetch_bilibili_ani_data',
-                },
-                {
-                    name: '爱奇艺动漫',
-                    url: 'https://mesh.if.iqiyi.com/portal/lw/v7/channel/cartoon',
-                    cmd: 'fetch_iqiyi_ani_data',
-                },
-/*                {
-                    name: '蜜柑计划',
-                    url: 'https://mikanani.me',
-                    cmd: 'fetch_mikanani_ani_data',
-                },*/
-                {
-                    name: '腾讯视频',
-                    url: 'https://v.qq.com/channel/cartoon',
-                    cmd: 'fetch_qq_ani_data',
-                },
-                {
-                    name: '优酷视频',
-                    url: 'https://www.youku.com/ku/webcomic',
-                    cmd: 'fetch_youku_ani_data',
-                },
-                {
-                    name: 'AGE动漫',
-                    url: 'https://www.agedm.vip/update',
-                    cmd: 'fetch_agedm_ani_data'
-                },
-                // ...其他接口
-            ];
+            const sources = dataSources;
 
             const settled = await Promise.allSettled(
                 sources.map(({ url, cmd, name }) =>
-                    fetchAniData(url!, cmd)
+                    api.fetchAniData(cmd, url!,)
                         .then((d) => ({ name, data: d }))
                         .catch((err) => ({ name, error: err }))
                 )
