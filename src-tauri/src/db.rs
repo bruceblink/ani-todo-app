@@ -6,23 +6,19 @@ use std::collections::HashMap;
 pub mod sqlite;
 pub mod po;
 use crate::db::sqlite::{creat_database_connection_pool, get_app_data_dir, get_or_set_db_path};
-use crate::platforms::{ AniItem, AniItemResult};
+use crate::platforms::{ AniItemResult};
 use crate::utils::date_utils::{get_week_day_of_today, today_iso_date_ld};
 use tauri::AppHandle;
 use crate::db::po::{Ani, AniCollect, AniIResult};
 
-pub type AniResult = HashMap<String, Vec<AniItem>>;
 #[tauri::command]
-pub async fn save_ani_item_data(app: AppHandle, ani_data: &str) -> Result<String, String> {
+pub async fn save_ani_item_data(app: AppHandle, ani_data: AniItemResult) -> Result<String, String> {
     let db_path = get_or_set_db_path(get_app_data_dir(&app)).map_err(|e| e.to_string())?;
     let pool: Pool<Sqlite> = creat_database_connection_pool(db_path)
         .await
         .map_err(|e| e.to_string())?;
-
-    let ani_map: AniItemResult = serde_json::from_str(ani_data).map_err(|e| e.to_string())?;
-    let ani_items = ani_map
-        .get(&get_week_day_of_today())
-        .ok_or("获取今日动漫数据失败")?;
+    
+    let ani_items = ani_data.get(&get_week_day_of_today()).ok_or("获取今日动漫数据失败")?;
 
     if ani_items.is_empty() {
         return Ok(json!({

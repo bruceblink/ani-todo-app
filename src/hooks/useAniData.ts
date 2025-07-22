@@ -1,9 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { Ani } from '../components/AniItem.tsx';
 import {
-    fetchAniData,
-    loadAniData,
-    saveAniData2Database,
+    fetchAniData, invokeCommand,
 } from '../utils/utils.ts';
 
 // 单个请求可能的结果
@@ -126,7 +124,7 @@ export function useAniData(): UseAniData {
             }, {});
 
             // 保存到数据库
-            await saveAniData2Database(merged);
+            await invokeCommand("save_ani_item_data", {aniData: merged});
 
             // 如果有部分失败，保留 errors 和摘要
             if (Object.keys(resultErrors).length > 0) {
@@ -150,7 +148,7 @@ export function useAniData(): UseAniData {
 
             const settled = await Promise.allSettled(
                 sources.map(({ cmd, name }) =>
-                    loadAniData(cmd)
+                    invokeCommand(cmd)
                         .then((d) => ({ name, data: d }))
                         .catch((err) => ({ name, error: err }))
                 )
