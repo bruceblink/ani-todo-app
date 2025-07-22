@@ -17,9 +17,6 @@ tauri = { version = "2" }
 [build-dependencies]
 
 [features]
-# 默认生产模式特性，让打包后二进制从本地文件系统加载前端资源
-default = ["custom-protocol"]
-custom-protocol = ["tauri/custom-protocol"]
 
 # 明确声明二进制目标，路径指向 Tauri 的主入口
 [[bin]]
