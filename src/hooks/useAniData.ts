@@ -1,7 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import {
-    fetchAniData, invokeCommand,
-} from '../utils/utils.ts';
+import { fetchAniData } from '@/utils/utils';
 import {type Ani, api} from "@/utils/api";
 
 // 单个请求可能的结果
@@ -124,8 +122,7 @@ export function useAniData(): UseAniData {
             }, {});
 
             // 保存到数据库
-            await invokeCommand("save_ani_item_data", {aniData: merged});
-
+            await api.saveAniItems(merged);
             // 如果有部分失败，保留 errors 和摘要
             if (Object.keys(resultErrors).length > 0) {
                 setErrors(resultErrors);

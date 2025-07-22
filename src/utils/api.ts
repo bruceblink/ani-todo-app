@@ -30,8 +30,8 @@ export interface ApiCommands {
         args: { filter?: string }
         result: Record<string, Ani[]>
     },
-    saveAniItems: {
-        args: { anis?: Ani[] }
+    save_ani_item_data: {
+        args: { aniData?: Record<string, Ani[]> }
         result: Record<string, string>
     }
 }
@@ -63,6 +63,6 @@ export const api = {
     queryAniList: () =>
         invokeApi('query_ani_item_data_list', {  }),
 
-    saveAniItems: (anis: Ani[]) =>
-        invokeApi('saveAniItems', { anis }),
+    saveAniItems: (aniData: Record<string, Ani[]>) =>
+        invokeApi('save_ani_item_data', {  aniData }),
 }
