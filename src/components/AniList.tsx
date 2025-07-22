@@ -1,49 +1,15 @@
 import AniItem, { type Ani } from './AniItem';
-import {useWatchedAni} from "@/hooks/useWatchedAni.ts";
-import {useEffect, useState} from "react";
-import {invokeCommand} from "@/utils/utils.ts";
+import {useWatchedAni} from "@/hooks/useWatchedAni";
+import {useFavoriteAni} from "@/hooks/useFavoriteAni";
 
-interface AniCollect {
-    id: number,
-    ani_item_id: number,
-    collect_time: string,
-    watched: boolean,
-}
+
 
 export default function AniList({ list }: { list: Ani[] }) {
-    const {watched, watchedAniIds } = useWatchedAni()
-    // —— 收藏 ID 集合 ——
-    const [favorites, setFavorites] = useState<Set<number>>(new Set())
+    // —— 已观看番剧 ID 集合 ——
+    const {handleWatch, watchedAniIds } = useWatchedAni()
+    // —— 收藏番剧相关操作 ——
+    const {handleFavor, favoriteAniIds} = useFavoriteAni()
 
-    useEffect(() => {
-        ;(async () => {
-            try {
-                const res = await invokeCommand<AniCollect[]>("get_favorite_ani_item_list") as AniCollect[]
-                const data = new Set(res.map(aniCollect => aniCollect.ani_item_id));
-                setFavorites(data)
-            } catch (e) {
-                console.error('加载已清除/收藏 ID 列表失败', e)
-            }
-        })()
-    }, [])
-
-    const handleToggleFavorite = async (id: number, isFavorite: boolean) => {
-        try {
-            if (!isFavorite) { // 如果没有收藏则收藏
-                await invokeCommand("collect_ani_item", {aniId: id});
-            }else { // 反之取消收藏
-                await invokeCommand("cancel_collect_ani_item", {aniId: id});
-            }
-            setFavorites(prev => {
-                const next = new Set(prev)
-                if (next.has(id)) next.delete(id)
-                else next.add(id)
-                return next
-            })
-        } catch (e) {
-            console.error(`切换收藏 ${id} 失败`, e)
-        }
-    }
 
     const watchingToday = list.filter( ani => !watchedAniIds.has(ani.id))
     return (
@@ -53,9 +19,9 @@ export default function AniList({ list }: { list: Ani[] }) {
                     <AniItem
                         key={ani.id}
                         ani={ani}
-                        onClear={() => watched(ani.id)}
-                        isFavorite={favorites.has(ani.id)}
-                        onToggleFavorite={handleToggleFavorite}
+                        onClear={handleWatch}
+                        isFavorite={favoriteAniIds.has(ani.id)}
+                        onToggleFavorite={handleFavor}
                     />
                 ))
             }
