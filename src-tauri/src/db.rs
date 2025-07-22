@@ -82,7 +82,7 @@ pub async fn remove_ani_item_data(
         .bind(ani_id)
         .execute(&pool)
         .await
-        .map_err(|e| e.to_string())?;
+        .map_err(|e| format!("插入或更新失败: {}", e))?;
 
     info!("标记 watched: id = {}", ani_id);
     // 4. 返回统一的 JSON 字符串
@@ -120,11 +120,11 @@ pub async fn query_ani_item_data_list(app: AppHandle) -> Result<String, String> 
                 ORDER BY
                     title
            ;"#,
-    )
-    .bind(today_date)
-    .fetch_all(&pool)
-    .await
-    .unwrap();
+        )
+        .bind(today_date)
+        .fetch_all(&pool)
+        .await
+        .map_err(|e| format!("查询错误: {}", e))?;
 
     let weekday = get_week_day_of_today();
     let mut result: AniIResult = HashMap::new();
@@ -168,7 +168,7 @@ pub async fn get_watched_ani_item_list(app: AppHandle) -> Result<String, String>
         .bind(true)
         .fetch_all(&pool)
         .await
-        .unwrap();
+        .map_err(|e| format!("查询错误: {}", e))?;
 
     let weekday = get_week_day_of_today();
     let mut result: AniIResult = HashMap::new();
@@ -198,7 +198,7 @@ pub async fn get_favorite_ani_item_list(app: AppHandle ) -> Result<String, Strin
         )
         .fetch_all(&pool)
         .await
-        .unwrap();
+        .map_err(|e| format!("查询错误: {}", e))?;
 
     let json_string = serde_json::to_string(&ani_collectors).map_err(|e| e.to_string())?;
     Ok(json_string)
@@ -221,7 +221,7 @@ pub async fn collect_ani_item(app: AppHandle, ani_id: i64 ) -> Result<String, St
         .bind(ani_id)
         .execute(&mut *tx) // ⭐️ 显式解引用
         .await
-        .map_err(|e| e.to_string())?;
+        .map_err(|e| format!("更新失败: {}", e))?;
 
     sqlx::query(
         r#"
@@ -269,12 +269,12 @@ pub async fn cancel_collect_ani_item(app: AppHandle, ani_id: i64) -> Result<Stri
         .bind(ani_id)
         .execute(&mut *tx) // ⭐️ 显式解引用
         .await
-        .map_err(|e| e.to_string())?;
+        .map_err(|e| format!("更新失败: {}", e))?;
     sqlx::query("DELETE FROM ani_collect WHERE ani_item_id = ?")
         .bind(ani_id)
         .execute(&mut *tx) // ⭐️ 显式解引用
         .await
-        .map_err(|e| e.to_string())?;
+        .map_err(|e| format!("删除失败: {}", e))?;
     // 提交事务
     tx.commit().await.map_err(|e| e.to_string())?;
     
