@@ -134,7 +134,7 @@ pub async fn query_ani_item_data_list(app: AppHandle) -> Result<AniIResult, Stri
 
 
 #[tauri::command]
-pub async fn get_watched_ani_item_list(app: AppHandle) -> Result<String, String> {
+pub async fn get_watched_ani_item_list(app: AppHandle) -> Result<Vec<Ani>, String> {
     let db_path = get_or_set_db_path(get_app_data_dir(&app)).map_err(|e| e.to_string())?;
     let pool: Pool<Sqlite> = creat_database_connection_pool(db_path)
         .await
@@ -167,13 +167,8 @@ pub async fn get_watched_ani_item_list(app: AppHandle) -> Result<String, String>
         .fetch_all(&pool)
         .await
         .map_err(|e| format!("查询错误: {}", e))?;
-
-    let weekday = get_week_day_of_today();
-    let mut result: AniIResult = HashMap::new();
-    result.insert(weekday, ani_items);
-
-    let json_string = serde_json::to_string(&result).map_err(|e| e.to_string())?;
-    Ok(json_string)
+    
+    Ok(ani_items)
 }
 
 /// 获取收藏动漫列表

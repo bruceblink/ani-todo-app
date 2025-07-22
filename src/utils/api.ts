@@ -33,6 +33,14 @@ export interface ApiCommands {
     save_ani_item_data: {
         args: { aniData?: Record<string, Ani[]> }
         result: Record<string, string>
+    },
+    get_watched_ani_item_list: {
+        args: {filter?: string}
+        result: Ani[]
+    },
+    remove_ani_item_data : {
+        args: { aniId?: number }
+        result: Record<string, string>
     }
 }
 
@@ -65,4 +73,10 @@ export const api = {
 
     saveAniItems: (aniData: Record<string, Ani[]>) =>
         invokeApi('save_ani_item_data', {  aniData }),
+
+    queryWatchedAniIds: () =>
+        invokeApi('get_watched_ani_item_list', { }),
+
+    clearAni: (aniId: number) =>
+        invokeApi('remove_ani_item_data', { aniId}),
 }
