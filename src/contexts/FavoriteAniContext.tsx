@@ -1,13 +1,8 @@
 import { useState, useEffect, type ReactNode } from 'react'
-import {invokeCommand} from "@/utils/utils";
 import {FavoriteAniContext} from "@/hooks/useFavoriteAni.ts";
+import {api} from "@/utils/api";
 
-export interface AniCollect {
-    id: number,
-    ani_item_id: number,
-    collect_time: string,
-    watched: boolean,
-}
+
 
 export function FavoriteAniProvider({ children }: { children: ReactNode }) {
     const [favorites, setFavorites] = useState<Set<number>>(new Set())
@@ -18,7 +13,7 @@ export function FavoriteAniProvider({ children }: { children: ReactNode }) {
 
     const fetchFavoriteAniIds = async () => {
         try {
-            const res = await invokeCommand<AniCollect[]>("get_favorite_ani_item_list") as AniCollect[]
+            const res = await api.queryFavoriteAniList()
             const data = new Set(res.map(aniCollect => aniCollect.ani_item_id));
             setFavorites(data)
         } catch (e) {
@@ -29,9 +24,9 @@ export function FavoriteAniProvider({ children }: { children: ReactNode }) {
     const handleToggleFavorite = async (id: number, isFavorite: boolean) => {
         try {
             if (!isFavorite) { // 如果没有收藏则收藏
-                await invokeCommand("collect_ani_item", {aniId: id});
+                await api.collectAni(id);
             }else { // 反之取消收藏
-                await invokeCommand("cancel_collect_ani_item", {aniId: id});
+                await api.cancelCollectAni(id);
             }
             setFavorites(prev => {
                 const next = new Set(prev)

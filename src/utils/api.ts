@@ -19,6 +19,14 @@ export interface Ani {
     platform: string;
 }
 
+
+export interface AniCollect {
+    id: number,
+    ani_item_id: number,
+    collect_time: string,
+    watched: boolean,
+}
+
 /**
  * 定义所有 Tauri 命令的签名映射
  * key：命令名；
@@ -39,6 +47,18 @@ export interface ApiCommands {
         result: Ani[]
     },
     remove_ani_item_data : {
+        args: { aniId?: number }
+        result: Record<string, string>
+    },
+    get_favorite_ani_item_list: {
+        args: { filter?: string  }
+        result: AniCollect[]
+    }
+    collect_ani_item : {
+        args: { aniId?: number }
+        result: Record<string, string>
+    },
+    cancel_collect_ani_item: {
         args: { aniId?: number }
         result: Record<string, string>
     }
@@ -79,4 +99,13 @@ export const api = {
 
     clearAni: (aniId: number) =>
         invokeApi('remove_ani_item_data', { aniId}),
+
+    queryFavoriteAniList: () =>
+        invokeApi('get_favorite_ani_item_list', { }),
+
+    collectAni: (aniId: number) =>
+        invokeApi('collect_ani_item', { aniId }),
+
+    cancelCollectAni: (aniId: number) =>
+        invokeApi('cancel_collect_ani_item', { aniId }),
 }

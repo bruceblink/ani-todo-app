@@ -173,7 +173,7 @@ pub async fn get_watched_ani_item_list(app: AppHandle) -> Result<Vec<Ani>, Strin
 
 /// 获取收藏动漫列表
 #[tauri::command]
-pub async fn get_favorite_ani_item_list(app: AppHandle ) -> Result<String, String> {
+pub async fn get_favorite_ani_item_list(app: AppHandle ) -> Result<Vec<AniCollect>, String> {
     // 1. 打开数据库
     let db_path = get_or_set_db_path(get_app_data_dir(&app))
         .map_err(|e| e.to_string())?;
@@ -193,8 +193,7 @@ pub async fn get_favorite_ani_item_list(app: AppHandle ) -> Result<String, Strin
         .await
         .map_err(|e| format!("查询错误: {}", e))?;
 
-    let json_string = serde_json::to_string(&ani_collectors).map_err(|e| e.to_string())?;
-    Ok(json_string)
+    Ok(ani_collectors)
 }
 
 
