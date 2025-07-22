@@ -90,22 +90,22 @@ export const api = {
     /** 获取动画列表，可选过滤 */
     queryAniList: () =>
         invokeApi('query_ani_item_data_list', {  }),
-
+    /** 保存动画数据 */
     saveAniItems: (aniData: Record<string, Ani[]>) =>
         invokeApi('save_ani_item_data', {  aniData }),
-
+    /** 查询已观看的动画 ID 列表 */
     queryWatchedAniIds: () =>
         invokeApi('query_watched_ani_item_list', { }),
-
+    /** 清除动漫(标记为已看) */
     clearAni: (aniId: number) =>
         invokeApi('remove_ani_item_data', { aniId}),
-
+    /** 查询收藏的动画列表 */
     queryFavoriteAniList: () =>
         invokeApi('query_favorite_ani_item_list', { }),
-
+    /** 收藏动漫 */
     collectAni: (aniId: number) =>
         invokeApi('collect_ani_item', { aniId }),
-
+    /** 取消收藏动漫 */
     cancelCollectAni: (aniId: number) =>
         invokeApi('cancel_collect_ani_item', { aniId }),
 }
