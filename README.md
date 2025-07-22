@@ -2,7 +2,7 @@
 
 ## 项目简介
 汇总主流视频平台每日更新的动漫列表，自己根据个人情况查漏补缺观看，桌面端应用截图如下：
-![snapshot](/public/snapshot.png)
+![snapshot](/public/snapshotv0.1.3.png)
 
 **技术栈：React + TypeScript + Vite + Tauri**
 
