@@ -17,7 +17,7 @@ pub async fn save_ani_item_data(app: AppHandle, ani_data: AniItemResult) -> Resu
     let pool: Pool<Sqlite> = creat_database_connection_pool(db_path)
         .await
         .map_err(|e| e.to_string())?;
-    
+
     let ani_items = ani_data.get(&get_week_day_of_today()).ok_or("获取今日动漫数据失败")?;
 
     if ani_items.is_empty() {
@@ -94,7 +94,7 @@ pub async fn remove_ani_item_data(
 }
 
 #[tauri::command]
-pub async fn query_ani_item_data_list(app: AppHandle) -> Result<String, String> {
+pub async fn query_ani_item_data_list(app: AppHandle) -> Result<AniIResult, String> {
     let db_path = get_or_set_db_path(get_app_data_dir(&app)).map_err(|e| e.to_string())?;
     let pool: Pool<Sqlite> = creat_database_connection_pool(db_path)
         .await
@@ -129,9 +129,7 @@ pub async fn query_ani_item_data_list(app: AppHandle) -> Result<String, String> 
     let weekday = get_week_day_of_today();
     let mut result: AniIResult = HashMap::new();
     result.insert(weekday, ani_items);
-
-    let json_string = serde_json::to_string(&result).map_err(|e| e.to_string())?;
-    Ok(json_string)
+    Ok(result)
 }
 
 
