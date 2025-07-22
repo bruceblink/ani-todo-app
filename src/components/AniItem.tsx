@@ -1,16 +1,7 @@
 import AniImage from "./AniImage";
 import toast from "react-hot-toast";
 import { Star } from "lucide-react"
-export interface Ani {
-    id: number;
-    title: string;
-    update_count: string;
-    detail_url: string;
-    image_url: string;
-    update_info: string;
-    update_time: string;
-    platform: string;
-}
+import type {Ani} from "@/utils/api";
 
 interface Props {
     ani: Ani;

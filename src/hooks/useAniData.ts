@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { Ani } from '../components/AniItem.tsx';
 import {
     fetchAniData, invokeCommand,
 } from '../utils/utils.ts';
+import {type Ani, api} from "@/utils/api";
 
 // 单个请求可能的结果
 type RequestResult =
@@ -144,48 +144,8 @@ export function useAniData(): UseAniData {
     const loadData = useCallback(async () => {
         resetState();
         try {
-            const sources: DataSource[] = [{ name: '本地读取', cmd: 'query_ani_item_data_list' }];
-
-            const settled = await Promise.allSettled(
-                sources.map(({ cmd, name }) =>
-                    invokeCommand(cmd)
-                        .then((d) => ({ name, data: d }))
-                        .catch((err) => ({ name, error: err }))
-                )
-            );
-
-            const resultErrors: Record<string, string> = {};
-            const successList: Record<string, Ani[]>[] = [];
-
-            settled.forEach((r, idx) => {
-                if (r.status === 'fulfilled') {
-                    const v = r.value as { name: string; data?: Record<string, Ani[]>; error?: Error };
-                    if (v.error) {
-                        resultErrors[v.name] = v.error.message || '未知错误';
-                    } else if (v.data) {
-                        successList.push(v.data);
-                    }
-                } else {
-                    const name = sources[idx].name;
-                    resultErrors[name] = (r.reason as Error).message || '未知错误';
-                }
-            });
-
-            if (successList.length > 0) {
-                const merged = successList.reduce<Record<string, Ani[]>>((acc, cur) => {
-                    Object.entries(cur).forEach(([week, list]) => {
-                        acc[week] = (acc[week] || []).concat(list);
-                    });
-                    return acc;
-                }, {});
-                setData(merged);
-            }
-
-            if (Object.keys(resultErrors).length > 0) {
-                setErrors(resultErrors);
-                const first = Object.keys(resultErrors)[0];
-                setError(`部分加载失败（${first}）`);
-            }
+            const res = await api.queryAniList()
+            setData(res);
         } catch (e: unknown) {
             const err = e instanceof Error ? e : new Error('未知错误');
             setError(err.message);

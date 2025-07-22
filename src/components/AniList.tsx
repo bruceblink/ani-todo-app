@@ -1,6 +1,7 @@
-import AniItem, { type Ani } from './AniItem';
+import AniItem from "@/components/AniItem";
 import {useWatchedAni} from "@/hooks/useWatchedAni";
 import {useFavoriteAni} from "@/hooks/useFavoriteAni";
+import type {Ani} from "@/utils/api";
 
 
 

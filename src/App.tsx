@@ -1,10 +1,10 @@
 import './App.css';
-import { type Ani } from './components/AniItem';
 import Header from './components/Header';
 import AniList from './components/AniList';
 import { useAniData } from './hooks/useAniData';
 import RefreshButton from './components/RefreshButton';
 import {Toaster} from "react-hot-toast";
+import type {Ani} from "@/utils/api";
 
 export default function App() {
     const { data, loading, error, refresh } = useAniData();

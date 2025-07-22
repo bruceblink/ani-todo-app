@@ -1,7 +1,7 @@
 import { useState, useEffect, type ReactNode } from 'react'
 import {invokeCommand} from "@/utils/utils";
 import { WatchedAniContext } from '@/hooks/useWatchedAni.ts';
-import type {Ani} from "@/components/AniItem.tsx";
+import type {Ani} from "@/utils/api";
 
 
 
