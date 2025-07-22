@@ -1,4 +1,4 @@
-import {useCleared} from "@/hooks/useCleared.ts";
+import {useWatchedAni} from "@/hooks/useWatchedAni.ts";
 
 interface Props {
     weekday: string;  // 星期几
@@ -6,9 +6,9 @@ interface Props {
 }
 
 export default function Header({ weekday, total}: Props) {
-    const { clearedIds } = useCleared()
-    const watched = clearedIds.size
-    const percentage = total > 0 ? Math.round((watched / total) * 100) : 0;
+    const { watchedAniIds } = useWatchedAni()
+    const watchedNum = watchedAniIds.size
+    const percentage = total > 0 ? Math.round((watchedNum / total) * 100) : 0;
     return (
         <div className="header">
             <div>
@@ -16,7 +16,7 @@ export default function Header({ weekday, total}: Props) {
                     今日({weekday})更新番剧 共 {total} 部
                 </h1>
                 <div style={{ marginTop: '8px', fontSize: '1rem', color: '#555' }}>
-                    已观看 {watched} 部 — {percentage}% 完成
+                    已观看 {watchedNum} 部 — {percentage}% 完成
                 </div>
             </div>
             <div style={{ width: '200px', height: '12px', background: '#ddd', borderRadius: '6px', overflow: 'hidden' }}>

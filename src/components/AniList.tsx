@@ -1,5 +1,5 @@
 import AniItem, { type Ani } from './AniItem';
-import {useCleared} from "@/hooks/useCleared.ts";
+import {useWatchedAni} from "@/hooks/useWatchedAni.ts";
 import {useEffect, useState} from "react";
 import {invokeCommand} from "@/utils/utils.ts";
 
@@ -11,7 +11,7 @@ interface AniCollect {
 }
 
 export default function AniList({ list }: { list: Ani[] }) {
-    const {clear, clearedIds } = useCleared()
+    const {watched, watchedAniIds } = useWatchedAni()
     // —— 收藏 ID 集合 ——
     const [favorites, setFavorites] = useState<Set<number>>(new Set())
 
@@ -45,7 +45,7 @@ export default function AniList({ list }: { list: Ani[] }) {
         }
     }
 
-    const watchingToday = list.filter( ani => !clearedIds.has(ani.id))
+    const watchingToday = list.filter( ani => !watchedAniIds.has(ani.id))
     return (
         <div className="ani-list">
             {
@@ -53,7 +53,7 @@ export default function AniList({ list }: { list: Ani[] }) {
                     <AniItem
                         key={ani.id}
                         ani={ani}
-                        onClear={() => clear(ani.id)}
+                        onClear={() => watched(ani.id)}
                         isFavorite={favorites.has(ani.id)}
                         onToggleFavorite={handleToggleFavorite}
                     />

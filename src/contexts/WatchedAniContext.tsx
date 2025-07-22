@@ -1,6 +1,6 @@
 import { useState, useEffect, type ReactNode } from 'react'
 import {loadAniData, removeAniItemFromDatabase} from "@/utils/utils";
-import { ClearedContext } from '@/hooks/useCleared';
+import { WatchedAniContext } from '@/hooks/useWatchedAni.ts';
 import type {Ani} from "@/components/AniItem.tsx";
 
 
@@ -24,7 +24,7 @@ export function WatchedAniProvider({ children }: { children: ReactNode }) {
         }
     }
 
-    const clear = async (id: number) => {
+    const watched = async (id: number) => {
         try {
             await removeAniItemFromDatabase(id)
             setWatchedAniIds(prev => {
@@ -38,8 +38,8 @@ export function WatchedAniProvider({ children }: { children: ReactNode }) {
     }
 
     return (
-        <ClearedContext.Provider value={{ clearedIds: watchedAniIds, clear }}>
+        <WatchedAniContext.Provider value={{ watchedAniIds: watchedAniIds, watched: watched }}>
             {children}
-        </ClearedContext.Provider>
+        </WatchedAniContext.Provider>
     )
 }
