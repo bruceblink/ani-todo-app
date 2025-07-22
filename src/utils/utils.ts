@@ -16,37 +16,3 @@ export async function fetchAniData(url: string, cmd: string) {
         return {};
     }
 }
-/**
- *  调用tauri的command函数
- * @param cmd 调用的后端command
- * @param args command所需的参数
- *
- * usage:
- * type Response = { status: string };
- * type Args = { aniTitle: string; platform: string };
- *
- * const res = await invokeCommand<Response, Args>('remove_ani_item_data', {
- *     aniTitle: '凉宫春日的忧郁',
- *     platform: 'B站'
- * });
- *
- *
- */
-export async function invokeCommand<T, Args extends Record<string, unknown> = Record<string, unknown>>(
-    cmd: string,
-    args?: Args
-): Promise<T | undefined> {
-    try {
-        // 1) 强制用 string 拿回 JSON 字符串
-        const raw = await invoke<string>(cmd, args ?? {});
-
-        // 2) parse 出 R 类型
-        const data = JSON.parse(raw) as T;
-
-        console.log(`invoke cmd ${cmd} args`, args, 'success!', data);
-        return data;
-    } catch (e) {
-        console.error(`invoke cmd ${cmd} args`, args, 'failed:', e);
-        return undefined;
-    }
-}
