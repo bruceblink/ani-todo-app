@@ -1,5 +1,5 @@
 import { useState, useEffect, type ReactNode } from 'react'
-import {loadAniData, removeAniItemFromDatabase} from "@/utils/utils";
+import {invokeCommand} from "@/utils/utils";
 import { WatchedAniContext } from '@/hooks/useWatchedAni.ts';
 import type {Ani} from "@/components/AniItem.tsx";
 
@@ -14,7 +14,7 @@ export function WatchedAniProvider({ children }: { children: ReactNode }) {
 
     const fetchWatchedAniIds = async () => {
         try {
-            const data = await loadAniData("get_watched_ani_item_list")
+            const data = await invokeCommand("get_watched_ani_item_list") as Record<string, Ani[]>
             const today = Object.keys(data)[0]
             const aniList = data[today] as Ani[]
             const ids = new Set(aniList.map(ani => ani.id))
@@ -26,7 +26,8 @@ export function WatchedAniProvider({ children }: { children: ReactNode }) {
 
     const handleWatch = async (id: number) => {
         try {
-            await removeAniItemFromDatabase(id)
+            //await removeAniItemFromDatabase(id)
+            await invokeCommand("remove_ani_item_data", { aniId: id})
             setWatchedAniIds(prev => {
                 const updated = new Set(prev)
                 updated.add(id)
