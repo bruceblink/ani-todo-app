@@ -34,7 +34,7 @@ pub async fn fetch_bilibili_image(url: String) -> Result<String, String> {
 }
 
 #[tauri::command]
-pub async fn fetch_bilibili_ani_data(url: String) -> Result<String, String> {
+pub async fn fetch_bilibili_ani_data(url: String) -> Result<AniItemResult, String> {
     // 1. 发请求拿 JSON
     let client = reqwest::Client::new();
     let response = client
@@ -50,10 +50,7 @@ pub async fn fetch_bilibili_ani_data(url: String) -> Result<String, String> {
     // 3. 填充 result
     let result: AniItemResult = process_json_value(&json_value);
 
-    // 4. 序列化 result 并返回给前端
-    let json_string = serde_json::to_string(&result).map_err(|e| e.to_string())?;
-
-    Ok(json_string)
+    Ok(result)
 }
 
 /// 解析原始 JSON，往 `result` 中填充当天已发布的番剧更新

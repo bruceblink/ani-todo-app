@@ -40,7 +40,7 @@ pub async fn fetch_youku_image(url: String) -> Result<String, String> {
 
 // 在 fetch_youku_cartoon_today 函数中使用
 #[tauri::command]
-pub async fn fetch_youku_ani_data(url: String) -> Result<String, String> {
+pub async fn fetch_youku_ani_data(url: String) -> Result<AniItemResult, String> {
     let client = reqwest::Client::new();
     let resp = client
         .get(&url)
@@ -70,7 +70,7 @@ pub async fn fetch_youku_ani_data(url: String) -> Result<String, String> {
     let mut result: AniItemResult = HashMap::new();
     result.insert(weekday, comics_found);
 
-    serde_json::to_string(&result).map_err(|e| e.to_string())
+    Ok(result)
 }
 
 // 提取 INITIAL_DATA 函数

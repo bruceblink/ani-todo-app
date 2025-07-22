@@ -34,7 +34,7 @@ pub async fn fetch_mikanani_image(url: String) -> Result<String, String> {
 }
 
 #[tauri::command]
-pub async fn fetch_mikanani_ani_data(url: String) -> Result<String, String> {
+pub async fn fetch_mikanani_ani_data(url: String) -> Result<AniItemResult, String> {
     // 1. 发请求拿 响应
     let client = reqwest::Client::new();
     let response = client
@@ -93,8 +93,8 @@ pub async fn fetch_mikanani_ani_data(url: String) -> Result<String, String> {
     }
     info!("成功提取到 {} 部今日更新的动漫", comics.len());
     result.insert(weekday_str, comics);
-    // 序列化返回
-    serde_json::to_string(&result).map_err(|e| e.to_string())
+   
+    Ok(result)
 }
 
 fn build_mikanani_item(base_url: &Url, li: &scraper::element_ref::ElementRef) -> Option<AniItem> {

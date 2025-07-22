@@ -40,7 +40,7 @@ pub async fn fetch_qq_image(url: String) -> Result<String, String> {
 
 /// 获取腾讯视频动漫频道今日更新数据
 #[tauri::command]
-pub async fn fetch_qq_ani_data(url: String) -> Result<String, String> {
+pub async fn fetch_qq_ani_data(url: String) -> Result<AniItemResult, String> {
     let client = Client::new();
     let resp = client
         .get(&url)
@@ -65,7 +65,7 @@ pub async fn fetch_qq_ani_data(url: String) -> Result<String, String> {
     let daily = find_daily_card(&pinia);
     if daily.is_none() {
         warn!("未找到“每日更新”模块，返回空结果。");
-        return Ok(serde_json::to_string(&HashMap::<String, Vec<AniItem>>::new()).unwrap());
+        return Ok(HashMap::new()) ;
     }
     info!("成功获取腾讯视频动漫追番表数据");
     let daily = daily.unwrap();
@@ -98,7 +98,7 @@ pub async fn fetch_qq_ani_data(url: String) -> Result<String, String> {
     let mut result: AniItemResult = HashMap::new();
     result.insert(weekday, comics);
 
-    serde_json::to_string(&result).map_err(|e| e.to_string())
+    Ok(result)
 }
 
 /// 从页面 HTML 中提取 window.__vikor__context__ 嵌入的 JSON
