@@ -3,7 +3,7 @@ import {createContext, useContext} from "react";
 
 type WatchedAniCtx = {
     watchedAniIds: Set<number>
-    watched: (id: number) => void
+    handleWatch: (id: number) => void
 }
 
 const WatchedAniContext = createContext<WatchedAniCtx | null>(null)

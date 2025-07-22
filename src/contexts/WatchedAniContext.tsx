@@ -24,7 +24,7 @@ export function WatchedAniProvider({ children }: { children: ReactNode }) {
         }
     }
 
-    const watched = async (id: number) => {
+    const handleWatch = async (id: number) => {
         try {
             await removeAniItemFromDatabase(id)
             setWatchedAniIds(prev => {
@@ -38,7 +38,7 @@ export function WatchedAniProvider({ children }: { children: ReactNode }) {
     }
 
     return (
-        <WatchedAniContext.Provider value={{ watchedAniIds: watchedAniIds, watched: watched }}>
+        <WatchedAniContext.Provider value={{ watchedAniIds: watchedAniIds, handleWatch: handleWatch }}>
             {children}
         </WatchedAniContext.Provider>
     )
