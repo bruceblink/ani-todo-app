@@ -25,7 +25,7 @@ export default function RefreshButton({ loading, onClick }: RefreshButtonProps) 
                 opacity: loading ? 0.5 : 1,
                 transition: 'transform 0.3s ease-in-out',
             }}
-            title="刷新"
+            title="同步最新数据"
         >
             <RefreshCcw
                 size={20}
