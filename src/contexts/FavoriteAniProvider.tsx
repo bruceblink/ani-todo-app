@@ -35,14 +35,14 @@ export function FavoriteAniProvider({ children }: { children: ReactNode }) {
             }else { // 反之取消收藏
                 await api.cancelCollectAni(id, aniTitle);
             }
-            setFavoriteAniIds(prev => {
+            setFavoriteAniTitles(prev => {
                 const next = new Set(prev)
-                if (next.has(id)) next.delete(id)
-                else next.add(id)
+                if (next.has(aniTitle)) next.delete(aniTitle)
+                else next.add(aniTitle)
                 return next
             })
         } catch (e) {
-            console.error(`切换收藏 ${id} 失败`, e)
+            console.error(`切换收藏 ${aniTitle} 失败`, e)
         }
     }
 

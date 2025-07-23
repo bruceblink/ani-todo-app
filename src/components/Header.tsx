@@ -11,10 +11,10 @@ interface Props {
 
 export default function Header({ weekday, total, showFavorite, onToggleView }: Props) {
     const { watchedAniIds } = useWatchedAni();
-    const { favoriteAniIds } = useFavoriteAni();
+    const { favoriteAniTitles } = useFavoriteAni();
     const watchedNum = watchedAniIds.size;
     const percentage = total > 0 ? Math.round((watchedNum / total) * 100) : 0;
-
+    const favoritesCount = favoriteAniTitles.size;
     return (
         <div className="header" style={{
             position: 'fixed',
@@ -101,13 +101,13 @@ export default function Header({ weekday, total, showFavorite, onToggleView }: P
                     }}
                 >
                     收藏
-                    {favoriteAniIds.size > 0 && (
+                    {favoritesCount > 0 && (
                         <span style={{
                             marginLeft: 4,
                             fontSize: '0.75rem',
                             color: '#ffb300',
                             fontWeight: 'bold',
-                        }}>{favoriteAniIds.size}</span>
+                        }}>{favoritesCount}</span>
                     )}</button>
                 </div>
             </div>

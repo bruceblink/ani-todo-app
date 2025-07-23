@@ -200,6 +200,7 @@ pub async fn query_favorite_ani_item_list(app: AppHandle ) -> Result<Vec<AniColl
                 FROM ani_collect
                 WHERE
                     watched = 0
+                GROUP BY ani_title
            ;"#,
         )
         .fetch_all(&pool)
