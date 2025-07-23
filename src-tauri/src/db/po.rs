@@ -24,3 +24,11 @@ pub struct AniCollect {
     pub ani_title: String,
     pub collect_time: String,
 }
+
+#[derive(Debug, Clone, FromRow, PartialEq, Deserialize, Serialize)]
+pub struct AniWatchHistory {
+    pub id: i64,
+    pub user_id: String,
+    pub ani_item_id: i64,
+    pub watched_time: String,
+}
