@@ -2,7 +2,6 @@ import {createContext, useContext} from "react";
 
 
 type FavoriteAniCtx = {
-    favoriteAniIds: Set<number>
     favoriteAniTitles: Set<string>
     handleFavor: (id: number, aniTitle: string, isFavorite: boolean) => void
     isLoaded: boolean

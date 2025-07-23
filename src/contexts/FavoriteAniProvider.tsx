@@ -5,7 +5,6 @@ import {api} from "@/utils/api";
 
 
 export function FavoriteAniProvider({ children }: { children: ReactNode }) {
-    const [favoriteAniIds, setFavoriteAniIds] = useState<Set<number>>(new Set())
     const [favoriteAniTitles, setFavoriteAniTitles] = useState<Set<string>>(new Set())
     const [isLoaded, setIsLoaded] = useState(false)
 
@@ -17,9 +16,7 @@ export function FavoriteAniProvider({ children }: { children: ReactNode }) {
     const fetchFavoriteAniList = async () => {
         try {
             const res = await api.queryFavoriteAniList()
-            const dataIds = new Set(res.map(aniCollect => aniCollect.ani_item_id));
             const dataTitles = new Set(res.map(aniCollect => aniCollect.ani_title));
-            setFavoriteAniIds(dataIds)
             setFavoriteAniTitles(dataTitles)
         } catch (e) {
             console.error('加载已清除/收藏 ID 列表失败', e)
@@ -48,7 +45,6 @@ export function FavoriteAniProvider({ children }: { children: ReactNode }) {
 
     return (
         <FavoriteAniContext.Provider value={{
-            favoriteAniIds: favoriteAniIds,
             favoriteAniTitles: favoriteAniTitles,
             handleFavor: handleToggleFavorite,
             isLoaded }}>

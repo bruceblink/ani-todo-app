@@ -7,7 +7,7 @@ pub mod sqlite;
 pub mod po;
 use crate::db::sqlite::{creat_database_connection_pool, get_app_data_dir, get_or_set_db_path};
 use crate::platforms::{ AniItemResult};
-use crate::utils::date_utils::{get_week_day_of_today, today_iso_date_ld};
+use crate::utils::date_utils::{get_week_day_of_today, today_iso_date_ld, today_iso_datetime};
 use tauri::AppHandle;
 use crate::db::po::{Ani, AniCollect, AniIResult};
 
@@ -218,14 +218,6 @@ pub async fn collect_ani_item(app: AppHandle, ani_id: i64, ani_title: String) ->
     let pool: Pool<Sqlite> = creat_database_connection_pool(db_path)
         .await
         .map_err(|e| e.to_string())?;
-    // 开启事务
-    let mut tx = pool.begin().await.map_err(|e| e.to_string())?;
-    // 更新ani_item表中的is_favorite状态
-    sqlx::query("UPDATE ani_items SET is_favorite = 1 WHERE id = ?")
-        .bind(ani_id)
-        .execute(&mut *tx) // ⭐️ 显式解引用
-        .await
-        .map_err(|e| format!("更新失败: {}", e))?;
 
     sqlx::query(
         r#"
@@ -238,18 +230,15 @@ pub async fn collect_ani_item(app: AppHandle, ani_id: i64, ani_title: String) ->
         ON CONFLICT(ani_item_id) 
         DO UPDATE SET
             collect_time = excluded.collect_time
-    "#,
-    )
+        "#,
+        )
         .bind(ani_id)
         .bind(&ani_title)
-        .bind(today_iso_date_ld())
+        .bind(today_iso_datetime())
         .bind(false)
-        .execute(&mut *tx)
+        .execute(&pool)
     .await
     .map_err(|e| format!("插入或更新失败: {}", e))?;
-    // 提交事务
-    tx.commit().await.map_err(|e| e.to_string())?;
-
 
     info!("动漫《{}》标记为collected", ani_title);
     // 4. 返回统一的 JSON 字符串
@@ -270,21 +259,16 @@ pub async fn cancel_collect_ani_item(app: AppHandle, ani_id: i64, ani_title: Str
         .map_err(|e| e.to_string())?;
     // 开启事务
     let mut tx = pool.begin().await.map_err(|e| e.to_string())?;
-    // 更新ani_item表中的is_favorite状态
-    sqlx::query("UPDATE ani_items SET is_favorite = 0 WHERE id = ?")
-        .bind(ani_id)
-        .execute(&mut *tx) // ⭐️ 显式解引用
-        .await
-        .map_err(|e| format!("更新失败: {}", e))?;
-    sqlx::query("DELETE FROM ani_collect WHERE ani_item_id = ?")
-        .bind(ani_id)
+    // 删除ani_collect表中的记录
+    sqlx::query("DELETE FROM ani_collect WHERE ani_title = ?")
+        .bind(&ani_title)
         .execute(&mut *tx) // ⭐️ 显式解引用
         .await
         .map_err(|e| format!("删除失败: {}", e))?;
     // 提交事务
     tx.commit().await.map_err(|e| e.to_string())?;
 
-    info!("动漫《{}》标记为 取消collected", ani_title);
+    info!("动漫《{}》ani_id = {}标记为 取消collected", ani_title, ani_id);
     // 4. 返回统一的 JSON 字符串
     Ok(json!({
         "status":  "ok",
