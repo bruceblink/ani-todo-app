@@ -66,7 +66,7 @@ pub async fn save_ani_item_data(app: AppHandle, ani_data: AniItemResult) -> Resu
 }
 
 #[tauri::command]
-pub async fn remove_ani_item_data(
+pub async fn watch_ani_item(
     app: AppHandle,
     ani_id: i64
 ) -> Result<String, String> {

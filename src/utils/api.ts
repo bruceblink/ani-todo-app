@@ -100,7 +100,7 @@ export interface ApiCommands {
         args: {filter?: string}
         result: Ani[]
     },
-    remove_ani_item_data : {
+    watch_ani_item : {
         args: { aniId?: number }
         result: Record<string, string>
     },
@@ -172,7 +172,7 @@ export const api = {
      * 清除动漫(标记为已看)
      * */
     clearAni: (aniId: number) =>
-        invokeApi('remove_ani_item_data', {aniId}),
+        invokeApi('watch_ani_item', {aniId}),
     /**
      * 查询收藏的动画列表
      * */

@@ -4,7 +4,7 @@ pub mod platforms;
 pub mod utils;
 
 use crate::db::sqlite::setup_app_db;
-use crate::db::{cancel_collect_ani_item, collect_ani_item, query_favorite_ani_item_list, query_watched_ani_item_list, query_ani_item_data_list, remove_ani_item_data, save_ani_item_data, update_collected_ani_item};
+use crate::db::{cancel_collect_ani_item, collect_ani_item, query_favorite_ani_item_list, query_watched_ani_item_list, query_ani_item_data_list, watch_ani_item, save_ani_item_data, update_collected_ani_item};
 use crate::platforms::agedm::{fetch_agedm_ani_data, fetch_agedm_image};
 use crate::platforms::iqiyi::{fetch_iqiyi_ani_data, fetch_iqiyi_image};
 use crate::platforms::mikanani::{fetch_mikanani_ani_data, fetch_mikanani_image};
@@ -57,7 +57,7 @@ pub fn run() {
             fetch_youku_image,
             fetch_youku_ani_data,
             save_ani_item_data,
-            remove_ani_item_data,
+            watch_ani_item,
             fetch_agedm_ani_data,
             fetch_agedm_image,
             query_ani_item_data_list,
