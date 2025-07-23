@@ -12,8 +12,6 @@ pub struct Ani {
     pub detail_url: String,
     pub update_time: String,
     pub platform: String,
-    pub watched: bool,
-    pub is_favorite: bool,
 }
 
 pub type AniIResult = HashMap<String, Vec<Ani>>;
@@ -21,7 +19,17 @@ pub type AniIResult = HashMap<String, Vec<Ani>>;
 #[derive(Debug, Clone, FromRow, PartialEq, Deserialize, Serialize)]
 pub struct AniCollect {
     pub id: i64,
+    pub user_id: String,
     pub ani_item_id: i64,
+    pub ani_title: String,
     pub collect_time: String,
-    pub watched: bool,
+    pub is_watched: bool,
+}
+
+#[derive(Debug, Clone, FromRow, PartialEq, Deserialize, Serialize)]
+pub struct AniWatchHistory {
+    pub id: i64,
+    pub user_id: String,
+    pub ani_item_id: i64,
+    pub watched_time: String,
 }

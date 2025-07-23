@@ -38,14 +38,19 @@ a:hover {
 
 body {
     margin: 0;
-    display: flex;
-    place-items: center;
     min-width: 320px;
     min-height: 100vh;
     /* 关键修复：始终显示滚动条防止跳动 */
     overflow-y: scroll;
-    /*padding: 100px 20px 40px;*/
     background: #f5f7fa;
+}
+
+#root {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
 }
 
 h1 {

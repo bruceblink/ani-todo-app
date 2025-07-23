@@ -122,7 +122,7 @@ pub async fn setup_app_db(app: &mut tauri::App) -> Result<(), Box<dyn std::error
 
 #[cfg(test)]
 mod tests {
-    use crate::db::Ani;
+    
     use crate::db::sqlite::{creat_database_connection_pool, init_db_schema};
     use crate::platforms::AniItem;
     use sqlx::{Pool, Sqlite, SqlitePool};
@@ -130,7 +130,7 @@ mod tests {
     use std::io::{Seek, SeekFrom, Write};
     use tempfile::NamedTempFile;
     use crate::db::po::AniCollect;
-    use crate::utils::date_utils::today_iso_date_ld;
+    
 
     #[test]
     fn test_with_temp_file() -> std::io::Result<()> {
@@ -170,7 +170,7 @@ mod tests {
     async fn init_test_table_data(pool: &Pool<Sqlite>) {
         init_db_schema(&pool).await.expect("建表失败");
         // 执行sql
-        sqlx::query("INSERT INTO ani_items (title,
+        sqlx::query("INSERT INTO ani_info (title,
                                                update_count,
                                                update_info,
                                                image_url,
@@ -189,7 +189,7 @@ mod tests {
             .execute(pool)
             .await
             .unwrap();
-        sqlx::query("INSERT INTO ani_items (title,
+        sqlx::query("INSERT INTO ani_info (title,
                                                update_count,
                                                update_info,
                                                image_url,
@@ -209,7 +209,7 @@ mod tests {
             .await
             .unwrap();
 
-        sqlx::query("INSERT INTO ani_items (title,
+        sqlx::query("INSERT INTO ani_info (title,
                                                update_count,
                                                update_info,
                                                image_url,
@@ -229,7 +229,7 @@ mod tests {
             .await
             .unwrap();
 
-        sqlx::query("INSERT INTO ani_items (title,
+        sqlx::query("INSERT INTO ani_info (title,
                                                update_count,
                                                update_info,
                                                image_url,
@@ -249,7 +249,7 @@ mod tests {
             .await
             .unwrap();
 
-        sqlx::query("INSERT INTO ani_items (title,
+        sqlx::query("INSERT INTO ani_info (title,
                                                update_count,
                                                update_info,
                                                image_url,
@@ -276,7 +276,7 @@ mod tests {
         // 获取数据库连接池
         let pool = SqlitePool::connect("sqlite::memory:").await.unwrap();
         init_test_table_data(&pool).await;
-        sqlx::query(r#"INSERT INTO ani_items (
+        sqlx::query(r#"INSERT INTO ani_info (
                                                 title,
                                                 update_count,
                                                 update_info,
@@ -301,7 +301,7 @@ mod tests {
             .await
             .expect("插入或更新失败");
         // 测试违反唯一约束更新更新数据
-        let ani_items = sqlx::query_as::<_, AniItem>(
+        let ani_info = sqlx::query_as::<_, AniItem>(
             r#"SELECT title, 
                                                                            update_count, 
                                                                            update_info, 
@@ -311,7 +311,7 @@ mod tests {
                                                                            update_time, 
                                                                            platform, 
                                                                            watched 
-                                                                    FROM ani_items WHERE 
+                                                                    FROM ani_info WHERE 
                                                                           title = ? 
                                                                  "#,
         )
@@ -319,8 +319,8 @@ mod tests {
         .fetch_all(&pool)
         .await
         .unwrap();
-        assert_eq!(ani_items.len(), 2);
-        let ani_item = &ani_items[1];
+        assert_eq!(ani_info.len(), 2);
+        let ani_item = &ani_info[1];
         assert_eq!(ani_item.update_count, "");
         assert_eq!(ani_item.update_time, "2025/07/14");
     }
@@ -330,7 +330,7 @@ mod tests {
         // 获取数据库连接池
         let pool = SqlitePool::connect("sqlite::memory:").await.unwrap();
         init_test_table_data(&pool).await;
-        sqlx::query(r#"INSERT INTO ani_items (
+        sqlx::query(r#"INSERT INTO ani_info (
                                                 title,
                                                 update_count,
                                                 update_info,
@@ -355,7 +355,7 @@ mod tests {
             .await
             .expect("插入或更新失败");
 
-        sqlx::query(r#"INSERT INTO ani_items (
+        sqlx::query(r#"INSERT INTO ani_info (
                                                 title,
                                                 update_count,
                                                 update_info,
@@ -382,17 +382,17 @@ mod tests {
 
         // 测试违反唯一约束更新更新数据
         let ani_items = sqlx::query_as::<_, AniItem>(
-            r#"SELECT title, 
-                                                                           update_count, 
-                                                                           update_info, 
-                                                                           platform, 
-                                                                           image_url, 
-                                                                           detail_url, 
-                                                                           update_time, 
-                                                                           platform, 
-                                                                           watched 
-                                                                    FROM ani_items WHERE 
-                                                                          title = ? 
+            r#" SELECT title, 
+                           update_count, 
+                           update_info, 
+                           platform, 
+                           image_url, 
+                           detail_url, 
+                           update_time, 
+                           platform, 
+                           watched 
+                    FROM ani_info WHERE 
+                          title = ? 
                                                                  "#,
         )
         .bind("琉璃的宝石")
@@ -411,7 +411,7 @@ mod tests {
         // 获取数据库连接池
         let pool = SqlitePool::connect("sqlite::memory:").await.unwrap();
         init_test_table_data(&pool).await;
-        sqlx::query(r#"INSERT INTO ani_items (
+        sqlx::query(r#"INSERT INTO ani_info (
                                                 title,
                                                 update_count,
                                                 update_info,
@@ -445,7 +445,7 @@ mod tests {
                                                                            update_time, 
                                                                            platform, 
                                                                            watched 
-                                                                    FROM ani_items WHERE 
+                                                                    FROM ani_info WHERE 
                                                                           title = ? ORDER BY id DESC LIMIT 1;"#)
             .bind("琉璃的宝石")
             .fetch_one(&pool)
@@ -460,7 +460,7 @@ mod tests {
         // 获取数据库连接池
         let pool = SqlitePool::connect("sqlite::memory:").await.unwrap();
         init_test_table_data(&pool).await;
-        sqlx::query(r#"INSERT INTO ani_items (
+        sqlx::query(r#"INSERT INTO ani_info (
                                                 title,
                                                 update_count,
                                                 update_info,
@@ -495,7 +495,7 @@ mod tests {
                                                                            update_time, 
                                                                            platform, 
                                                                            watched 
-                                                                    FROM ani_items WHERE 
+                                                                    FROM ani_info WHERE 
                                                                           title = ? 
                                                                     "#,
         )
@@ -515,7 +515,7 @@ mod tests {
         // 获取数据库连接池
         let pool = SqlitePool::connect("sqlite::memory:").await.unwrap();
         init_test_table_data(&pool).await;
-        sqlx::query(r#"INSERT INTO ani_items (
+        sqlx::query(r#"INSERT INTO ani_info (
                                                 title,
                                                 update_count,
                                                 update_info,
@@ -551,7 +551,7 @@ mod tests {
                                                                            update_time, 
                                                                            platform, 
                                                                            watched 
-                                                                    FROM ani_items WHERE 
+                                                                    FROM ani_info WHERE 
                                                                           title = ? 
                                                                     "#,
         )
@@ -572,7 +572,7 @@ mod tests {
         init_test_table_data(&pool).await;
 
         // 这里要求查询字段与结构体AniItem中 定义的字段个数和名称要一致
-        let ani_item = sqlx::query_as::<_, AniItem>("SELECT title, update_count, update_info, platform, image_url, detail_url, update_time, platform, watched FROM ani_items;")
+        let ani_item = sqlx::query_as::<_, AniItem>("SELECT title, update_count, update_info, platform, image_url, detail_url, update_time, platform, watched FROM ani_info;")
             .bind("名侦探柯南")
             .fetch_one(&pool)
             .await
@@ -593,7 +593,7 @@ mod tests {
         init_test_table_data(&pool).await;
 
         // 这里要求查询字段与结构体AniItem中 定义的字段个数和名称要一致
-        let ani_items = sqlx::query_as::<_, AniItem>("SELECT title, update_count, update_info, platform, image_url, detail_url, update_time, platform, watched FROM ani_items;")
+        let ani_items = sqlx::query_as::<_, AniItem>("SELECT title, update_count, update_info, platform, image_url, detail_url, update_time, platform, watched FROM ani_info;")
             .fetch_all(&pool)
             .await
             .unwrap();
@@ -607,7 +607,7 @@ mod tests {
         init_test_table_data(&pool).await;
 
         // update sql 测试
-        sqlx::query("UPDATE ani_items SET update_count = ? WHERE title = ?;")
+        sqlx::query("UPDATE ani_info SET update_count = ? WHERE title = ?;")
             .bind("2100")
             .bind("名侦探柯南")
             .execute(&pool)
@@ -618,7 +618,7 @@ mod tests {
                                         title, update_count, update_info, 
                                         platform, image_url, detail_url, 
                                         update_time, platform, watched 
-                                FROM ani_items WHERE title = ?;"#,
+                                FROM ani_info WHERE title = ?;"#,
         )
         .bind("名侦探柯南")
         .fetch_one(&pool)
@@ -633,14 +633,14 @@ mod tests {
         let pool = SqlitePool::connect("sqlite::memory:").await.unwrap();
         init_test_table_data(&pool).await;
 
-        sqlx::query("DELETE FROM ani_items WHERE title = ?")
+        sqlx::query("DELETE FROM ani_info WHERE title = ?")
             .bind("名侦探柯南")
             .execute(&pool)
             .await
             .unwrap();
 
         // 查询一个不存在的用户
-        let ani_item = sqlx::query_as::<_, AniItem>("SELECT title, update_count, update_info, platform, image_url, detail_url, update_time, platform, watched FROM ani_items where title = ?;")
+        let ani_item = sqlx::query_as::<_, AniItem>("SELECT title, update_count, update_info, platform, image_url, detail_url, update_time, platform, watched FROM ani_info where title = ?;")
             .bind("名侦探柯南")
             .fetch_optional(&pool)
             .await
@@ -648,7 +648,7 @@ mod tests {
 
         // 断言确实为空
         assert!(ani_item.is_none(), "期望用户不存在，但查询到了结果");
-        let ani_items = sqlx::query_as::<_, AniItem>("SELECT title, update_count, update_info, platform, image_url, detail_url, update_time, platform, watched FROM ani_items;")
+        let ani_items = sqlx::query_as::<_, AniItem>("SELECT title, update_count, update_info, platform, image_url, detail_url, update_time, platform, watched FROM ani_info;")
             .fetch_all(&pool)
             .await
             .unwrap();
@@ -665,40 +665,30 @@ mod tests {
         // 开启事务
         let mut tx = pool.begin().await.map_err(|e| e.to_string()).unwrap();
         // 更新ani_item表中的is_favorite状态
-        let _ = sqlx::query("UPDATE ani_items SET is_favorite = ? WHERE id = ?")
-            .bind(true)
-            .bind(1i8)
-            .execute(&mut *tx) // ⭐️ 显式解引用
-            .await
-            .map_err(|e| e.to_string());
-        let _ = sqlx::query(
-            r#"
-            INSERT INTO ani_collect (
-                ani_item_id,
-                collect_time,
-                watched
-            ) VALUES (?, ?, ?)
-            ON CONFLICT(ani_item_id) DO UPDATE SET
-                collect_time = excluded.collect_time
-            "#,
-            )
-            .bind(1i8)
-            .bind(today_iso_date_ld())
-            .bind(false)
+        let _ =     sqlx::query(
+                r#"
+                    INSERT INTO ani_collect (
+                        user_id,
+                        ani_item_id,
+                        ani_title,
+                        collect_time
+                    ) VALUES (?, ?, ?, ?)
+                    ON CONFLICT(user_id, ani_item_id) 
+                    DO UPDATE SET
+                        collect_time = excluded.collect_time
+                    "#,
+                )
+            .bind("")  // 用户ID，暂时留空
+            .bind(1)
+            .bind("名侦探柯南")
+            .bind("2025/07/21")
             .execute(&mut *tx)
             .await
             .map_err(|e| format!("插入或更新失败: {}", e));
         // 提交事务
         let _ = tx.commit().await.map_err(|e| e.to_string());
 
-        let ani_item = sqlx::query_as::<_, Ani>("SELECT id, title, update_count, update_info, platform, image_url, detail_url, update_time, platform, watched, is_favorite FROM ani_items WHERE id = 1;")
-            .fetch_one(&pool)
-            .await
-            .unwrap();
-        assert_eq!(ani_item.is_favorite, true);
-
-
-        let ani_collects = sqlx::query_as::<_, AniCollect>("SELECT id, ani_item_id, collect_time, watched FROM ani_collect;")
+        let ani_collects = sqlx::query_as::<_, AniCollect>("SELECT id, user_id, ani_item_id, ani_title, collect_time FROM ani_collect;")
             .fetch_all(&pool)
             .await
             .unwrap();
@@ -706,11 +696,11 @@ mod tests {
         let ani_collect = &ani_collects[0];
         assert_eq!(ani_collect.ani_item_id, 1);
         assert_eq!(ani_collect.collect_time, "2025/07/21");
-        assert_eq!(ani_collect.watched, false);
+        //assert_eq!(ani_collect.watched, false);
         // 测试取消收藏
         // 开启事务
         let mut tx = pool.begin().await.map_err(|e| e.to_string()).unwrap();
-        let _ = sqlx::query("UPDATE ani_items SET is_favorite = ? WHERE id = ?")
+        let _ = sqlx::query("UPDATE ani_info SET is_favorite = ? WHERE id = ?")
             .bind(false)
             .bind(1)
             .execute(&mut *tx) // ⭐️ 显式解引用
@@ -726,13 +716,7 @@ mod tests {
         // 提交事务
         let _ = tx.commit().await.map_err(|e| e.to_string());
 
-        let ani_item = sqlx::query_as::<_, Ani>("SELECT id, title, update_count, update_info, platform, image_url, detail_url, update_time, platform, watched, is_favorite FROM ani_items WHERE id = 1;")
-            .fetch_one(&pool)
-            .await
-            .unwrap();
-        assert_eq!(ani_item.is_favorite, false);
-
-        let ani_collects = sqlx::query_as::<_, AniCollect>("SELECT id, ani_item_id, collect_time, watched FROM ani_collect;")
+        let ani_collects = sqlx::query_as::<_, AniCollect>("SELECT id, user_id, ani_item_id, ani_title, collect_time FROM ani_collect;")
             .fetch_optional(&pool)
             .await
             .unwrap();

@@ -2,8 +2,9 @@ import {createContext, useContext} from "react";
 
 
 type FavoriteAniCtx = {
-    favoriteAniIds: Set<number>
-    handleFavor: (id: number, isFavorite: boolean) => void
+    favoriteAniTitles: Set<string>
+    handleFavor: (id: number, aniTitle: string, isFavorite: boolean | number) => void
+    isLoaded: boolean
 }
 
 const FavoriteAniContext = createContext<FavoriteAniCtx | null>(null)

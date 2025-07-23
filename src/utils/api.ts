@@ -23,6 +23,7 @@ export interface Ani {
 export interface AniCollect {
     id: number,
     ani_item_id: number,
+    ani_title: string,
     collect_time: string,
     watched: boolean,
 }
@@ -99,7 +100,7 @@ export interface ApiCommands {
         args: {filter?: string}
         result: Ani[]
     },
-    remove_ani_item_data : {
+    watch_ani_item : {
         args: { aniId?: number }
         result: Record<string, string>
     },
@@ -108,13 +109,18 @@ export interface ApiCommands {
         result: AniCollect[]
     }
     collect_ani_item : {
-        args: { aniId?: number }
+        args: { aniId?: number, aniTitle: string }
         result: Record<string, string>
     },
     cancel_collect_ani_item: {
-        args: { aniId?: number }
+        args: { aniId?: number, aniTitle: string }
         result: Record<string, string>
-    }
+    },
+
+    update_collected_ani_item: {
+        args: { aniId?: number, aniTitle: string }
+        result: Record<string, string>
+    },
 }
 
 /**
@@ -166,7 +172,7 @@ export const api = {
      * 清除动漫(标记为已看)
      * */
     clearAni: (aniId: number) =>
-        invokeApi('remove_ani_item_data', {aniId}),
+        invokeApi('watch_ani_item', {aniId}),
     /**
      * 查询收藏的动画列表
      * */
@@ -175,11 +181,14 @@ export const api = {
     /**
      * 收藏动漫
      */
-    collectAni: (aniId: number) =>
-        invokeApi('collect_ani_item', {aniId}),
+    collectAni: (aniId: number, aniTitle: string) =>
+        invokeApi('collect_ani_item', {aniId, aniTitle}),
     /**
      * 取消收藏动漫
      * */
-    cancelCollectAni: (aniId: number) =>
-        invokeApi('cancel_collect_ani_item', {aniId}),
+    cancelCollectAni: (aniId: number, aniTitle: string) =>
+        invokeApi('cancel_collect_ani_item', {aniId, aniTitle}),
+
+    updateCollectedAni: (aniId: number, aniTitle: string) =>
+        invokeApi('update_collected_ani_item', {aniId, aniTitle}),
 }

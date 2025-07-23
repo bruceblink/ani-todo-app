@@ -1,6 +1,6 @@
 {
   "productName": "ani-todo-app",
-  "version": "0.1.5",
+  "version": "0.2.0",
   "identifier": "top.likanug.dev",
   "plugins": {
     "http": {
@@ -17,10 +17,10 @@
     "windows": [
       {
         "title": "ani-todo-app",
-        "width": 960,
+        "width": 1280,
         "height": 1080,
-        "minWidth": 768,
-        "minHeight": 865,
+        "minWidth": 777,
+        "minHeight": 960,
         "resizable": true,
         "fullscreen": false
       }

@@ -5,6 +5,7 @@ interface Props {
     url: string;
     alt?: string;
     className?: string;
+    style?: React.CSSProperties;
 }
 
 // 判断所属平台（返回后端 command 名）
@@ -44,10 +45,27 @@ const AniImage: React.FC<Props> = ({ url, alt = '', className }) => {
         };
     }, [url]);
 
+        const baseStyle: React.CSSProperties = {
+        width: '100%',
+        height: '100%',
+        objectFit: 'cover',
+    };
+
     return src ? (
-        <img src={src} alt={alt} className={className} />
+        <img 
+            src={src} 
+            alt={alt} 
+            className={className}
+            style={baseStyle} 
+        />
     ) : (
-        <div className={className} style={{ background: '#eee' }} />
+        <div 
+            className={className} 
+            style={{ 
+                ...baseStyle,
+                background: '#eee',
+            }} 
+        />
     );
 };
 
