@@ -122,7 +122,7 @@ pub async fn setup_app_db(app: &mut tauri::App) -> Result<(), Box<dyn std::error
 
 #[cfg(test)]
 mod tests {
-    use crate::db::Ani;
+    
     use crate::db::sqlite::{creat_database_connection_pool, init_db_schema};
     use crate::platforms::AniItem;
     use sqlx::{Pool, Sqlite, SqlitePool};
@@ -130,7 +130,7 @@ mod tests {
     use std::io::{Seek, SeekFrom, Write};
     use tempfile::NamedTempFile;
     use crate::db::po::AniCollect;
-    use crate::utils::date_utils::today_iso_date_ld;
+    
 
     #[test]
     fn test_with_temp_file() -> std::io::Result<()> {
@@ -665,40 +665,30 @@ mod tests {
         // 开启事务
         let mut tx = pool.begin().await.map_err(|e| e.to_string()).unwrap();
         // 更新ani_item表中的is_favorite状态
-        let _ = sqlx::query("UPDATE ani_info SET is_favorite = ? WHERE id = ?")
-            .bind(true)
-            .bind(1i8)
-            .execute(&mut *tx) // ⭐️ 显式解引用
-            .await
-            .map_err(|e| e.to_string());
-        let _ = sqlx::query(
-            r#"
-            INSERT INTO ani_collect (
-                ani_item_id,
-                collect_time,
-                watched
-            ) VALUES (?, ?, ?)
-            ON CONFLICT(ani_item_id) DO UPDATE SET
-                collect_time = excluded.collect_time
-            "#,
-            )
-            .bind(1i8)
-            .bind(today_iso_date_ld())
-            .bind(false)
+        let _ =     sqlx::query(
+                r#"
+                    INSERT INTO ani_collect (
+                        user_id,
+                        ani_item_id,
+                        ani_title,
+                        collect_time
+                    ) VALUES (?, ?, ?, ?)
+                    ON CONFLICT(user_id, ani_item_id) 
+                    DO UPDATE SET
+                        collect_time = excluded.collect_time
+                    "#,
+                )
+            .bind("")  // 用户ID，暂时留空
+            .bind(1)
+            .bind("名侦探柯南")
+            .bind("2025/07/21")
             .execute(&mut *tx)
             .await
             .map_err(|e| format!("插入或更新失败: {}", e));
         // 提交事务
         let _ = tx.commit().await.map_err(|e| e.to_string());
 
-        let ani_item = sqlx::query_as::<_, Ani>("SELECT id, title, update_count, update_info, platform, image_url, detail_url, update_time, platform, watched, is_favorite FROM ani_info WHERE id = 1;")
-            .fetch_one(&pool)
-            .await
-            .unwrap();
-        //assert_eq!(ani_item.is_favorite, true);
-
-
-        let ani_collects = sqlx::query_as::<_, AniCollect>("SELECT id, ani_item_id, collect_time, watched FROM ani_collect;")
+        let ani_collects = sqlx::query_as::<_, AniCollect>("SELECT id, user_id, ani_item_id, ani_title, collect_time FROM ani_collect;")
             .fetch_all(&pool)
             .await
             .unwrap();
@@ -726,13 +716,7 @@ mod tests {
         // 提交事务
         let _ = tx.commit().await.map_err(|e| e.to_string());
 
-        let ani_item = sqlx::query_as::<_, Ani>("SELECT id, title, update_count, update_info, platform, image_url, detail_url, update_time, platform, watched, is_favorite FROM ani_info WHERE id = 1;")
-            .fetch_one(&pool)
-            .await
-            .unwrap();
-        //assert_eq!(ani_item.is_favorite, false);
-
-        let ani_collects = sqlx::query_as::<_, AniCollect>("SELECT id, ani_item_id, collect_time, watched FROM ani_collect;")
+        let ani_collects = sqlx::query_as::<_, AniCollect>("SELECT id, user_id, ani_item_id, ani_title, collect_time FROM ani_collect;")
             .fetch_optional(&pool)
             .await
             .unwrap();
