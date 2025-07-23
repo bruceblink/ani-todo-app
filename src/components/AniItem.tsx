@@ -1,7 +1,7 @@
 import { useState } from "react";
 import AniImage from "./AniImage";
 import toast from "react-hot-toast";
-import { Star } from "lucide-react";
+import { Star, X } from "lucide-react";
 import type { Ani } from "@/utils/api";
 
 interface Props {
@@ -56,8 +56,41 @@ export default function AniItem({ ani, onClear, isFavorite, onToggleFavorite }: 
                 height: '100%',
                 boxSizing: 'border-box',
                 transform: isHovered ? 'translateY(-6px) scale(1.02)' : 'none'
-            }}
-        >
+            }}>
+            {/* 清除按钮：绝对定位到右上角 */}
+            <button
+                onClick={handleClearClick}
+                style={{
+                    position: 'absolute',
+                    top: 8,
+                    right: 8,
+                    width: 32,
+                    height: 32,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: 0,
+                    background: isHovered ? 'rgba(255, 59, 48, 0.95)' : 'rgba(255, 255, 255, 0.9)',
+                    backdropFilter: 'blur(4px)',
+                    borderRadius: '50%',
+                    border: 'none',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    boxShadow: isHovered 
+                        ? '0 4px 8px rgba(255, 59, 48, 0.25)' 
+                        : '0 2px 4px rgba(0,0,0,0.1)',
+                    opacity: isHovered ? 1 : 0,
+                    transform: `scale(${isHovered ? 1 : 0.8})`,
+                    color: isHovered ? '#fff' : '#666',
+                }}
+                title="清除此番剧"
+            >
+                <X 
+                    size={18}
+                    color={isHovered ? '#fff' : '#666'}
+                    strokeWidth={2.5}
+                />
+            </button>
             {/* 动漫的封面图片 */}
             <div style={{ position: 'relative', flexShrink: 0 }}>
                 <a 
@@ -146,21 +179,6 @@ export default function AniItem({ ani, onClear, isFavorite, onToggleFavorite }: 
                         background: '#f5f5f5',
                         borderRadius: 4,
                     }}>{ani.platform}</span>
-                    <button
-                        onClick={handleClearClick}
-                        style={{
-                            padding: '2px 12px',
-                            borderRadius: 4,
-                            border: '1px solid #ddd',
-                            background: '#fff',
-                            color: '#666',
-                            fontSize: '0.85rem',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s ease',
-                        }}
-                    >
-                        清除
-                    </button>
                 </div>
             </div>
         </div>
