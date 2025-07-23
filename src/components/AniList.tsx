@@ -29,6 +29,7 @@ export default function AniList({ list }: Props) {
             {watchingToday.map(ani => (
                 <div key={ani.id} style={{ 
                     width: 'clamp(480px, calc(90vw/4 - 24px), 360px)',
+                    height: 'calc(clamp(480px, calc(90vw/4 - 24px), 360px) * 0.618)',
                     flexShrink: 0
                 }}>
                     <AniItem
