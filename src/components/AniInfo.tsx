@@ -9,9 +9,10 @@ export default function AniInfo({ ani }: Props) {
     return (
         <div className="ani-info" style={{ 
             display: 'flex',
+            flexDirection: 'row',
             alignItems: 'flex-start',
             gap: 16,
-            paddingTop: 32,
+            padding: 32,
             width: '100%'
         }}>
             {/* 动漫的封面图片 */}
@@ -23,8 +24,8 @@ export default function AniInfo({ ani }: Props) {
                     title={`在新窗口打开《${ani.title}》详情`}
                     style={{
                         display: 'block',
-                        width: 120,
-                        height: 160,
+                        width: 180,
+                        height: 180,
                         borderRadius: 8,
                         overflow: 'hidden',
                         boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
@@ -39,15 +40,26 @@ export default function AniInfo({ ani }: Props) {
             </div>
 
             {/* 动漫的信息说明 */}
-            <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ 
+                flex: 1,
+                minWidth: 0,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'flex-start',
+                textAlign: 'left',
+            }}>
                 <h3 style={{ 
                     margin: '0 0 8px', 
                     fontSize: '1.1rem',
                     fontWeight: 600,
                     color: '#333',
+                    maxWidth: '100%',
+                    wordWrap: 'break-word',
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical',
                     overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
+                    lineHeight: 1.4,
                 }}>
                     {ani.title}
                 </h3>
@@ -55,6 +67,7 @@ export default function AniInfo({ ani }: Props) {
                     fontSize: '0.9rem',
                     color: '#666',
                     marginBottom: 4,
+                    width: '100%'
                 }}>
                     {ani.update_time} 更新
                 </div>
@@ -62,6 +75,7 @@ export default function AniInfo({ ani }: Props) {
                     fontSize: '0.9rem',
                     color: '#666',
                     marginBottom: 8,
+                    width: '100%'
                 }}>
                     {ani.update_count ? (
                         <>更新至第 {ani.update_count} 集</>
@@ -74,7 +88,7 @@ export default function AniInfo({ ani }: Props) {
                     color: '#888',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: 8,
+                    gap: 8
                 }}>
                     <span style={{
                         padding: '2px 8px',
