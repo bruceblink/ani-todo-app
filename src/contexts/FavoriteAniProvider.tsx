@@ -25,12 +25,16 @@ export function FavoriteAniProvider({ children }: { children: ReactNode }) {
         }
     }
 
-    const handleToggleFavorite = async (id: number, aniTitle: string, isFavorite: boolean) => {
+    const handleToggleFavorite = async (id: number, aniTitle: string, isFavorite: boolean | number) => {
         try {
-            if (!isFavorite) { // 如果没有收藏则收藏
-                await api.collectAni(id, aniTitle);
-            }else { // 反之取消收藏
-                await api.cancelCollectAni(id, aniTitle);
+            if (typeof isFavorite !== 'boolean') {
+                await api.updateCollectedAni(id, aniTitle);
+            }else {
+                if (!isFavorite) { // 如果没有收藏则收藏
+                    await api.collectAni(id, aniTitle);
+                }else { // 反之取消收藏
+                    await api.cancelCollectAni(id, aniTitle);
+                }
             }
             setFavoriteAniTitles(prev => {
                 const next = new Set(prev)

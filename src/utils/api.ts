@@ -115,7 +115,12 @@ export interface ApiCommands {
     cancel_collect_ani_item: {
         args: { aniId?: number, aniTitle: string }
         result: Record<string, string>
-    }
+    },
+
+    update_collected_ani_item: {
+        args: { aniId?: number, aniTitle: string }
+        result: Record<string, string>
+    },
 }
 
 /**
@@ -183,4 +188,7 @@ export const api = {
      * */
     cancelCollectAni: (aniId: number, aniTitle: string) =>
         invokeApi('cancel_collect_ani_item', {aniId, aniTitle}),
+
+    updateCollectedAni: (aniId: number, aniTitle: string) =>
+        invokeApi('update_collected_ani_item', {aniId, aniTitle}),
 }
