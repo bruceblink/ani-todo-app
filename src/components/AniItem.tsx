@@ -12,14 +12,15 @@ interface Props {
 
 export default function AniItem({ ani, onClear, isFavorite , onToggleFavorite}: Props) {
 
+    const aniInfo = `《${ani.title}》第${ani.update_count}集`;
     // 点击清除按钮时调用
     const handleClearClick = () => {
         const confirmed = window.confirm(
-            `你确定要清除《${ani.title}》这部番剧吗？`
+            `你确定要清除${aniInfo} 这部番剧吗？`
         );
         if (confirmed) {
             onClear(ani.id);
-            toast.success(`已经清除了《${ani.title}》这部番剧`);
+            toast.success(`已经清除了${aniInfo} 这部番剧`);
         }
     };
 
