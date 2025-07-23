@@ -4,7 +4,7 @@ import RefreshButton from "@/components/RefreshButton";
 import { useAniData } from "@/hooks/useAniData";
 import { useFavoriteAni } from "@/hooks/useFavoriteAni";
 import type { Ani } from "@/utils/api";
-import { useState } from "react";
+import {useEffect, useState} from "react";
 import { Toaster } from "react-hot-toast";
 
 export default function App() {
@@ -12,6 +12,12 @@ export default function App() {
     const { favoriteAniIds } = useFavoriteAni();
     // 初始化时根据收藏内容决定默认界面
     const [showFavorite, setShowFavorite] = useState(() => favoriteAniIds.size > 0);
+
+    // 监听 favoriteAniIds 变化，自动更新 showFavorite
+    // 如果收藏列表有内容，则显示收藏列表，否则显示全部番剧列表
+    useEffect(() => {
+        setShowFavorite(favoriteAniIds.size > 0);
+    }, [favoriteAniIds]);
 
     if (loading)   return <div className="App">加载中…</div>;
     if (error)     return <div className="App">出错了：{error}</div>;
@@ -21,8 +27,6 @@ export default function App() {
     const aniList = data[today] as Ani[];
     // 收藏列表
     const favoriteList = aniList.filter(ani => favoriteAniIds.has(ani.id));
-
-    // 不再自动切换，避免hooks顺序问题，仅首次渲染时决定默认界面
 
     return (
         <>
