@@ -13,6 +13,7 @@ interface Props {
 
 export default function AniItem({ ani, onClear, isFavorite, onToggleFavorite }: Props) {
     const aniInfo = `《${ani.title}》第${ani.update_count}集`;
+    const [isHovered, setIsHovered] = useState(false);
     
     const handleClearClick = () => {
         const confirmed = window.confirm(
@@ -30,8 +31,6 @@ export default function AniItem({ ani, onClear, isFavorite, onToggleFavorite }: 
             icon: isFavorite ? '💔' : '⭐️'
         });
     };
-
-    const [isHovered, setIsHovered] = useState(false);
 
     return (
         <div 
@@ -56,7 +55,44 @@ export default function AniItem({ ani, onClear, isFavorite, onToggleFavorite }: 
                 height: '100%',
                 boxSizing: 'border-box',
                 transform: isHovered ? 'translateY(-6px) scale(1.02)' : 'none'
-            }}>
+            }}
+        >
+            {/* 收藏按钮：绝对定位到卡片左上角 */}
+            <button
+                onClick={handleFavorClick}
+                style={{
+                    position: 'absolute',
+                    top: 8,
+                    left: 8,
+                    width: 32,
+                    height: 32,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: 0,
+                    background: isHovered ? '#fff' : 'rgba(255,255,255,0.9)',
+                    backdropFilter: 'blur(4px)',
+                    borderRadius: '50%',
+                    border: 'none',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    boxShadow: isHovered 
+                        ? '0 4px 12px rgba(251, 191, 36, 0.3)' 
+                        : '0 2px 4px rgba(0,0,0,0.1)',
+                    opacity: isHovered ? 1 : 0,
+                    transform: `scale(${isHovered ? 1 : 0.8})`,
+                    zIndex: 10,
+                }}
+                title={isFavorite ? '取消收藏' : '收藏'}
+            >
+                <Star 
+                    size={18}
+                    fill={isFavorite ? '#FBBF24' : 'none'} 
+                    color={isFavorite ? '#FBBF24' : '#666'}
+                    strokeWidth={2.5}
+                />
+            </button>
+
             {/* 清除按钮：绝对定位到右上角 */}
             <button
                 onClick={handleClearClick}
@@ -82,6 +118,7 @@ export default function AniItem({ ani, onClear, isFavorite, onToggleFavorite }: 
                     opacity: isHovered ? 1 : 0,
                     transform: `scale(${isHovered ? 1 : 0.8})`,
                     color: isHovered ? '#fff' : '#666',
+                    zIndex: 10,
                 }}
                 title="清除此番剧"
             >
@@ -91,6 +128,7 @@ export default function AniItem({ ani, onClear, isFavorite, onToggleFavorite }: 
                     strokeWidth={2.5}
                 />
             </button>
+
             {/* 动漫的封面图片 */}
             <div style={{ position: 'relative', flexShrink: 0 }}>
                 <a 
@@ -113,31 +151,6 @@ export default function AniItem({ ani, onClear, isFavorite, onToggleFavorite }: 
                         className="ani-img"
                     />
                 </a>
-                {/* 收藏图标：绝对定位到左上角 */}
-                <button
-                    onClick={handleFavorClick}
-                    style={{
-                        position: 'absolute',
-                        top: 8,
-                        left: 8,
-                        padding: 6,
-                        background: 'rgba(255,255,255,0.9)',
-                        backdropFilter: 'blur(4px)',
-                        borderRadius: '50%',
-                        border: 'none',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s ease',
-                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                    }}
-                    title={isFavorite ? '取消收藏' : '收藏'}
-                >
-                    <Star 
-                        size={20} 
-                        fill={isFavorite ? '#FBBF24' : 'none'} 
-                        color={isFavorite ? '#FBBF24' : '#999'}
-                        strokeWidth={2} 
-                    />
-                </button>
             </div>
 
             {/* 动漫的信息说明 */}
@@ -150,12 +163,16 @@ export default function AniItem({ ani, onClear, isFavorite, onToggleFavorite }: 
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
                     whiteSpace: 'nowrap',
-                }}>{ani.title}</h3>
+                }}>
+                    {ani.title}
+                </h3>
                 <div style={{ 
                     fontSize: '0.9rem',
                     color: '#666',
                     marginBottom: 4,
-                }}>{ani.update_time} 更新</div>
+                }}>
+                    {ani.update_time} 更新
+                </div>
                 <div style={{ 
                     fontSize: '0.9rem',
                     color: '#666',
@@ -178,7 +195,9 @@ export default function AniItem({ ani, onClear, isFavorite, onToggleFavorite }: 
                         padding: '2px 8px',
                         background: '#f5f5f5',
                         borderRadius: 4,
-                    }}>{ani.platform}</span>
+                    }}>
+                        {ani.platform}
+                    </span>
                 </div>
             </div>
         </div>
