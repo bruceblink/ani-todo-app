@@ -13,7 +13,6 @@ pub struct Ani {
     pub update_time: String,
     pub platform: String,
     pub watched: bool,
-    pub is_favorite: bool,
 }
 
 pub type AniIResult = HashMap<String, Vec<Ani>>;

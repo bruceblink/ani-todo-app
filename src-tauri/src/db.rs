@@ -122,8 +122,7 @@ pub async fn query_ani_item_data_list(app: AppHandle) -> Result<AniIResult, Stri
                       detail_url, 
                       update_time, 
                       platform,
-                      watched,
-                      is_favorite
+                      watched
                 FROM ani_items
                 WHERE
                     update_time = ?
@@ -162,8 +161,7 @@ pub async fn query_watched_ani_item_list(app: AppHandle) -> Result<Vec<Ani>, Str
                       detail_url, 
                       update_time, 
                       platform,
-                      watched,
-                      is_favorite
+                      watched
                 FROM ani_items
                 WHERE
                     update_time = ? AND 
