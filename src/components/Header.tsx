@@ -27,45 +27,46 @@ export default function Header({ weekday, total, showFavorite, onToggleView }: P
             backdropFilter: 'blur(8px)',
         }}>
             <div style={{ 
-                maxWidth: 1200,
-                width: '100%',
+                width: '80%',
                 margin: '0 auto',
                 padding: '16px 24px 8px',
-                position: 'relative',
                 boxSizing: 'border-box',
-            }}>
-                <h1 style={{ 
-                    margin: 0, 
-                    fontSize: '1.5rem', 
-                    fontWeight: 600,
-                    paddingRight: 160, // 为右侧按钮预留空间
-                }}>
-                    今日({weekday})更新番剧 共 {total} 部
-                </h1>
-                <div style={{ marginTop: 8, fontSize: '1rem', color: '#555' }}>
-                    已观看 {watchedNum} 部 — {percentage}% 完成
-                </div>
-                <div style={{ width: 200, height: 12, background: '#ddd', borderRadius: 6, overflow: 'hidden', margin: '12px 0 0 0' }}>
-                    <div
-                        style={{
-                            width: `${percentage}%`,
-                            height: '100%',
-                            background: '#afe1b0',
-                            transition: 'width 0.3s ease',
-                        }}
-                    />
-                </div>
-            </div>
-            {/* 按钮固定右上角 */}
-            <div style={{
-                position: 'absolute',
-                top: 0,
-                right: 0,
                 display: 'flex',
-                gap: 8,
-                padding: '4px 0',
+                gap: 24,
+                justifyContent: 'space-between',
+                alignItems: 'center',
             }}>
-                <button
+                <div style={{ flex: 1, minWidth: 0 }}>
+                    <h1 style={{ 
+                        margin: 0, 
+                        fontSize: '1.5rem', 
+                        fontWeight: 600,
+                    }}>
+                        今日({weekday})更新番剧 共 {total} 部
+                    </h1>
+                    <div style={{ marginTop: 8, fontSize: '1rem', color: '#555' }}>
+                        已观看 {watchedNum} 部 — {percentage}% 完成
+                    </div>
+                    <div style={{ width: 200, height: 12, background: '#ddd', borderRadius: 6, overflow: 'hidden', margin: '12px 0 0 0' }}>
+                        <div
+                            style={{
+                                width: `${percentage}%`,
+                                height: '100%',
+                                background: '#afe1b0',
+                                transition: 'width 0.3s ease',
+                            }}
+                        />
+                    </div>
+                </div>
+                {/* 按钮组 */}
+                <div style={{
+                    display: 'flex',
+                    gap: 8,
+                    alignSelf: 'flex-start',
+                    marginTop: 8,
+                    flexShrink: 0
+                }}>
+                    <button
                     onClick={() => onToggleView(false)}
                     style={{
                         padding: '6px 16px',
@@ -107,6 +108,7 @@ export default function Header({ weekday, total, showFavorite, onToggleView }: P
                             fontWeight: 'bold',
                         }}>{favoriteAniIds.size}</span>
                     )}</button>
+                </div>
             </div>
         </div>
     );
