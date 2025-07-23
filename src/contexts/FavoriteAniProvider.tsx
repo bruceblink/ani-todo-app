@@ -5,19 +5,22 @@ import {api} from "@/utils/api";
 
 
 export function FavoriteAniProvider({ children }: { children: ReactNode }) {
-    const [favorites, setFavorites] = useState<Set<number>>(new Set())
+    const [favoriteAniIds, setFavoriteAniIds] = useState<Set<number>>(new Set())
+    const [favoriteAniTitles, setFavoriteAniTitles] = useState<Set<string>>(new Set())
     const [isLoaded, setIsLoaded] = useState(false)
 
     useEffect(() => {
-        void fetchFavoriteAniIds()
+        void fetchFavoriteAniList()
     }, [])
 
 
-    const fetchFavoriteAniIds = async () => {
+    const fetchFavoriteAniList = async () => {
         try {
             const res = await api.queryFavoriteAniList()
-            const data = new Set(res.map(aniCollect => aniCollect.ani_item_id));
-            setFavorites(data)
+            const dataIds = new Set(res.map(aniCollect => aniCollect.ani_item_id));
+            const dataTitles = new Set(res.map(aniCollect => aniCollect.ani_title));
+            setFavoriteAniIds(dataIds)
+            setFavoriteAniTitles(dataTitles)
         } catch (e) {
             console.error('加载已清除/收藏 ID 列表失败', e)
         } finally {
@@ -32,7 +35,7 @@ export function FavoriteAniProvider({ children }: { children: ReactNode }) {
             }else { // 反之取消收藏
                 await api.cancelCollectAni(id, aniTitle);
             }
-            setFavorites(prev => {
+            setFavoriteAniIds(prev => {
                 const next = new Set(prev)
                 if (next.has(id)) next.delete(id)
                 else next.add(id)
@@ -44,7 +47,11 @@ export function FavoriteAniProvider({ children }: { children: ReactNode }) {
     }
 
     return (
-        <FavoriteAniContext.Provider value={{ favoriteAniIds: favorites, handleFavor: handleToggleFavorite, isLoaded }}>
+        <FavoriteAniContext.Provider value={{
+            favoriteAniIds: favoriteAniIds,
+            favoriteAniTitles: favoriteAniTitles,
+            handleFavor: handleToggleFavorite,
+            isLoaded }}>
             {children}
         </FavoriteAniContext.Provider>
     )

@@ -23,6 +23,7 @@ export interface Ani {
 export interface AniCollect {
     id: number,
     ani_item_id: number,
+    ani_title: string,
     collect_time: string,
     watched: boolean,
 }
