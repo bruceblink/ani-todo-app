@@ -175,7 +175,7 @@ pub async fn query_watched_ani_item_list(app: AppHandle) -> Result<Vec<AniWatchH
            ;"#,
         )
         .bind(today_date)
-        .bind(true)
+        .bind("") // 用户ID，暂时留空
         .fetch_all(&pool)
         .await
         .map_err(|e| format!("查询错误: {}", e))?;
@@ -201,7 +201,7 @@ pub async fn query_favorite_ani_item_list(app: AppHandle ) -> Result<Vec<AniColl
                       collect_time,
                       is_watched
                 FROM ani_collect
-                WHERE 
+                WHERE
                     is_watched = 0
                 GROUP BY ani_title
            ;"#,
