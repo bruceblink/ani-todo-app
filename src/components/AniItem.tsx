@@ -21,6 +21,10 @@ export default function AniItem({ ani, onClear, isFavorite, onToggleFavorite }: 
         );
         if (confirmed) {
             onClear(ani.id);
+            // 如果这个番剧当前在收藏里，就同步清除收藏
+            if (isFavorite) {
+                onToggleFavorite(ani.id, true);
+            }
             toast.success(`已经清除了${aniInfo} 这部番剧`);
         }
     };
