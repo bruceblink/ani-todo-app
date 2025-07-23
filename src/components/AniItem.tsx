@@ -35,48 +35,127 @@ export default function AniItem({ ani, onClear, isFavorite , onToggleFavorite}: 
         <div
             className="ani-item"
             key={ani.id}
-            style={{ display: 'flex', alignItems: 'center', marginBottom: 16, position: 'relative' }}
+            style={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: 16,
+                position: 'relative',
+                padding: 16,
+                background: '#fff',
+                borderRadius: 12,
+                boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                transition: 'all 0.2s ease',
+                cursor: 'default',
+                width: '100%',
+                height: '100%',
+                boxSizing: 'border-box',
+            }}
         >
-            {/* 收藏图标：绝对定位到左上角 */}
-            <button
-                onClick={handleFavorClick}
-                className={`
-                    top-2 left-2
-                    p-1 rounded-full
-                    hover:bg-gray-100
-                    transition
-                    ${isFavorite ? 'text-yellow-400' : 'text-gray-300'}
-                `}
-                title={isFavorite ? '取消收藏' : '收藏'}
-            >
-                <Star size={24} fill={isFavorite ? '#FBBF24' : 'none'} strokeWidth={2} />
-            </button>
-
             {/* 动漫的封面图片 */}
-            <a href={ani.detail_url} target="_blank" rel="noopener noreferrer">
-                <AniImage url={ani.image_url} alt={ani.title} className="ani-img" />
-            </a>
-
-            {/* 动漫的信息说明 */}
-            <div className="ani-info" style={{ flex: 1 }}>
-                <div className="ani-title">{ani.title}</div>
-                <div className="ani-update-info">{ani.update_time} 更新</div>
-                {ani.update_count ? (
-                    <div className="ani-update-info">更新至第 {ani.update_count} 集</div>
-                ) : (
-                    <div className="ani-update-info">暂无更新信息</div>
-                )}
-                <div className="ani-platform">{ani.platform}</div>
+            <div style={{ position: 'relative', flexShrink: 0 }}>
+                <a 
+                    href={ani.detail_url} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    title={`在新窗口打开《${ani.title}》详情`}
+                    style={{
+                        display: 'block',
+                        width: 120,
+                        height: 160,
+                        borderRadius: 8,
+                        overflow: 'hidden',
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                    }}
+                >
+                    <AniImage 
+                        url={ani.image_url} 
+                        alt={ani.title} 
+                        className="ani-img"
+                    />
+                </a>
+                {/* 收藏图标：绝对定位到左上角 */}
+                <button
+                    onClick={handleFavorClick}
+                    style={{
+                        position: 'absolute',
+                        top: 8,
+                        left: 8,
+                        padding: 6,
+                        background: 'rgba(255,255,255,0.9)',
+                        backdropFilter: 'blur(4px)',
+                        borderRadius: '50%',
+                        border: 'none',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                    }}
+                    title={isFavorite ? '取消收藏' : '收藏'}
+                >
+                    <Star 
+                        size={20} 
+                        fill={isFavorite ? '#FBBF24' : 'none'} 
+                        color={isFavorite ? '#FBBF24' : '#999'}
+                        strokeWidth={2} 
+                    />
+                </button>
             </div>
 
-            <button
-                className="clear-btn"
-                onClick={handleClearClick}
-                style={{ marginLeft: 12 }}
-            >
-                清除
-            </button>
+            {/* 动漫的信息说明 */}
+            <div style={{ flex: 1, minWidth: 0 }}>
+                <h3 style={{ 
+                    margin: '0 0 8px', 
+                    fontSize: '1.1rem',
+                    fontWeight: 600,
+                    color: '#333',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                }}>{ani.title}</h3>
+                <div style={{ 
+                    fontSize: '0.9rem',
+                    color: '#666',
+                    marginBottom: 4,
+                }}>{ani.update_time} 更新</div>
+                <div style={{ 
+                    fontSize: '0.9rem',
+                    color: '#666',
+                    marginBottom: 8,
+                }}>
+                    {ani.update_count ? (
+                        <>更新至第 {ani.update_count} 集</>
+                    ) : (
+                        <>暂无更新信息</>
+                    )}
+                </div>
+                <div style={{ 
+                    fontSize: '0.85rem',
+                    color: '#888',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                }}>
+                    <span style={{
+                        padding: '2px 8px',
+                        background: '#f5f5f5',
+                        borderRadius: 4,
+                    }}>{ani.platform}</span>
+                    <button
+                        onClick={handleClearClick}
+                        style={{
+                            padding: '2px 12px',
+                            borderRadius: 4,
+                            border: '1px solid #ddd',
+                            background: '#fff',
+                            color: '#666',
+                            fontSize: '0.85rem',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                        }}
+                    >
+                        清除
+                    </button>
+                </div>
+            </div>
         </div>
-
     );
 }
