@@ -212,7 +212,7 @@ pub async fn query_favorite_ani_item_list(app: AppHandle ) -> Result<Vec<AniColl
 
 /// 收藏动漫
 #[tauri::command]
-pub async fn collect_ani_item(app: AppHandle, ani_id: i64 ) -> Result<String, String> {
+pub async fn collect_ani_item(app: AppHandle, ani_id: i64, ani_title: String) -> Result<String, String> {
     // 1. 打开数据库
     let db_path = get_or_set_db_path(get_app_data_dir(&app))
         .map_err(|e| e.to_string())?;
@@ -232,25 +232,27 @@ pub async fn collect_ani_item(app: AppHandle, ani_id: i64 ) -> Result<String, St
         r#"
         INSERT INTO ani_collect (
             ani_item_id,
+            ani_title,
             collect_time,
             watched
-        ) VALUES (?, ?, ?)
+        ) VALUES (?, ?, ?, ?)
         ON CONFLICT(ani_item_id) 
         DO UPDATE SET
             collect_time = excluded.collect_time
     "#,
     )
-    .bind(ani_id)
-    .bind(today_iso_date_ld())
-    .bind(false)
-    .execute(&mut *tx)
+        .bind(ani_id)
+        .bind(&ani_title)
+        .bind(today_iso_date_ld())
+        .bind(false)
+        .execute(&mut *tx)
     .await
     .map_err(|e| format!("插入或更新失败: {}", e))?;
     // 提交事务
     tx.commit().await.map_err(|e| e.to_string())?;
 
 
-    info!("标记collected: 动漫_id = {}", ani_id);
+    info!("动漫《{}》标记为collected", ani_title);
     // 4. 返回统一的 JSON 字符串
     Ok(json!({
         "status":  "ok",
@@ -260,7 +262,7 @@ pub async fn collect_ani_item(app: AppHandle, ani_id: i64 ) -> Result<String, St
 
 /// 收藏动漫
 #[tauri::command]
-pub async fn cancel_collect_ani_item(app: AppHandle, ani_id: i64) -> Result<String, String> {
+pub async fn cancel_collect_ani_item(app: AppHandle, ani_id: i64, ani_title: String) -> Result<String, String> {
     // 1. 打开数据库
     let db_path = get_or_set_db_path(get_app_data_dir(&app))
         .map_err(|e| e.to_string())?;
@@ -282,8 +284,8 @@ pub async fn cancel_collect_ani_item(app: AppHandle, ani_id: i64) -> Result<Stri
         .map_err(|e| format!("删除失败: {}", e))?;
     // 提交事务
     tx.commit().await.map_err(|e| e.to_string())?;
-    
-    info!("标记 cancel collect: 动漫_id = {}", ani_id);
+
+    info!("动漫《{}》标记为 取消collected", ani_title);
     // 4. 返回统一的 JSON 字符串
     Ok(json!({
         "status":  "ok",

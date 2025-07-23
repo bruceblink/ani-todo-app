@@ -108,11 +108,11 @@ export interface ApiCommands {
         result: AniCollect[]
     }
     collect_ani_item : {
-        args: { aniId?: number }
+        args: { aniId?: number, aniTitle: string }
         result: Record<string, string>
     },
     cancel_collect_ani_item: {
-        args: { aniId?: number }
+        args: { aniId?: number, aniTitle: string }
         result: Record<string, string>
     }
 }
@@ -175,11 +175,11 @@ export const api = {
     /**
      * 收藏动漫
      */
-    collectAni: (aniId: number) =>
-        invokeApi('collect_ani_item', {aniId}),
+    collectAni: (aniId: number, aniTitle: string) =>
+        invokeApi('collect_ani_item', {aniId, aniTitle}),
     /**
      * 取消收藏动漫
      * */
-    cancelCollectAni: (aniId: number) =>
-        invokeApi('cancel_collect_ani_item', {aniId}),
+    cancelCollectAni: (aniId: number, aniTitle: string) =>
+        invokeApi('cancel_collect_ani_item', {aniId, aniTitle}),
 }

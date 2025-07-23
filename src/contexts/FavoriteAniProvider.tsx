@@ -25,12 +25,12 @@ export function FavoriteAniProvider({ children }: { children: ReactNode }) {
         }
     }
 
-    const handleToggleFavorite = async (id: number, isFavorite: boolean) => {
+    const handleToggleFavorite = async (id: number, aniTitle: string, isFavorite: boolean) => {
         try {
             if (!isFavorite) { // 如果没有收藏则收藏
-                await api.collectAni(id);
+                await api.collectAni(id, aniTitle);
             }else { // 反之取消收藏
-                await api.cancelCollectAni(id);
+                await api.cancelCollectAni(id, aniTitle);
             }
             setFavorites(prev => {
                 const next = new Set(prev)

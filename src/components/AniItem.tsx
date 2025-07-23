@@ -8,7 +8,7 @@ interface Props {
     ani: Ani;
     onClear: (id: number) => void;
     isFavorite: boolean;
-    onToggleFavorite: (id: number, isFavorite: boolean) => void;
+    onToggleFavorite: (id: number, aniTitle: string, isFavorite: boolean) => void;
 }
 
 export default function AniItem({ ani, onClear, isFavorite, onToggleFavorite }: Props) {
@@ -23,14 +23,14 @@ export default function AniItem({ ani, onClear, isFavorite, onToggleFavorite }: 
             onClear(ani.id);
             // 如果这个番剧当前在收藏里，就同步清除收藏
             if (isFavorite) {
-                onToggleFavorite(ani.id, true);
+                onToggleFavorite(ani.id, ani.title, true);
             }
             toast.success(`已经清除了${aniInfo} 这部番剧`);
         }
     };
 
     const handleFavorClick = () => {
-        onToggleFavorite(ani.id, isFavorite);
+        onToggleFavorite(ani.id, ani.title, isFavorite);
         toast(isFavorite ? `已取消收藏《${ani.title}》` : `已收藏《${ani.title}》`, {
             icon: isFavorite ? '💔' : '⭐️'
         });
