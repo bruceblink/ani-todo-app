@@ -80,8 +80,8 @@ export default function AniItem({ ani, onClear, isFavorite, onToggleFavorite }: 
                     boxShadow: isHovered 
                         ? '0 4px 12px rgba(251, 191, 36, 0.3)' 
                         : '0 2px 4px rgba(0,0,0,0.1)',
-                    opacity: isHovered ? 1 : 0,
-                    transform: `scale(${isHovered ? 1 : 0.8})`,
+                    opacity: isFavorite ? 1 : (isHovered ? 1 : 0),
+                    transform: `scale(${isFavorite ? 1 : (isHovered ? 1 : 0.8)})`,
                     zIndex: 10,
                 }}
                 title={isFavorite ? '取消收藏' : '收藏'}
