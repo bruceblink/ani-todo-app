@@ -198,8 +198,11 @@ pub async fn query_favorite_ani_item_list(app: AppHandle ) -> Result<Vec<AniColl
                       user_id,
                       ani_item_id,
                       ani_title,
-                      collect_time
+                      collect_time,
+                      is_watched
                 FROM ani_collect
+                WHERE 
+                    is_watched = 0
                 GROUP BY ani_title
            ;"#,
         )
