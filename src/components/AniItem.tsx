@@ -1,7 +1,8 @@
+import { useState } from "react";
 import AniImage from "./AniImage";
 import toast from "react-hot-toast";
-import { Star } from "lucide-react"
-import type {Ani} from "@/utils/api";
+import { Star } from "lucide-react";
+import type { Ani } from "@/utils/api";
 
 interface Props {
     ani: Ani;
@@ -10,10 +11,9 @@ interface Props {
     onToggleFavorite: (id: number, isFavorite: boolean) => void;
 }
 
-export default function AniItem({ ani, onClear, isFavorite , onToggleFavorite}: Props) {
-
+export default function AniItem({ ani, onClear, isFavorite, onToggleFavorite }: Props) {
     const aniInfo = `《${ani.title}》第${ani.update_count}集`;
-    // 点击清除按钮时调用
+    
     const handleClearClick = () => {
         const confirmed = window.confirm(
             `你确定要清除${aniInfo} 这部番剧吗？`
@@ -25,16 +25,19 @@ export default function AniItem({ ani, onClear, isFavorite , onToggleFavorite}: 
     };
 
     const handleFavorClick = () => {
-        onToggleFavorite(ani.id, isFavorite)
+        onToggleFavorite(ani.id, isFavorite);
         toast(isFavorite ? `已取消收藏《${ani.title}》` : `已收藏《${ani.title}》`, {
             icon: isFavorite ? '💔' : '⭐️'
-        })
-    }
+        });
+    };
+
+    const [isHovered, setIsHovered] = useState(false);
 
     return (
-        <div
+        <div 
             className="ani-item"
-            key={ani.id}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
             style={{
                 display: 'flex',
                 alignItems: 'flex-start',
@@ -43,12 +46,16 @@ export default function AniItem({ ani, onClear, isFavorite , onToggleFavorite}: 
                 padding: 16,
                 background: '#fff',
                 borderRadius: 12,
-                boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-                transition: 'all 0.2s ease',
+                boxShadow: isHovered 
+                    ? '0 16px 32px rgba(0, 0, 0, 0.12), 0 6px 16px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.04)'
+                    : '0 1px 3px rgba(0,0,0,0.1)',
+                border: `1px solid ${isHovered ? '#646cff' : '#eee'}`,
+                transition: 'transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), border-color 0.3s ease',
                 cursor: 'default',
                 width: '100%',
                 height: '100%',
                 boxSizing: 'border-box',
+                transform: isHovered ? 'translateY(-6px) scale(1.02)' : 'none'
             }}
         >
             {/* 动漫的封面图片 */}

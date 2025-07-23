@@ -25,6 +25,7 @@ export default function Header({ weekday, total, showFavorite, onToggleView }: P
             borderBottom: '1px solid #eee',
             background: 'rgba(255, 255, 255, 0.95)',
             backdropFilter: 'blur(8px)',
+            transition: 'all 0.3s ease',
         }}>
             <div style={{ 
                 width: '80%',
