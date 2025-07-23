@@ -4,23 +4,25 @@ import RefreshButton from "@/components/RefreshButton";
 import { useAniData } from "@/hooks/useAniData";
 import { useFavoriteAni } from "@/hooks/useFavoriteAni";
 import type { Ani } from "@/utils/api";
-import {useEffect, useState} from "react";
+import { useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
 
 export default function App() {
     const { data, loading, error, refresh } = useAniData();
-    const { favoriteAniIds } = useFavoriteAni();
-    // 初始化时根据收藏内容决定默认界面
-    const [showFavorite, setShowFavorite] = useState(() => favoriteAniIds.size > 0);
+    const { favoriteAniIds, isLoaded } = useFavoriteAni();
 
-    // 监听 favoriteAniIds 变化，自动更新 showFavorite
-    // 如果收藏列表有内容，则显示收藏列表，否则显示全部番剧列表
+    const [showFavorite, setShowFavorite] = useState(false);
+    const [initialized, setInitialized] = useState(false);
+    //首次加载时 如果收藏列表有内容，则显示收藏列表，否则显示全部番剧列表
     useEffect(() => {
-        setShowFavorite(favoriteAniIds.size > 0);
-    }, [favoriteAniIds]);
+        if (isLoaded && !initialized) {
+            setShowFavorite(favoriteAniIds.size > 0);
+            setInitialized(true);
+        }
+    }, [isLoaded, favoriteAniIds, initialized]);
 
-    if (loading)   return <div className="App">加载中…</div>;
-    if (error)     return <div className="App">出错了：{error}</div>;
+    if (loading) return <div className="App">加载中…</div>;
+    if (error) return <div className="App">出错了：{error}</div>;
     if (!Object.keys(data).length) return <div className="App">无数据</div>;
 
     const today = Object.keys(data)[0];

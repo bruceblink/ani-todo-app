@@ -6,6 +6,8 @@ import {api} from "@/utils/api";
 
 export function FavoriteAniProvider({ children }: { children: ReactNode }) {
     const [favorites, setFavorites] = useState<Set<number>>(new Set())
+    const [isLoaded, setIsLoaded] = useState(false)
+
     useEffect(() => {
         void fetchFavoriteAniIds()
     }, [])
@@ -18,6 +20,8 @@ export function FavoriteAniProvider({ children }: { children: ReactNode }) {
             setFavorites(data)
         } catch (e) {
             console.error('加载已清除/收藏 ID 列表失败', e)
+        } finally {
+            setIsLoaded(true)
         }
     }
 
@@ -40,7 +44,7 @@ export function FavoriteAniProvider({ children }: { children: ReactNode }) {
     }
 
     return (
-        <FavoriteAniContext.Provider value={{ favoriteAniIds: favorites, handleFavor: handleToggleFavorite }}>
+        <FavoriteAniContext.Provider value={{ favoriteAniIds: favorites, handleFavor: handleToggleFavorite, isLoaded }}>
             {children}
         </FavoriteAniContext.Provider>
     )
