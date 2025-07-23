@@ -164,11 +164,11 @@ pub async fn query_watched_ani_item_list(app: AppHandle) -> Result<Vec<AniWatchH
     let ani_items = sqlx::query_as::<_, AniWatchHistory>(
         r#"SELECT id,
                       user_id,
-                      ani_item_id, 
+                      ani_item_id,
                       watched_time
                 FROM ani_watch_history
                 WHERE
-                    watched_time = ? AND 
+                    watched_time = ? AND
                     user_id = ?
                 ORDER BY
                     watched_time DESC
@@ -229,7 +229,7 @@ pub async fn collect_ani_item(app: AppHandle, ani_id: i64, ani_title: String) ->
                     ani_title,
                     collect_time
                 ) VALUES (?, ?, ?, ?)
-                ON CONFLICT(user_id, ani_item_id) 
+                ON CONFLICT(user_id, ani_item_id)
                 DO UPDATE SET
                     collect_time = excluded.collect_time
             "#,
@@ -250,7 +250,7 @@ pub async fn collect_ani_item(app: AppHandle, ani_id: i64, ani_title: String) ->
     }).to_string())
 }
 
-/// 收藏动漫
+/// 取消收藏动漫
 #[tauri::command]
 pub async fn cancel_collect_ani_item(app: AppHandle, ani_id: i64, ani_title: String) -> Result<String, String> {
     // 1. 打开数据库
@@ -271,6 +271,39 @@ pub async fn cancel_collect_ani_item(app: AppHandle, ani_id: i64, ani_title: Str
     tx.commit().await.map_err(|e| e.to_string())?;
 
     info!("动漫《{}》ani_id = {}标记为 取消collected", ani_title, ani_id);
+    // 4. 返回统一的 JSON 字符串
+    Ok(json!({
+        "status":  "ok",
+        "message": "cancel success"
+    }).to_string())
+}
+
+/// 更新动漫收藏状态为已观看
+#[tauri::command]
+pub async fn update_collected_ani_item(app: AppHandle, ani_id: i64, ani_title: String) -> Result<String, String> {
+    // 1. 打开数据库
+    let db_path = get_or_set_db_path(get_app_data_dir(&app))
+        .map_err(|e| e.to_string())?;
+    let pool: Pool<Sqlite> = creat_database_connection_pool(db_path)
+        .await
+        .map_err(|e| e.to_string())?;
+    // 开启事务
+    let mut tx = pool.begin().await.map_err(|e| e.to_string())?;
+    // 更新ani_collect表中的记录
+    sqlx::query(r#" UPDATE ani_collect
+                        SET is_watched = 1
+                        WHERE ani_item_id = ? AND
+                        ani_title = ?
+                        "#)
+        .bind(&ani_id)
+        .bind(&ani_title)
+        .execute(&mut *tx) // ⭐️ 显式解引用
+        .await
+        .map_err(|e| format!("删除失败: {}", e))?;
+    // 提交事务
+    tx.commit().await.map_err(|e| e.to_string())?;
+
+    info!("动漫《{}》ani_id = {}标记为已观看", ani_title, ani_id);
     // 4. 返回统一的 JSON 字符串
     Ok(json!({
         "status":  "ok",
