@@ -22,6 +22,7 @@ pub type AniIResult = HashMap<String, Vec<Ani>>;
 pub struct AniCollect {
     pub id: i64,
     pub ani_item_id: i64,
+    pub ani_title: String,
     pub collect_time: String,
     pub watched: bool,
 }

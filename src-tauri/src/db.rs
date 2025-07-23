@@ -78,12 +78,22 @@ pub async fn remove_ani_item_data(
         .map_err(|e| e.to_string())?;
 
     // 3. 执行更新
+    // 开启事务
+    let mut tx = pool.begin().await.map_err(|e| e.to_string())?;
+    // 更新ani_item表中的watched状态
     sqlx::query("UPDATE ani_items SET watched = 1 WHERE id = ?")
         .bind(ani_id)
-        .execute(&pool)
+        .execute(&mut *tx)
         .await
         .map_err(|e| format!("插入或更新失败: {}", e))?;
-
+    // 更新ani_collect表中的watched状态
+    sqlx::query("UPDATE ani_collect SET watched = 1 WHERE ani_item_id = ?")
+        .bind(ani_id)
+        .execute(&mut *tx)
+        .await
+        .map_err(|e| format!("插入或更新失败: {}", e))?;
+    // 提交事务
+    tx.commit().await.map_err(|e| e.to_string())?;
     info!("标记 watched: id = {}", ani_id);
     // 4. 返回统一的 JSON 字符串
     Ok(json!({
@@ -184,9 +194,12 @@ pub async fn query_favorite_ani_item_list(app: AppHandle ) -> Result<Vec<AniColl
     let ani_collectors = sqlx::query_as::<_, AniCollect>(
         r#"SELECT id,
                       ani_item_id,
+                      ani_title,
                       collect_time,
                       watched
                 FROM ani_collect
+                WHERE
+                    watched = 0
            ;"#,
         )
         .fetch_all(&pool)
