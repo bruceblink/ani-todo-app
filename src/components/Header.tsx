@@ -100,7 +100,7 @@ export default function Header({ weekday, total, showFavorite, onToggleView }: P
                         boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
                     }}
                 >
-                    收藏
+                    关注
                     {favoritesCount > 0 && (
                         <span style={{
                             marginLeft: 4,

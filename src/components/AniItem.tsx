@@ -17,7 +17,7 @@ export default function AniItem({ ani, onClear, isFavorite, onToggleFavorite }: 
     
     const handleClearClick = () => {
         const confirmed = window.confirm(
-            `你确定要清除${aniInfo} 这部番剧吗？`
+            `你确定观看过${aniInfo} 这部番剧吗？`
         );
         if (confirmed) {
             onClear(ani.id);
@@ -25,13 +25,13 @@ export default function AniItem({ ani, onClear, isFavorite, onToggleFavorite }: 
             if (isFavorite) {
                 onToggleFavorite(ani.id, ani.title, 0);
             }
-            toast.success(`已经清除了${aniInfo} 这部番剧`);
+            toast.success(`已经观看了${aniInfo} 这部番剧`);
         }
     };
 
     const handleFavorClick = () => {
         onToggleFavorite(ani.id, ani.title, isFavorite);
-        toast(isFavorite ? `已取消收藏《${aniInfo}》` : `已收藏《${aniInfo}》`, {
+        toast(isFavorite ? `已取消关注《${ani.title}》` : `关注了《${ani.title}》`, {
             icon: isFavorite ? '💔' : '⭐️'
         });
     };
@@ -62,7 +62,7 @@ export default function AniItem({ ani, onClear, isFavorite, onToggleFavorite }: 
                 minHeight: '100%'
             }}
         >
-            {/* 收藏按钮：绝对定位到卡片左上角 */}
+            {/* 关注按钮：绝对定位到卡片左上角 */}
             <button
                 onClick={handleFavorClick}
                 style={{
@@ -88,7 +88,7 @@ export default function AniItem({ ani, onClear, isFavorite, onToggleFavorite }: 
                     transform: `scale(${isFavorite ? 1 : (isHovered ? 1 : 0.8)})`,
                     zIndex: 10,
                 }}
-                title={isFavorite ? '取消收藏' : '收藏'}
+                title={isFavorite ? '取消关注' : '关注'}
             >
                 <Star 
                     size={18}
@@ -125,7 +125,7 @@ export default function AniItem({ ani, onClear, isFavorite, onToggleFavorite }: 
                     color: isHovered ? '#fff' : '#666',
                     zIndex: 10,
                 }}
-                title="清除此番剧"
+                title="已观看此番剧"
             >
                 <X 
                     size={18}
