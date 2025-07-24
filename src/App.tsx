@@ -9,17 +9,17 @@ import { Toaster } from "react-hot-toast";
 
 export default function App() {
     const { data, loading, error, refresh } = useAniData();
-    const { favoriteAniTitles, isLoaded } = useFavoriteAni();
+    const { favoriteAniItems, isLoaded } = useFavoriteAni();
 
     const [showFavorite, setShowFavorite] = useState(false);
     const [initialized, setInitialized] = useState(false);
     //首次加载时 如果收藏列表有内容，则显示收藏列表，否则显示全部番剧列表
     useEffect(() => {
         if (isLoaded && !initialized) {
-            setShowFavorite(favoriteAniTitles.size > 0);
+            setShowFavorite(favoriteAniItems.size > 0);
             setInitialized(true);
         }
-    }, [isLoaded, favoriteAniTitles, initialized]);
+    }, [isLoaded, favoriteAniItems, initialized]);
 
     if (loading) return <div className="App">加载中…</div>;
     if (error) return <div className="App">出错了：{error}</div>;
@@ -28,7 +28,7 @@ export default function App() {
     const today = Object.keys(data)[0];
     const aniList = data[today] as Ani[];
     // 收藏列表
-    const favoriteList = aniList.filter(ani => favoriteAniTitles.has(ani.title));
+    const favoriteList = aniList.filter(ani => favoriteAniItems.has(ani.id));
 
     return (
         <>

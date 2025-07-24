@@ -11,10 +11,10 @@ interface Props {
 
 export default function Header({ weekday, total, showFavorite, onToggleView }: Props) {
     const { watchedAniIds } = useWatchedAni();
-    const { favoriteAniTitles } = useFavoriteAni();
+    const { favoriteAniItems } = useFavoriteAni();
     const watchedNum = watchedAniIds.size;
     const percentage = total > 0 ? Math.round((watchedNum / total) * 100) : 0;
-    const favoritesCount = favoriteAniTitles.size;
+    const favoritesCount = favoriteAniItems.size;
     return (
         <div className="header" style={{
             position: 'fixed',

@@ -31,7 +31,7 @@ export default function AniItem({ ani, onClear, isFavorite, onToggleFavorite }: 
 
     const handleFavorClick = () => {
         onToggleFavorite(ani.id, ani.title, isFavorite);
-        toast(isFavorite ? `已取消收藏《${ani.title}》` : `已收藏《${ani.title}》`, {
+        toast(isFavorite ? `已取消收藏《${aniInfo}》` : `已收藏《${aniInfo}》`, {
             icon: isFavorite ? '💔' : '⭐️'
         });
     };

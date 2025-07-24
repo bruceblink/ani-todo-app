@@ -203,7 +203,6 @@ pub async fn query_favorite_ani_item_list(app: AppHandle ) -> Result<Vec<AniColl
                 FROM ani_collect
                 WHERE
                     is_watched = 0
-                GROUP BY ani_title
            ;"#,
         )
         .fetch_all(&pool)
@@ -295,11 +294,9 @@ pub async fn update_collected_ani_item(app: AppHandle, ani_id: i64, ani_title: S
     // 更新ani_collect表中的记录
     sqlx::query(r#" UPDATE ani_collect
                         SET is_watched = 1
-                        WHERE ani_item_id = ? AND
-                        ani_title = ?
+                        WHERE ani_item_id = ?
                         "#)
         .bind(&ani_id)
-        .bind(&ani_title)
         .execute(&mut *tx) // ⭐️ 显式解引用
         .await
         .map_err(|e| format!("删除失败: {}", e))?;

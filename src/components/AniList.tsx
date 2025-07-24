@@ -11,7 +11,7 @@ export default function AniList({ list }: Props) {
     // —— 已观看番剧 ID 集合 ——
     const { handleWatch, watchedAniIds } = useWatchedAni();
     // —— 收藏番剧相关操作 ——
-    const { handleFavor, favoriteAniTitles } = useFavoriteAni();
+    const { handleFavor, favoriteAniItems } = useFavoriteAni();
     // —— 过滤出今天将要看的番剧列表 ——
     const watchingToday = list.filter(ani => !watchedAniIds.has(ani.id));
     return (
@@ -34,7 +34,7 @@ export default function AniList({ list }: Props) {
                     <AniItem
                         ani={ani}
                         onClear={handleWatch}
-                        isFavorite={favoriteAniTitles.has(ani.title)}
+                        isFavorite={favoriteAniItems.has(ani.id)}
                         onToggleFavorite={handleFavor}
                     />
                 </div>

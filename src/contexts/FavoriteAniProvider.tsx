@@ -5,7 +5,7 @@ import {api} from "@/utils/api";
 
 
 export function FavoriteAniProvider({ children }: { children: ReactNode }) {
-    const [favoriteAniTitles, setFavoriteAniTitles] = useState<Set<string>>(new Set())
+    const [favoriteAniItems, setFavoriteAniItems] = useState<Set<unknown>>(new Set())
     const [isLoaded, setIsLoaded] = useState(false)
 
     useEffect(() => {
@@ -16,8 +16,8 @@ export function FavoriteAniProvider({ children }: { children: ReactNode }) {
     const fetchFavoriteAniList = async () => {
         try {
             const res = await api.queryFavoriteAniList()
-            const dataTitles = new Set(res.map(aniCollect => aniCollect.ani_title));
-            setFavoriteAniTitles(dataTitles)
+            const data = new Set(res.map(aniCollect => aniCollect.ani_item_id));
+            setFavoriteAniItems(data)
         } catch (e) {
             console.error('加载已清除/收藏 ID 列表失败', e)
         } finally {
@@ -36,10 +36,10 @@ export function FavoriteAniProvider({ children }: { children: ReactNode }) {
                     await api.cancelCollectAni(id, aniTitle);
                 }
             }
-            setFavoriteAniTitles(prev => {
+            setFavoriteAniItems(prev => {
                 const next = new Set(prev)
-                if (next.has(aniTitle)) next.delete(aniTitle)
-                else next.add(aniTitle)
+                if (next.has(id)) next.delete(id)
+                else next.add(id)
                 return next
             })
         } catch (e) {
@@ -49,7 +49,7 @@ export function FavoriteAniProvider({ children }: { children: ReactNode }) {
 
     return (
         <FavoriteAniContext.Provider value={{
-            favoriteAniTitles: favoriteAniTitles,
+            favoriteAniItems: favoriteAniItems,
             handleFavor: handleToggleFavorite,
             isLoaded }}>
             {children}
