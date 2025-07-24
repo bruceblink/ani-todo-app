@@ -1,20 +1,20 @@
 
 import { useWatchedAni } from "@/hooks/useWatchedAni.ts";
-import { useFavoriteAni } from "@/hooks/useFavoriteAni";
+//import { useFavoriteAni } from "@/hooks/useFavoriteAni";
 
 interface Props {
     weekday: string;  // 星期几
-    total: number;    // 总数
-    showFavorite: boolean;
-    onToggleView: (showFavorite: boolean) => void;
+    total: number;    // 动漫更新总数
+    showFavorite: boolean; // 是否显示关注列表
+    onToggleView: (showFavorite: boolean) => void; // 切换视图的回调
+    followingCount: number; // 关注的动漫数量，可选
 }
 
-export default function Header({ weekday, total, showFavorite, onToggleView }: Props) {
+export default function Header({ weekday, total, showFavorite, onToggleView, followingCount }: Props) {
     const { watchedAniIds } = useWatchedAni();
-    const { favoriteAniItems } = useFavoriteAni();
     const watchedNum = watchedAniIds.size;
     const percentage = total > 0 ? Math.round((watchedNum / total) * 100) : 0;
-    const favoritesCount = favoriteAniItems.size;
+    const favoritesCount = followingCount > 0 ? followingCount : 0;
     return (
         <div className="header" style={{
             position: 'fixed',

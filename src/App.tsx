@@ -28,7 +28,7 @@ export default function App() {
     const today = Object.keys(data)[0];
     const aniList = data[today] as Ani[];
     // 关注列表
-    const favoriteList = aniList.filter(ani => favoriteAniItems.has(ani.id));
+    const favoriteList = aniList.filter(ani => favoriteAniItems.has(ani.title));
 
     return (
         <>
@@ -38,6 +38,7 @@ export default function App() {
                 total={aniList.length}
                 showFavorite={showFavorite}
                 onToggleView={setShowFavorite}
+                followingCount={favoriteList.length}
             />
             {/* 固定在右上角的刷新按钮 */}
             <RefreshButton loading={loading} onClick={refresh} />

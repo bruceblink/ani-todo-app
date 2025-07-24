@@ -16,7 +16,7 @@ export function FavoriteAniProvider({ children }: { children: ReactNode }) {
     const fetchFavoriteAniList = async () => {
         try {
             const res = await api.queryFavoriteAniList()
-            const data = new Set(res.map(aniCollect => aniCollect.ani_item_id));
+            const data = new Set(res.map(aniCollect => aniCollect.ani_title));
             setFavoriteAniItems(data)
         } catch (e) {
             console.error('加载已清除/关注 ID 列表失败', e)
@@ -38,8 +38,8 @@ export function FavoriteAniProvider({ children }: { children: ReactNode }) {
             }
             setFavoriteAniItems(prev => {
                 const next = new Set(prev)
-                if (next.has(id)) next.delete(id)
-                else next.add(id)
+                if (next.has(aniTitle)) next.delete(aniTitle)
+                else next.add(aniTitle)
                 return next
             })
         } catch (e) {
