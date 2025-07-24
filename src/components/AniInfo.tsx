@@ -12,8 +12,9 @@ export default function AniInfo({ ani }: Props) {
             flexDirection: 'row',
             alignItems: 'flex-start',
             gap: 16,
-            padding: 32,
-            width: '100%'
+            padding: 32,//'32px 32px 24px 32px', // 上、右、下、左的 padding
+            width: '100%',
+            height: '216.3px'
         }}>
             {/* 动漫的封面图片 */}
             <div style={{ position: 'relative', flexShrink: 0 }}>
@@ -24,8 +25,8 @@ export default function AniInfo({ ani }: Props) {
                     title={`在新窗口打开《${ani.title}》详情`}
                     style={{
                         display: 'block',
-                        width: 180,
-                        height: 180,
+                        width: 92.7,
+                        height: 150,
                         borderRadius: 8,
                         overflow: 'hidden',
                         boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
@@ -43,10 +44,9 @@ export default function AniInfo({ ani }: Props) {
             <div style={{ 
                 flex: 1,
                 minWidth: 0,
-                display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'flex-start',
-                textAlign: 'left',
+                textAlign: 'center',
             }}>
                 <h3 style={{ 
                     margin: '0 0 8px', 
@@ -86,7 +86,6 @@ export default function AniInfo({ ani }: Props) {
                 <div style={{ 
                     fontSize: '0.85rem',
                     color: '#888',
-                    display: 'flex',
                     alignItems: 'center',
                     gap: 8
                 }}>

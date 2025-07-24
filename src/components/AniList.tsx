@@ -26,10 +26,10 @@ export default function AniList({ list }: Props) {
             maxWidth: '90%'
         }}>
             {watchingToday.map(ani => (
-                <div key={ani.id} style={{ 
-                    width: 'clamp(480px, calc(90vw/4 - 24px), 360px)',
-                    height: 'calc(clamp(480px, calc(90vw/4 - 24px), 360px) * 0.618)',
-                    flexShrink: 0
+                <div key={ani.id} style={{
+                    width: 'calc(clamp(480px, calc(90vw/4 - 24px), 360px) * 0.8)',   // 缩小宽度为原来的80%
+                    height: 'calc(calc(clamp(480px, calc(90vw/4 - 24px), 360px) * 0.618) * 0.8)',  // 缩小高度为原来的80%
+                    flexShrink: 0,
                 }}>
                     <AniItem
                         ani={ani}
