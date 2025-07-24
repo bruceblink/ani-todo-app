@@ -27,7 +27,7 @@ export default function App() {
 
     const today = Object.keys(data)[0];
     const aniList = data[today] as Ani[];
-    // 收藏列表
+    // 关注列表
     const favoriteList = aniList.filter(ani => favoriteAniItems.has(ani.id));
 
     return (
@@ -47,7 +47,7 @@ export default function App() {
                 padding: '0 24px',
                 boxSizing: 'border-box'
             }}>
-                {/* 番剧列表或收藏列表 */}
+                {/* 番剧列表或关注列表 */}
                 {showFavorite ? (
                     <AniList list={favoriteList} />
                 ) : (

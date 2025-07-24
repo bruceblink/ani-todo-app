@@ -19,7 +19,7 @@ export function FavoriteAniProvider({ children }: { children: ReactNode }) {
             const data = new Set(res.map(aniCollect => aniCollect.ani_item_id));
             setFavoriteAniItems(data)
         } catch (e) {
-            console.error('加载已清除/收藏 ID 列表失败', e)
+            console.error('加载已清除/关注 ID 列表失败', e)
         } finally {
             setIsLoaded(true)
         }
@@ -30,9 +30,9 @@ export function FavoriteAniProvider({ children }: { children: ReactNode }) {
             if (typeof isFavorite !== 'boolean') {
                 await api.updateCollectedAni(id, aniTitle);
             }else {
-                if (!isFavorite) { // 如果没有收藏则收藏
+                if (!isFavorite) { // 如果没有关注则关注
                     await api.collectAni(id, aniTitle);
-                }else { // 反之取消收藏
+                }else { // 反之取消关注
                     await api.cancelCollectAni(id, aniTitle);
                 }
             }
@@ -43,7 +43,7 @@ export function FavoriteAniProvider({ children }: { children: ReactNode }) {
                 return next
             })
         } catch (e) {
-            console.error(`切换收藏 ${aniTitle} 失败`, e)
+            console.error(`切换关注 ${aniTitle} 失败`, e)
         }
     }
 

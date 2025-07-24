@@ -697,7 +697,7 @@ mod tests {
         assert_eq!(ani_collect.ani_item_id, 1);
         assert_eq!(ani_collect.collect_time, "2025/07/21");
         //assert_eq!(ani_collect.watched, false);
-        // 测试取消收藏
+        // 测试取消关注
         // 开启事务
         let mut tx = pool.begin().await.map_err(|e| e.to_string()).unwrap();
         let _ = sqlx::query("UPDATE ani_info SET is_favorite = ? WHERE id = ?")

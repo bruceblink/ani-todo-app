@@ -183,7 +183,7 @@ pub async fn query_watched_ani_item_list(app: AppHandle) -> Result<Vec<AniWatchH
     Ok(ani_items)
 }
 
-/// 获取收藏动漫列表
+/// 获取关注动漫列表
 #[tauri::command]
 pub async fn query_favorite_ani_item_list(app: AppHandle ) -> Result<Vec<AniCollect>, String> {
     // 1. 打开数据库
@@ -213,7 +213,7 @@ pub async fn query_favorite_ani_item_list(app: AppHandle ) -> Result<Vec<AniColl
 }
 
 
-/// 收藏动漫
+/// 关注动漫
 #[tauri::command]
 pub async fn collect_ani_item(app: AppHandle, ani_id: i64, ani_title: String) -> Result<String, String> {
     // 1. 打开数据库
@@ -252,7 +252,7 @@ pub async fn collect_ani_item(app: AppHandle, ani_id: i64, ani_title: String) ->
     }).to_string())
 }
 
-/// 取消收藏动漫
+/// 取消关注动漫
 #[tauri::command]
 pub async fn cancel_collect_ani_item(app: AppHandle, ani_id: i64, ani_title: String) -> Result<String, String> {
     // 1. 打开数据库
@@ -280,7 +280,7 @@ pub async fn cancel_collect_ani_item(app: AppHandle, ani_id: i64, ani_title: Str
     }).to_string())
 }
 
-/// 更新动漫收藏状态为已观看
+/// 更新动漫关注状态为已观看
 #[tauri::command]
 pub async fn update_collected_ani_item(app: AppHandle, ani_id: i64, ani_title: String) -> Result<String, String> {
     // 1. 打开数据库
