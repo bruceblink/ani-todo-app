@@ -185,7 +185,7 @@ pub async fn query_watched_ani_item_list(app: AppHandle) -> Result<Vec<AniWatchH
 
 /// 获取关注动漫今日更新列表
 #[tauri::command]
-pub async fn query_favorite_ani_item_list(app: AppHandle ) -> Result<Vec<Ani>, String> {
+pub async fn query_favorite_ani_update_list(app: AppHandle ) -> Result<Vec<Ani>, String> {
     // 1. 打开数据库
     let db_path = get_or_set_db_path(get_app_data_dir(&app))
         .map_err(|e| e.to_string())?;

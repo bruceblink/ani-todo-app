@@ -9,13 +9,13 @@ export function FavoriteAniProvider({ children }: { children: ReactNode }) {
     const [isLoaded, setIsLoaded] = useState(false)
 
     useEffect(() => {
-        void fetchFavoriteAniList()
+        void fetchFavoriteUpdateAniList()
     }, [])
 
 
-    const fetchFavoriteAniList = async () => {
+    const fetchFavoriteUpdateAniList = async () => {
         try {
-            const res = await api.queryFavoriteAniList()
+            const res = await api.queryFavoriteUpdateAniList()
             const data = new Set(res.map(aniCollect => aniCollect.title));
             setFavoriteAniItems(data)
         } catch (e) {

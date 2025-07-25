@@ -104,7 +104,7 @@ export interface ApiCommands {
         args: { aniId?: number }
         result: Record<string, string>
     },
-    query_favorite_ani_item_list: {
+    query_favorite_ani_update_list: {
         args: { filter?: string  }
         result: Ani[]
     }
@@ -174,10 +174,10 @@ export const api = {
     clearAni: (aniId: number) =>
         invokeApi('watch_ani_item', {aniId}),
     /**
-     * 查询收藏的动画列表
+     * 查询关注动漫今日更新的动画列表
      * */
-    queryFavoriteAniList: () =>
-        invokeApi('query_favorite_ani_item_list', {}),
+    queryFavoriteUpdateAniList: () =>
+        invokeApi('query_favorite_ani_update_list', {}),
     /**
      * 收藏动漫
      */
