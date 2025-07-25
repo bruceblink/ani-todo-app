@@ -91,7 +91,7 @@ export function useAniData(): UseAniData {
     const loadData = useCallback(async () => {
         resetState();
         try {
-            const res = await api.queryAniList()
+            const res = await api.queryTodayUpdateAniList()
             setData(res);
         } catch (e: unknown) {
             const err = e instanceof Error ? e : new Error('未知错误');

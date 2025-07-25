@@ -116,7 +116,7 @@ pub async fn watch_ani_item(
 }
 
 #[tauri::command]
-pub async fn query_ani_item_data_list(app: AppHandle) -> Result<AniIResult, String> {
+pub async fn query_today_update_ani_list(app: AppHandle) -> Result<AniIResult, String> {
     let db_path = get_or_set_db_path(get_app_data_dir(&app)).map_err(|e| e.to_string())?;
     let pool: Pool<Sqlite> = creat_database_connection_pool(db_path)
         .await

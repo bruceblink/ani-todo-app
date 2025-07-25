@@ -96,7 +96,7 @@ export interface ApiCommands {
         args: { url?: string }
         result: Record<string, Ani[]>
     }
-    query_ani_item_data_list: {
+    query_today_update_ani_list: {
         args: { filter?: string }
         result: Record<string, Ani[]>
     },
@@ -162,10 +162,10 @@ export const api = {
     fetchAniData: (cmd: string, url: string) =>
         invokeApi(cmd, { url }),
     /**
-     * 获取动画列表
+     * 获取今日更新的动漫列表
      * */
-    queryAniList: () =>
-        invokeApi('query_ani_item_data_list', {}),
+    queryTodayUpdateAniList: () =>
+        invokeApi('query_today_update_ani_list', {}),
     /**
      * 保存动画数据
      * */
