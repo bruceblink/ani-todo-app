@@ -264,8 +264,13 @@ pub async fn cancel_collect_ani_item(app: AppHandle, ani_id: i64, ani_title: Str
     // 开启事务
     let mut tx = pool.begin().await.map_err(|e| e.to_string())?;
     // 删除ani_collect表中的记录
-    sqlx::query("DELETE FROM ani_collect WHERE ani_item_id = ?")
+    sqlx::query(r#"DELETE FROM ani_collect 
+                              WHERE 
+                                  ani_item_id = ? OR 
+                                  ani_title = ?   
+                  ;"#)
         .bind(&ani_id)
+        .bind(&ani_title)
         .execute(&mut *tx) // ⭐️ 显式解引用
         .await
         .map_err(|e| format!("删除失败: {}", e))?;
