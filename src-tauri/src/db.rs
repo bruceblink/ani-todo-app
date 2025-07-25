@@ -124,23 +124,27 @@ pub async fn query_ani_item_data_list(app: AppHandle) -> Result<AniIResult, Stri
     // 今天的日期，比如 "2025/07/13"
     let today_date = today_iso_date_ld();
     // 查询当前更新的动漫
-    let ani_items = sqlx::query_as::<_, Ani>(
-        r#"SELECT id,
-                      title,
-                      update_count, 
-                      update_info,
-                      image_url, 
-                      detail_url, 
-                      update_time, 
-                      platform
-                FROM ani_info
-                WHERE
-                    update_time = ?
-                ORDER BY
-                    title
+    let ani_items = sqlx::query_as::<_, Ani>(r#"
+                SELECT ai.id,
+                       ai.title,
+                       ai.update_count,
+                       ai.update_info,
+                       ai.image_url,
+                       ai.detail_url,
+                       ai.update_time,
+                       ai.platform
+                FROM ani_info ai
+                WHERE ai.update_time = ?
+                  AND NOT EXISTS (
+                    SELECT 1
+                    FROM ani_watch_history awh
+                    WHERE awh.ani_item_id = ai.id
+                      AND awh.watched_time = ?
+                )
            ;"#,
         )
-        .bind(today_date)
+        .bind(&today_date)
+        .bind(&today_date)
         .fetch_all(&pool)
         .await
         .map_err(|e| format!("查询错误: {}", e))?;
