@@ -12,7 +12,8 @@ const theme = createTheme({
             styleOverrides: {
                 paper: {
                     borderRadius: '12px',
-                    width: '400px',
+                    width: '384px',
+                    height: '237.3px',
                     minHeight: '180px',
                     maxWidth: '90vw',
                 },
