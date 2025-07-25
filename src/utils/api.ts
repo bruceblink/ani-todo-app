@@ -19,13 +19,21 @@ export interface Ani {
     platform: string;
 }
 
-
+// 动漫收藏
 export interface AniCollect {
     id: number,
     ani_item_id: number,
     ani_title: string,
     collect_time: string,
     is_watched: boolean,
+}
+
+//动漫观看历史
+export interface AniWatchHistory {
+    id: number,
+    user_id: number,
+    ani_item_id: number,
+    watched_time: string,
 }
 
 // 数据源描述
@@ -98,7 +106,7 @@ export interface ApiCommands {
     },
     query_watched_ani_item_list: {
         args: {filter?: string}
-        result: Ani[]
+        result: AniWatchHistory[]
     },
     watch_ani_item : {
         args: { aniId?: number }

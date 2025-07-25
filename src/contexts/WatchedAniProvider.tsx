@@ -14,7 +14,7 @@ export function WatchedAniProvider({ children }: { children: ReactNode }) {
     const fetchWatchedAniIds = async () => {
         try {
             const data = await api.queryWatchedAniIds();
-            const ids = new Set(data.map(ani => ani.id));
+            const ids = new Set(data.map(ani => ani.ani_item_id));
             setWatchedAniIds(ids);
         } catch (err) {
             console.error("加载 watched 番剧失败:", err)

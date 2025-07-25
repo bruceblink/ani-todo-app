@@ -12,7 +12,7 @@ export default function AniList({ list }: Props) {
     const { handleWatch, watchedAniIds } = useWatchedAni();
     // —— 收藏番剧相关操作 ——
     const { handleFavor, favoriteAniItems } = useFavoriteAni();
-    // —— 过滤出今天将要看的番剧列表 ——
+    // —— 过滤出今天还没看的番剧列表 ——
     const watchingToday = list.filter(ani => !watchedAniIds.has(ani.id));
     return (
         <div className="ani-list" style={{
