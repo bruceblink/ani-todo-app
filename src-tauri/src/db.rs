@@ -135,15 +135,8 @@ pub async fn query_ani_item_data_list(app: AppHandle) -> Result<AniIResult, Stri
                        ai.platform
                 FROM ani_info ai
                 WHERE ai.update_time = ?
-                  AND NOT EXISTS (
-                    SELECT 1
-                    FROM ani_watch_history awh
-                    WHERE awh.ani_item_id = ai.id
-                      AND awh.watched_time = ?
-                )
            ;"#,
         )
-        .bind(&today_date)
         .bind(&today_date)
         .fetch_all(&pool)
         .await
