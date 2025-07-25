@@ -6,10 +6,10 @@ use std::collections::HashMap;
 pub mod sqlite;
 pub mod po;
 use crate::db::sqlite::{creat_database_connection_pool, get_app_data_dir, get_or_set_db_path};
-use crate::platforms::{ AniItemResult};
+use crate::platforms::{AniItemResult};
 use crate::utils::date_utils::{get_week_day_of_today, today_iso_date_ld};
 use tauri::AppHandle;
-use crate::db::po::{Ani, AniCollect, AniIResult, AniWatchHistory};
+use crate::db::po::{Ani, AniIResult, AniWatchHistory};
 
 #[tauri::command]
 pub async fn save_ani_item_data(app: AppHandle, ani_data: AniItemResult) -> Result<String, String> {
@@ -183,9 +183,9 @@ pub async fn query_watched_ani_item_list(app: AppHandle) -> Result<Vec<AniWatchH
     Ok(ani_items)
 }
 
-/// 获取关注动漫列表
+/// 获取关注动漫今日更新列表
 #[tauri::command]
-pub async fn query_favorite_ani_item_list(app: AppHandle ) -> Result<Vec<AniCollect>, String> {
+pub async fn query_favorite_ani_item_list(app: AppHandle ) -> Result<Vec<Ani>, String> {
     // 1. 打开数据库
     let db_path = get_or_set_db_path(get_app_data_dir(&app))
         .map_err(|e| e.to_string())?;
@@ -193,18 +193,29 @@ pub async fn query_favorite_ani_item_list(app: AppHandle ) -> Result<Vec<AniColl
         .await
         .map_err(|e| e.to_string())?;
 
-    let ani_collectors = sqlx::query_as::<_, AniCollect>(
-        r#"SELECT id,
-                      user_id,
-                      ani_item_id,
-                      ani_title,
-                      collect_time,
-                      is_watched
-                FROM ani_collect
+    let ani_collectors = sqlx::query_as::<_, Ani>(
+        r#"
+                SELECT
+                    ai.id,
+                    ai.title,
+                    ai.update_count,
+                    ai.update_info,
+                    ai.image_url,
+                    ai.detail_url,
+                    ai.update_time,
+                    ai.platform
+                FROM ani_info ai
                 WHERE
-                    is_watched = 0
+                    ai.update_time = ?
+                  AND EXISTS (
+                      SELECT 1
+                      FROM ani_collect ac
+                      WHERE ac.ani_title = ai.title
+                        AND ac.is_watched = 0
+                );
            ;"#,
         )
+        .bind(today_iso_date_ld())
         .fetch_all(&pool)
         .await
         .map_err(|e| format!("查询错误: {}", e))?;
@@ -264,10 +275,10 @@ pub async fn cancel_collect_ani_item(app: AppHandle, ani_id: i64, ani_title: Str
     // 开启事务
     let mut tx = pool.begin().await.map_err(|e| e.to_string())?;
     // 删除ani_collect表中的记录
-    sqlx::query(r#"DELETE FROM ani_collect 
-                              WHERE 
-                                  ani_item_id = ? OR 
-                                  ani_title = ?   
+    sqlx::query(r#"DELETE FROM ani_collect
+                          WHERE
+                              ani_item_id = ? OR
+                              ani_title = ?
                   ;"#)
         .bind(&ani_id)
         .bind(&ani_title)

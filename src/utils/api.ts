@@ -25,7 +25,7 @@ export interface AniCollect {
     ani_item_id: number,
     ani_title: string,
     collect_time: string,
-    watched: boolean,
+    is_watched: boolean,
 }
 
 // 数据源描述
@@ -106,7 +106,7 @@ export interface ApiCommands {
     },
     query_favorite_ani_item_list: {
         args: { filter?: string  }
-        result: AniCollect[]
+        result: Ani[]
     }
     collect_ani_item : {
         args: { aniId?: number, aniTitle: string }
