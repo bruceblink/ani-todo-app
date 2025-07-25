@@ -4,8 +4,10 @@ import RefreshButton from "@/components/RefreshButton";
 import { useAniData } from "@/hooks/useAniData";
 import { useFavoriteAni } from "@/hooks/useFavoriteAni";
 import type { Ani } from "@/utils/api";
+import {ThemeProvider} from "@mui/material";
 import { useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
+import theme from "@/theme.ts";
 
 export default function App() {
     const { data, loading, error, refresh } = useAniData();
@@ -31,7 +33,7 @@ export default function App() {
     const favoriteList = aniList.filter(ani => favoriteAniItems.has(ani.title));
 
     return (
-        <>
+        <ThemeProvider theme={theme}>
             {/* 显示标题和总数和已观看数目，并添加切换按钮 */}
             <Header
                 weekday={today}
@@ -62,6 +64,6 @@ export default function App() {
                         'bg-gray-50 dark:bg-slate-600 dark:text-white rounded-md shadow-md',
                 }}
             />
-        </>
+        </ThemeProvider>
     );
 }
