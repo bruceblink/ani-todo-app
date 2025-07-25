@@ -22,5 +22,4 @@ pub struct AniItem {
     pub detail_url: String,
     pub update_time: String,
     pub platform: String,
-    pub watched: bool,
 }

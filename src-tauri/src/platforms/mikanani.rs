@@ -138,6 +138,5 @@ fn build_mikanani_item(base_url: &Url, li: &scraper::element_ref::ElementRef) ->
         image_url,
         detail_url,
         update_time,
-        watched: false,
     })
 }

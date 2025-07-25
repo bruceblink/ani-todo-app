@@ -160,6 +160,5 @@ fn parse_item(ep: &Value) -> AniItem {
         image_url,
         detail_url,
         update_time: today_iso_date_ld(),
-        watched: false,
     }
 }

@@ -136,7 +136,6 @@ pub async fn fetch_agedm_ani_data(url: String) -> Result<AniItemResult, String> 
             image_url,
             update_count,
             update_info,
-            watched: false,
         };
         info!("识别到更新：{} {}", ani_item.title, ani_item.update_info);
         comics.push(ani_item);

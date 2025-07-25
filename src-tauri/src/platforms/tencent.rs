@@ -206,7 +206,6 @@ fn build_aniitem(item: &Value) -> Option<AniItem> {
         image_url,
         detail_url,
         update_time,
-        watched: false,
     })
 }
 
