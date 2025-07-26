@@ -25,7 +25,7 @@ export default function AniInfo({ ani }: Props) {
                     title={`在新窗口打开《${ani.title}》详情`}
                     style={{
                         display: 'block',
-                        width: 92.7,
+                        width: 92.8,
                         height: 150,
                         borderRadius: 8,
                         overflow: 'hidden',
