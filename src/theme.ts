@@ -12,8 +12,8 @@ const theme = createTheme({
             styleOverrides: {
                 paper: {
                     borderRadius: '12px',
-                    width: '384px',
-                    height: '237.3px',
+                    width: '350px',
+                    height: '216.3px',
                     minHeight: '180px',
                     maxWidth: '90vw',
                 },
@@ -25,6 +25,7 @@ const theme = createTheme({
                     minHeight: '80px',
                     display: 'flex',
                     alignItems: 'center',
+                    padding: '20px 40px',
                     justifyContent: 'center',
                     textAlign: 'center',
                 },
