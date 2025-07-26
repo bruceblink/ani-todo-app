@@ -61,14 +61,22 @@ pub async fn fetch_agedm_ani_data(url: String) -> Result<AniItemResult, String> 
     let button_sel = Selector::parse("button.btn-danger").unwrap();
 
     // 遍历所有最近更新块，选第一个按钮文本以“今天”开头的那个
-    let today_box = document
+    // 先尝试找 “今天” 对应的列表节点
+    let maybe_today_box = document
         .select(&list_box_sel)
         .find(|box_node| {
             box_node
                 .select(&button_sel)
                 .any(|btn| btn.text().any(|t| t.trim().starts_with("今天")))
-        })
-        .expect("找不到“今天”对应的更新列表");
+        });
+    // 如果找到了就处理，否则直接返回空 Vec
+    let today_box = if let Some(box_node) = maybe_today_box {
+        box_node
+    } else {
+        // 没有找到 “今天” 的节点，返回空结果
+        return Ok(HashMap::new());
+    };
+
     // 2. 在这个块里，选出所有的视频单元
     let col_sel = Selector::parse("div.row > div.col").unwrap();
     let img_sel = Selector::parse("img.video_thumbs").unwrap();
