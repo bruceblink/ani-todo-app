@@ -55,9 +55,33 @@ pub fn today_compact_date() -> String {
     Local::now().format("%y%m%d").to_string()
 }
 
+/// 将 Unix 时间戳（秒）转换为 "2025-07-18 00:00:00 +08:00" 格式的时间戳
 pub fn unix_seconds_to_timestamp(t: i64) -> DateTime<Local> {
     let dt = Local.timestamp_opt(t, 0).unwrap();
     dt
+}
+
+/// 获取当前时间的 Unix 时间戳（秒）
+pub fn get_unix_timestamp_millis_now() -> i64 {
+    Local::now().timestamp_millis()
+}
+
+/// 将毫秒级时间戳转换为指定格式的本地时间字符串
+///
+/// # 参数
+/// - ts: 毫秒级 Unix 时间戳
+/// - fmt: chrono 支持的格式字符串
+///
+/// # 示例
+/// ```
+/// use app_lib::utils::date_utils::format_timestamp;
+/// let s = format_timestamp(1620000000123, "%Y-%m-%d %H:%M:%S");
+/// ```
+pub fn format_timestamp(ts: i64, fmt: &str) -> String {
+    match Local.timestamp_millis_opt(ts).single() {
+        Some(dt) => dt.format(fmt).to_string(),
+        None => panic!("Invalid or ambiguous timestamp: {}", ts),
+    }
 }
 
 /// 将"2025-07-18 00:00:00 +08:00"格式的时间戳转换成 "2025-07-18" 格式的字符串
@@ -102,5 +126,13 @@ mod tests {
         let dt = unix_seconds_to_timestamp(1752768000);
         let d = timestamp_to_iso_date_ld(dt);
         assert_eq!(d, "2025/07/18")
+    }
+
+    #[test]
+    fn test_unix_seconds_to_timestamp() {
+        let dt = get_unix_timestamp_millis_now();
+        let formatted = format_timestamp(dt, "%Y-%m-%d %H:%M:%S");
+        let now = Local::now();
+        assert_eq!(formatted, now.format("%Y-%m-%d %H:%M:%S").to_string());
     }
 }
