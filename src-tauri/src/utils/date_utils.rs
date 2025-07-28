@@ -1,82 +1,38 @@
 use chrono::{DateTime, Datelike, Local, TimeZone, Weekday, NaiveDate, Utc};
+use once_cell::sync::Lazy;
+use thiserror::Error;
 
-pub fn get_week_day_of_today() -> String {
-    // 获取本地当前日期/时间
-    let now = Local::now();
-
-    // 取出 Weekday 枚举
-    let today: Weekday = now.weekday();
-
-    // 如果你只想要数字（0 = Mon, …, 6 = Sun）
-    let _num = today.number_from_monday() - 1;
-    // 或者：从周日开始 0..6
-    let _num_sun = today.num_days_from_sunday();
-
-    // 如果想要中文输出，可以自己 match
-    let cn = match today {
-        Weekday::Mon => "星期一",
-        Weekday::Tue => "星期二",
-        Weekday::Wed => "星期三",
-        Weekday::Thu => "星期四",
-        Weekday::Fri => "星期五",
-        Weekday::Sat => "星期六",
-        Weekday::Sun => "星期日",
-    };
-    cn.to_string()
+/// 常用日期格式枚举
+pub enum DateFormat {
+    Iso,       // "%Y-%m-%d"
+    Slash,     // "%Y/%m/%d"
+    Underline, // "%Y_%m_%d"
+    Chinese,   // "%Y年%m月%d日"
+    Compact,   // "%y%m%d"
 }
 
-/// 获取当前时间的"2025-06-17"
-pub fn today_iso_date() -> String {
-    Local::now().format("%Y-%m-%d").to_string()
+fn get_format_str(fmt: DateFormat) -> &'static str {
+    match fmt {
+        DateFormat::Iso => "%Y-%m-%d",
+        DateFormat::Slash => "%Y/%m/%d",
+        DateFormat::Underline => "%Y_%m_%d",
+        DateFormat::Chinese => "%Y年%m月%d日",
+        DateFormat::Compact => "%y%m%d",
+    }
 }
 
-/// 获取当前时间的"2025_06_17"
-pub fn today_iso_date_dd() -> String {
-    Local::now().format("%Y_%m_%d").to_string()
+/// 格式化当前时间为指定格式
+pub fn format_now(fmt: DateFormat) -> String {
+    Local::now().format(get_format_str(fmt)).to_string()
 }
 
-/// 获取当前时间的"2025/06/17"
-pub fn today_iso_date_ld() -> String {
-    Local::now().format("%Y/%m/%d").to_string()
+/// 将时间戳（秒）转为字符串
+pub fn timestamp_to_date_string(t: i64, fmt: DateFormat) -> String {
+    let dt = unix_seconds_to_timestamp(t);
+    dt.format(get_format_str(fmt)).to_string()
 }
 
-/// 获取当前时间的"2025-06-17 10:23:45"
-pub fn today_iso_datetime() -> String {
-    Local::now().format("%Y-%m-%d %H:%M:%S").to_string()
-}
-
-/// 返回 "YYYY年MM月DD日"，例如 "2025年06月17日"
-pub fn today_chinese_date() -> String {
-    Local::now().format("%Y年%m月%d日").to_string()
-}
-
-/// 返回 "yyMMdd"，例如 "250617"
-pub fn today_compact_date() -> String {
-    Local::now().format("%y%m%d").to_string()
-}
-
-/// 将 Unix 时间戳（秒）转换为 "2025-07-18 00:00:00 +08:00" 格式的时间戳
-pub fn unix_seconds_to_timestamp(t: i64) -> DateTime<Local> {
-    let dt = Local.timestamp_opt(t, 0).unwrap();
-    dt
-}
-
-/// 获取当前时间的 Unix 时间戳（秒）
-pub fn get_unix_timestamp_millis_now() -> i64 {
-    Local::now().timestamp_millis()
-}
-
-/// 将毫秒级时间戳转换为指定格式的本地时间字符串
-///
-/// # 参数
-/// - ts: 毫秒级 Unix 时间戳
-/// - fmt: chrono 支持的格式字符串
-///
-/// # 示例
-/// ```
-/// use app_lib::utils::date_utils::format_timestamp;
-/// let s = format_timestamp(1620000000123, "%Y-%m-%d %H:%M:%S");
-/// ```
+/// 将时间戳(毫秒)格式化为字符串
 pub fn format_timestamp(ts: i64, fmt: &str) -> String {
     Local.timestamp_millis_opt(ts)
         .single()
@@ -85,28 +41,48 @@ pub fn format_timestamp(ts: i64, fmt: &str) -> String {
         .to_string()
 }
 
-/// 将"2025-07-18 00:00:00 +08:00"格式的时间戳转换成 "2025-07-18" 格式的字符串
-pub fn timestamp_to_iso_date(dt: DateTime<Local>) -> String {
-    dt.format("%Y-%m-%d").to_string()
+/// 缓存今天的日期（Slash 格式 ：2025/05/25），避免频繁格式化
+pub static TODAY_SLASH: Lazy<String> = Lazy::new(|| format_now(DateFormat::Slash));
+
+/// 当前时间戳（毫秒）
+pub fn get_unix_timestamp_millis_now() -> i64 {
+    Local::now().timestamp_millis()
 }
 
-/// 将"2025-07-18 00:00:00 +08:00"格式的时间戳转换成 "2025/07/18" 格式的字符串
-pub fn timestamp_to_iso_date_ld(dt: DateTime<Local>) -> String {
-    dt.format("%Y/%m/%d").to_string()
+/// 将秒时间戳转换为本地时间对象
+pub fn unix_seconds_to_timestamp(t: i64) -> DateTime<Local> {
+    Local.timestamp_opt(t, 0).unwrap()
 }
 
-/// 将"2025-07-18 00:00:00 +08:00"格式的时间戳转换成 "2025_07_18" 格式的字符串
-pub fn timestamp_to_iso_date_dd(dt: DateTime<Local>) -> String {
-    dt.format("%Y_%m_%d").to_string()
+
+/// 星期信息结构
+pub struct WeekdayInfo {
+    pub name_cn: &'static str,
+    pub num_from_mon: u32,
+    pub num_from_sun: u32,
 }
 
-/// 将"2025-07-18 00:00:00 +08:00"格式的时间戳转换成 "2025-07-18 00:00:00" 格式的字符串
-pub fn timestamp_to_iso_datetime(dt: DateTime<Local>) -> String {
-    dt.format("%Y-%m-%d %H:%M:%S").to_string()
+/// 获取今天是星期几（中文名 + 索引）
+pub fn get_today_weekday() -> WeekdayInfo {
+    let today = Local::now().weekday();
+
+    // 按照 Monday=0 排列的中文星期名称数组
+    const WEEKDAY_CN: [&str; 7] = [
+        "星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日",
+    ];
+
+    let num_from_mon = today.number_from_monday() - 1;
+    let name_cn = WEEKDAY_CN[num_from_mon as usize];
+    let num_from_sun = today.num_days_from_sunday();
+
+    WeekdayInfo {
+        name_cn,
+        num_from_mon,
+        num_from_sun,
+    }
 }
 
-use thiserror::Error;
-
+/// 错误类型：日期解析
 #[derive(Debug, Error)]
 pub enum DateParseError {
     #[error("failed to parse date: {0}")]
@@ -117,34 +93,20 @@ pub enum DateParseError {
     AmbiguousLocalTime(String),
 }
 
-/// 将 `YYYY/MM/DD` 格式的字符串，解析成 Unix 毫秒时间戳。
-///
-/// # 参数
-/// - `s`：要解析的日期字符串，格式必须是 `%Y/%m/%d`
-/// - `use_local`：如果 `true`，按本地时区；否则按 UTC 时区
-///
-/// # 返回
-/// 成功时返回从 1970-01-01T00:00:00 起的毫秒数；失败返回 `DateParseError`。
-pub fn parse_date_to_millis(
-    s: &str,
-    use_local: bool
-) -> Result<i64, DateParseError> {
-    // 1. 把字符串解析成 NaiveDate
+/// 将 `YYYY/MM/DD` 格式字符串解析为 Unix 毫秒时间戳
+pub fn parse_date_to_millis(s: &str, use_local: bool) -> Result<i64, DateParseError> {
     let date = NaiveDate::parse_from_str(s, "%Y/%m/%d")?;
-
-    // 2. 拼接成午夜 NaiveDateTime（and_hms_opt 返回 Option）
     let dt_naive = date
         .and_hms_opt(0, 0, 0)
         .ok_or_else(|| DateParseError::InvalidTime(s.to_string()))?;
 
-    // 3. 根据时区转换并获取毫秒
     let millis = if use_local {
         match Local.from_local_datetime(&dt_naive) {
             chrono::LocalResult::Single(dt_local) => dt_local.timestamp_millis(),
             _ => return Err(DateParseError::AmbiguousLocalTime(s.to_string())),
         }
     } else {
-        let dt_utc: DateTime<Utc> = Utc.from_utc_datetime(&dt_naive);
+        let dt_utc = Utc.from_utc_datetime(&dt_naive); // ✅ 新写法
         dt_utc.timestamp_millis()
     };
 
@@ -156,44 +118,39 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_format_unix_timestamp() {
-        let dt = unix_seconds_to_timestamp(1752768000);
-        assert_eq!(dt.to_string(), "2025-07-18 00:00:00 +08:00");
+    fn test_format_timestamp() {
+        let ts = 1752768000000; // 2025-07-18 00:00:00 +08:00
+        let formatted = format_timestamp(ts, "%Y-%m-%d %H:%M:%S");
+        assert_eq!(formatted, "2025-07-18 00:00:00");
     }
 
     #[test]
-    fn test_timestamp_to_iso_date() {
-        let dt = unix_seconds_to_timestamp(1752768000);
-        let d = timestamp_to_iso_date(dt);
-        assert_eq!(d, "2025-07-18")
+    fn test_parse_date_to_millis_utc() {
+        let ts = parse_date_to_millis("2025/06/17", false).unwrap();
+        assert_eq!(ts, 1750118400000);
     }
 
     #[test]
-    fn test_timestamp_to_iso_date_ld() {
-        let dt = unix_seconds_to_timestamp(1752768000);
-        let d = timestamp_to_iso_date_ld(dt);
-        assert_eq!(d, "2025/07/18")
+    fn test_parse_date_to_millis_local() {
+        let ts = parse_date_to_millis("2025/06/17", true).unwrap();
+        assert_eq!(ts, 1750089600000); // UTC+8
     }
 
     #[test]
-    fn test_unix_seconds_to_timestamp() {
-        let dt = get_unix_timestamp_millis_now();
-        let formatted = format_timestamp(dt, "%Y-%m-%d %H:%M:%S");
-        let now = Local::now();
-        assert_eq!(formatted, now.format("%Y-%m-%d %H:%M:%S").to_string());
+    fn test_today_format() {
+        let s = format_now(DateFormat::Chinese);
+        assert!(s.contains("年") && s.contains("月"));
     }
 
     #[test]
-    fn test_parse_utc() {
-        let ms = parse_date_to_millis("2025/06/17", false).unwrap();
-        assert_eq!(ms, 1750118400_i64 * 1000);
+    fn test_weekday() {
+        let w = get_today_weekday();
+        assert!(w.name_cn.starts_with("星期"));
     }
 
     #[test]
-    fn test_parse_local() {
-        // 假设本地时区是 UTC+8
-        let ms_local = parse_date_to_millis("2025/06/17", true).unwrap();
-        // UTC+8 零点即 UTC 2025-06-16T16:00:00 -> 1750089600s * 1000
-        assert_eq!(ms_local, 1750089600_i64 * 1000);
+    fn test_timestamp_to_date_string() {
+        let s = timestamp_to_date_string(1752768000, DateFormat::Slash);
+        assert_eq!(s, "2025/07/18");
     }
 }
