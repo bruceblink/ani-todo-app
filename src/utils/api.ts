@@ -15,7 +15,8 @@ export interface Ani {
     detail_url: string;
     image_url: string;
     update_info: string;
-    update_time: string;
+    update_time: number;
+    update_time_str: string;
     platform: string;
 }
 

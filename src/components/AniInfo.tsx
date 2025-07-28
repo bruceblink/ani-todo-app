@@ -69,7 +69,7 @@ export default function AniInfo({ ani }: Props) {
                     marginBottom: 4,
                     width: '100%'
                 }}>
-                    {ani.update_time} 更新
+                    {ani.update_time_str} 更新
                 </div>
                 <div style={{ 
                     fontSize: '0.9rem',
