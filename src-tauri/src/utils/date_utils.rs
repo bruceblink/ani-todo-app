@@ -1,4 +1,4 @@
-use chrono::{DateTime, Datelike, Local, TimeZone, Weekday};
+use chrono::{DateTime, Datelike, Local, TimeZone, Weekday, NaiveDate, Utc};
 
 pub fn get_week_day_of_today() -> String {
     // 获取本地当前日期/时间
@@ -104,6 +104,52 @@ pub fn timestamp_to_iso_datetime(dt: DateTime<Local>) -> String {
     dt.format("%Y-%m-%d %H:%M:%S").to_string()
 }
 
+use thiserror::Error;
+
+#[derive(Debug, Error)]
+pub enum DateParseError {
+    #[error("failed to parse date: {0}")]
+    ChronoParse(#[from] chrono::ParseError),
+    #[error("invalid time components for date: {0}")]
+    InvalidTime(String),
+    #[error("ambiguous local time for date: {0}")]
+    AmbiguousLocalTime(String),
+}
+
+/// 将 `YYYY/MM/DD` 格式的字符串，解析成 Unix 毫秒时间戳。
+///
+/// # 参数
+/// - `s`：要解析的日期字符串，格式必须是 `%Y/%m/%d`
+/// - `use_local`：如果 `true`，按本地时区；否则按 UTC 时区
+///
+/// # 返回
+/// 成功时返回从 1970-01-01T00:00:00 起的毫秒数；失败返回 `DateParseError`。
+pub fn parse_date_to_millis(
+    s: &str,
+    use_local: bool
+) -> Result<i64, DateParseError> {
+    // 1. 把字符串解析成 NaiveDate
+    let date = NaiveDate::parse_from_str(s, "%Y/%m/%d")?;
+
+    // 2. 拼接成午夜 NaiveDateTime（and_hms_opt 返回 Option）
+    let dt_naive = date
+        .and_hms_opt(0, 0, 0)
+        .ok_or_else(|| DateParseError::InvalidTime(s.to_string()))?;
+
+    // 3. 根据时区转换并获取毫秒
+    let millis = if use_local {
+        match Local.from_local_datetime(&dt_naive) {
+            chrono::LocalResult::Single(dt_local) => dt_local.timestamp_millis(),
+            _ => return Err(DateParseError::AmbiguousLocalTime(s.to_string())),
+        }
+    } else {
+        let dt_utc: DateTime<Utc> = Utc.from_utc_datetime(&dt_naive);
+        dt_utc.timestamp_millis()
+    };
+
+    Ok(millis)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -134,5 +180,19 @@ mod tests {
         let formatted = format_timestamp(dt, "%Y-%m-%d %H:%M:%S");
         let now = Local::now();
         assert_eq!(formatted, now.format("%Y-%m-%d %H:%M:%S").to_string());
+    }
+
+    #[test]
+    fn test_parse_utc() {
+        let ms = parse_date_to_millis("2025/06/17", false).unwrap();
+        assert_eq!(ms, 1750118400_i64 * 1000);
+    }
+
+    #[test]
+    fn test_parse_local() {
+        // 假设本地时区是 UTC+8
+        let ms_local = parse_date_to_millis("2025/06/17", true).unwrap();
+        // UTC+8 零点即 UTC 2025-06-16T16:00:00 -> 1750089600s * 1000
+        assert_eq!(ms_local, 1750089600_i64 * 1000);
     }
 }
