@@ -1,5 +1,5 @@
 use crate::platforms::{AniItem, AniItemResult};
-use crate::utils::date_utils::{get_today_weekday, TODAY_SLASH};
+use crate::utils::date_utils::{get_today_weekday, get_today_slash};
 use crate::utils::{clean_text, extract_number};
 use base64::{engine::general_purpose, Engine as _};
 use log::{error, info};
@@ -159,6 +159,6 @@ fn parse_item(ep: &Value) -> AniItem {
         update_info,
         image_url,
         detail_url,
-        update_time: TODAY_SLASH.clone(),  // TODAY_SLASH.deref().clone()的简洁版
+        update_time: get_today_slash(), 
     }
 }

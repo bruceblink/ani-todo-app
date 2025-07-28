@@ -1,5 +1,5 @@
 use crate::platforms::{AniItem, AniItemResult};
-use crate::utils::date_utils::{get_today_weekday, TODAY_SLASH};
+use crate::utils::date_utils::{get_today_weekday, get_today_slash};
 use crate::utils::extract_number;
 use crate::utils::http_client::http_client;
 use anyhow::{anyhow, Context, Result};
@@ -153,6 +153,6 @@ fn build_aniitem(map: &serde_json::Map<String, Value>) -> AniItem {
         update_info,
         image_url: map.get("img").and_then(Value::as_str).unwrap_or_default().trim().to_string(),
         detail_url: "https://www.youku.com/ku/webcomic".into(),
-        update_time: TODAY_SLASH.clone(),
+        update_time: get_today_slash(),
     }
 }

@@ -1,5 +1,6 @@
 use chrono::{DateTime, Datelike, Local, NaiveDate, TimeZone, Utc};
 use once_cell::sync::Lazy;
+use std::sync::RwLock;
 use thiserror::Error;
 
 /// 常用日期格式枚举
@@ -42,7 +43,33 @@ pub fn format_timestamp(ts: i64, fmt: &str) -> String {
 }
 
 /// 缓存今天的日期（Slash 格式 ：2025/05/25），避免频繁格式化
-pub static TODAY_SLASH: Lazy<String> = Lazy::new(|| format_now(DateFormat::Slash));
+static TODAY_SLASH_CACHE: Lazy<RwLock<String>> = Lazy::new(|| {
+    let today = Local::now().format("%Y/%m/%d").to_string();
+    RwLock::new(today)
+});
+
+/// 获取每天自动更新的“今天”字符串（格式：2025/07/28）
+///
+/// 多线程安全，读性能较好，跨天自动刷新缓存。
+pub fn get_today_slash() -> String {
+    let now_str = format_now(DateFormat::Slash).to_string();
+
+    {
+        let read_cache = TODAY_SLASH_CACHE.read().unwrap();
+        if *read_cache == now_str {
+            // 缓存是最新，直接返回克隆
+            return read_cache.clone();
+        }
+        // 读锁范围结束，准备升级为写锁
+    }
+
+    // 需要刷新缓存，写锁更新
+    let mut write_cache = TODAY_SLASH_CACHE.write().unwrap();
+    if *write_cache != now_str {
+        *write_cache = now_str.clone();
+    }
+    write_cache.clone()
+}
 
 /// 当前时间戳（毫秒）
 pub fn get_unix_timestamp_millis_now() -> i64 {

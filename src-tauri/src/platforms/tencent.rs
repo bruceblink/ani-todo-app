@@ -1,5 +1,5 @@
 use crate::platforms::{AniItem, AniItemResult};
-use crate::utils::date_utils::{get_today_weekday, TODAY_SLASH};
+use crate::utils::date_utils::{get_today_weekday, get_today_slash};
 use crate::utils::extract_number;
 use crate::utils::http_client::http_client;
 use base64::engine::general_purpose;
@@ -196,7 +196,7 @@ fn build_aniitem(item: &Value) -> Option<AniItem> {
     let cid = item.get("cid").and_then(Value::as_str).unwrap_or("");
     let detail_url = get_qq_video_url(cid);
 
-    let update_time = TODAY_SLASH.clone();
+    let update_time = get_today_slash();
 
     Some(AniItem {
         platform,

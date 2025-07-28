@@ -1,5 +1,5 @@
 use crate::platforms::{AniItem, AniItemResult};
-use crate::utils::date_utils::{get_today_weekday, TODAY_SLASH};
+use crate::utils::date_utils::{get_today_weekday, get_today_slash};
 use base64::{engine::general_purpose, Engine as _};
 use log::{debug, info};
 use reqwest::Url;
@@ -62,7 +62,7 @@ pub async fn fetch_mikanani_ani_data(url: String) -> Result<AniItemResult, Strin
     let mut result: AniItemResult = HashMap::new();
     let weekday_str = get_today_weekday().name_cn.to_string();
     // 今天的日期，比如 "2025/07/13"
-    let today_date = TODAY_SLASH.to_string();
+    let today_date = get_today_slash();
     // 动漫aniitem的列表
     let mut comics: Vec<AniItem> = Vec::new();
     // 过滤出符合条件的 <li>
