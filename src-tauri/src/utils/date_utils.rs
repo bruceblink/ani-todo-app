@@ -78,10 +78,11 @@ pub fn get_unix_timestamp_millis_now() -> i64 {
 /// let s = format_timestamp(1620000000123, "%Y-%m-%d %H:%M:%S");
 /// ```
 pub fn format_timestamp(ts: i64, fmt: &str) -> String {
-    match Local.timestamp_millis_opt(ts).single() {
-        Some(dt) => dt.format(fmt).to_string(),
-        None => panic!("Invalid or ambiguous timestamp: {}", ts),
-    }
+    Local.timestamp_millis_opt(ts)
+        .single()
+        .unwrap_or_else(|| Local.timestamp_millis_opt(0).unwrap())
+        .format(fmt)
+        .to_string()
 }
 
 /// 将"2025-07-18 00:00:00 +08:00"格式的时间戳转换成 "2025-07-18" 格式的字符串
