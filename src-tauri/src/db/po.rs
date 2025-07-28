@@ -23,7 +23,7 @@ pub struct AniCollect {
     pub user_id: String,
     pub ani_item_id: i64,
     pub ani_title: String,
-    pub collect_time: String,
+    pub collect_time: i64,
     pub is_watched: bool,
 }
 
@@ -32,7 +32,7 @@ pub struct AniWatchHistory {
     pub id: i64,
     pub user_id: String,
     pub ani_item_id: i64,
-    pub watched_time: String,
+    pub watched_time: i64,
 }
 
 #[derive(Serialize)]
