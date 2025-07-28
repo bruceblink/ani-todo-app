@@ -1,5 +1,5 @@
 use crate::platforms::{AniItem, AniItemResult};
-use crate::utils::date_utils::{get_week_day_of_today, today_iso_date_ld};
+use crate::utils::date_utils::{get_today_weekday, TODAY_SLASH};
 use crate::utils::{clean_text, extract_number};
 use base64::{engine::general_purpose, Engine as _};
 use log::{error, info};
@@ -86,7 +86,7 @@ fn process_json_value(json_value: &Value) -> AniItemResult {
     };
 
     // 4. 处理剧集数据
-    let weekday = get_week_day_of_today();
+    let weekday = get_today_weekday().name_cn.to_string();
     let mut comics: Vec<AniItem> = Vec::new();
 
     if let Some(eps) = today.get("episodes").and_then(Value::as_array) {
@@ -110,7 +110,7 @@ fn process_json_value(json_value: &Value) -> AniItemResult {
 
 // 辅助函数：创建空结果
 fn create_empty_result() -> AniItemResult {
-    let weekday = get_week_day_of_today();
+    let weekday = get_today_weekday().name_cn.to_string();
     let mut result = HashMap::new();
     result.insert(weekday, Vec::new());
     result
@@ -159,6 +159,6 @@ fn parse_item(ep: &Value) -> AniItem {
         update_info,
         image_url,
         detail_url,
-        update_time: today_iso_date_ld(),
+        update_time: TODAY_SLASH.clone(),  // TODAY_SLASH.deref().clone()的简洁版
     }
 }

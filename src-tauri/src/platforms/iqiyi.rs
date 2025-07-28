@@ -1,5 +1,5 @@
 use crate::platforms::{AniItem, AniItemResult};
-use crate::utils::date_utils::{get_week_day_of_today, today_iso_date_ld};
+use crate::utils::date_utils::{get_today_weekday, TODAY_SLASH};
 use crate::utils::{clean_text, extract_number};
 use base64::{engine::general_purpose, Engine as _};
 use chrono::{Datelike, Local};
@@ -73,7 +73,7 @@ fn process_json_value(json_value: &Value) -> AniItemResult {
 
     // 提前计算周信息
     let current_weekday = Local::now().weekday().num_days_from_monday() as usize;
-    let weekday_str = get_week_day_of_today();
+    let weekday_str = get_today_weekday().name_cn.to_string();
 
     // 查找追番表数据
     let today_data = items
@@ -144,6 +144,6 @@ fn parse_item(ep: &Value) -> Option<AniItem> {
         update_info: raw_update_info,
         image_url,
         detail_url,
-        update_time: today_iso_date_ld(),
+        update_time: TODAY_SLASH.clone(),
     })
 }

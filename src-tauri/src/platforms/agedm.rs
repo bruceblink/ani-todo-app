@@ -1,11 +1,12 @@
 use crate::platforms::{AniItem, AniItemResult};
-use crate::utils::date_utils::{get_week_day_of_today, today_iso_date_ld};
+use crate::utils::date_utils::{get_today_weekday, TODAY_SLASH};
 use crate::utils::extract_number;
 use crate::utils::http_client::http_client;
 use base64::{engine::general_purpose, Engine as _};
 use log::{debug, info};
 use scraper::{Html, Selector};
 use std::collections::HashMap;
+use std::ops::Deref;
 
 #[tauri::command]
 pub async fn fetch_agedm_image(url: String) -> Result<String, String> {
@@ -85,9 +86,9 @@ pub async fn fetch_agedm_ani_data(url: String) -> Result<AniItemResult, String> 
 
     // 3. 初始化一个空的 result
     let mut result: AniItemResult = HashMap::new();
-    let weekday_str = get_week_day_of_today();
+    let weekday_str = get_today_weekday().name_cn.to_string();
     // 今天的日期，比如 "2025/07/13"
-    let today_date = today_iso_date_ld();
+    let today_date = TODAY_SLASH.deref();
     // 动漫aniitem的列表
     let mut comics: Vec<AniItem> = Vec::new();
     // 过滤出符合条件的 <div class="col g-2 position-relative">

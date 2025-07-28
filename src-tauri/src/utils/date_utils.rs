@@ -1,4 +1,4 @@
-use chrono::{DateTime, Datelike, Local, TimeZone, Weekday, NaiveDate, Utc};
+use chrono::{DateTime, Datelike, Local, NaiveDate, TimeZone, Utc};
 use once_cell::sync::Lazy;
 use thiserror::Error;
 

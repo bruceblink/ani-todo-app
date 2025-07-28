@@ -1,5 +1,5 @@
 use crate::platforms::{AniItem, AniItemResult};
-use crate::utils::date_utils::{get_week_day_of_today, today_iso_date_ld};
+use crate::utils::date_utils::{get_today_weekday, TODAY_SLASH};
 use crate::utils::extract_number;
 use crate::utils::http_client::http_client;
 use base64::engine::general_purpose;
@@ -93,7 +93,7 @@ pub async fn fetch_qq_ani_data(url: String) -> Result<AniItemResult, String> {
     }
 
     // 5. 存储并返回
-    let weekday = get_week_day_of_today();
+    let weekday = get_today_weekday().name_cn.to_string();
     info!("成功提取到 {} 部今日更新的动漫", comics.len());
     let mut result: AniItemResult = HashMap::new();
     result.insert(weekday, comics);
@@ -196,7 +196,7 @@ fn build_aniitem(item: &Value) -> Option<AniItem> {
     let cid = item.get("cid").and_then(Value::as_str).unwrap_or("");
     let detail_url = get_qq_video_url(cid);
 
-    let update_time = today_iso_date_ld();
+    let update_time = TODAY_SLASH.clone();
 
     Some(AniItem {
         platform,

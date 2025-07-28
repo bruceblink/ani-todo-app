@@ -2,12 +2,13 @@ use log::info;
 use serde_json::json;
 use sqlx::{Pool, Sqlite};
 use std::collections::HashMap;
+use std::ops::Deref;
 
 pub mod sqlite;
 pub mod po;
 use crate::db::sqlite::{creat_database_connection_pool, get_app_data_dir, get_or_set_db_path};
 use crate::platforms::{AniItemResult};
-use crate::utils::date_utils::{get_week_day_of_today, parse_date_to_millis, today_iso_date_ld};
+use crate::utils::date_utils::{get_today_weekday, parse_date_to_millis, TODAY_SLASH};
 use tauri::AppHandle;
 use crate::db::po::{Ani, AniDto, AniIResult, AniWatchHistory};
 
@@ -17,8 +18,8 @@ pub async fn save_ani_item_data(app: AppHandle, ani_data: AniItemResult) -> Resu
     let pool: Pool<Sqlite> = creat_database_connection_pool(db_path)
         .await
         .map_err(|e| e.to_string())?;
-
-    let ani_items = ani_data.get(&get_week_day_of_today()).ok_or("获取今日动漫数据失败")?;
+    let week_day_of_today = TODAY_SLASH.deref();
+    let ani_items = ani_data.get(week_day_of_today).ok_or("获取今日动漫数据失败")?;
 
     if ani_items.is_empty() {
         return Ok(json!({
@@ -78,8 +79,8 @@ pub async fn watch_ani_item(
     let pool: Pool<Sqlite> = creat_database_connection_pool(db_path)
         .await
         .map_err(|e| e.to_string())?;
-    let today_date = today_iso_date_ld();
-    let today_ts = parse_date_to_millis(&today_date, true)
+    let today_date = TODAY_SLASH.deref();
+    let today_ts = parse_date_to_millis(today_date, true)
         .map_err(|e| format!("时间解析失败: {}", e))?;
     // 3. 执行更新
     // 开启事务
@@ -126,8 +127,8 @@ pub async fn query_today_update_ani_list(app: AppHandle) -> Result<AniIResult, S
         .await
         .map_err(|e| e.to_string())?;
     // 今天的日期，比如 "2025/07/13"
-    let today_date = today_iso_date_ld();
-    let today_ts = parse_date_to_millis(&today_date, true)
+    let today_date = TODAY_SLASH.deref();
+    let today_ts = parse_date_to_millis(today_date, true)
         .map_err(|e| format!("时间解析失败: {}", e))?;
     // 查询当前更新的动漫
     let ani_items = sqlx::query_as::<_, Ani>(r#"
@@ -148,7 +149,7 @@ pub async fn query_today_update_ani_list(app: AppHandle) -> Result<AniIResult, S
         .await
         .map_err(|e| format!("查询错误: {}", e))?;
     let ani_dtos: Vec<AniDto> = ani_items.into_iter().map(AniDto::from).collect();
-    let weekday = get_week_day_of_today();
+    let weekday = get_today_weekday().name_cn.to_string();
     let mut result: AniIResult = HashMap::new();
     result.insert(weekday, ani_dtos);
     Ok(result)
@@ -162,8 +163,8 @@ pub async fn query_watched_ani_item_list(app: AppHandle) -> Result<Vec<AniWatchH
         .await
         .map_err(|e| e.to_string())?;
     // 今天的日期，比如 "2025/07/13"
-    let today_date = today_iso_date_ld();
-    let today_ts = parse_date_to_millis(&today_date, true)
+    let today_date = TODAY_SLASH.deref();
+    let today_ts = parse_date_to_millis(today_date, true)
         .map_err(|e| format!("时间解析失败: {}", e))?;
     // 查询当前更新的动漫
     let ani_items = sqlx::query_as::<_, AniWatchHistory>(
@@ -198,8 +199,8 @@ pub async fn query_favorite_ani_update_list(app: AppHandle ) -> Result<Vec<Ani>,
         .await
         .map_err(|e| e.to_string())?;
     // 2. 获取今天的日期，比如 "2025/07/13"
-    let today_date = today_iso_date_ld();
-    let today_ts = parse_date_to_millis(&today_date, true)
+    let today_date = TODAY_SLASH.deref();
+    let today_ts = parse_date_to_millis(today_date, true)
         .map_err(|e| format!("时间解析失败: {}", e))?;
     let ani_collectors = sqlx::query_as::<_, Ani>(
         r#"
@@ -241,8 +242,8 @@ pub async fn collect_ani_item(app: AppHandle, ani_id: i64, ani_title: String) ->
     let pool: Pool<Sqlite> = creat_database_connection_pool(db_path)
         .await
         .map_err(|e| e.to_string())?;
-    let today_date = today_iso_date_ld();
-    let today_ts = parse_date_to_millis(&today_date, true)
+    let today_date = TODAY_SLASH.deref();
+    let today_ts = parse_date_to_millis(today_date, true)
         .map_err(|e| format!("时间解析失败: {}", e))?;
     sqlx::query(
         r#"

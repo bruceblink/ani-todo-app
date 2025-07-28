@@ -1,5 +1,5 @@
 use crate::platforms::{AniItem, AniItemResult};
-use crate::utils::date_utils::{get_week_day_of_today, today_iso_date_ld};
+use crate::utils::date_utils::{get_today_weekday, TODAY_SLASH};
 use crate::utils::extract_number;
 use crate::utils::http_client::http_client;
 use anyhow::{anyhow, Context, Result};
@@ -67,7 +67,7 @@ pub async fn fetch_youku_ani_data(url: String) -> Result<AniItemResult, String> 
     info!("提取到 {} 部今日更新动漫", comics.len());
 
     let mut result = AniItemResult::new();
-    result.insert(get_week_day_of_today(), comics);
+    result.insert(get_today_weekday().name_cn.to_string(), comics);
     Ok(result)
 }
 
@@ -153,6 +153,6 @@ fn build_aniitem(map: &serde_json::Map<String, Value>) -> AniItem {
         update_info,
         image_url: map.get("img").and_then(Value::as_str).unwrap_or_default().trim().to_string(),
         detail_url: "https://www.youku.com/ku/webcomic".into(),
-        update_time: today_iso_date_ld(),
+        update_time: TODAY_SLASH.clone(),
     }
 }
