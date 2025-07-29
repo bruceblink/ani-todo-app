@@ -344,8 +344,13 @@ pub async fn upsert_ani_watch_history(pool: &SqlitePool, item: &AniWatch) -> Res
         .bind(watched_time)
         .execute(pool)
         .await
-        .context(format!("插入或更新 ani_info: {:?}失败", item))?;
-
+        .map_err(|e| {
+            anyhow::anyhow!(
+            "插入或更新 ani_watch_history {:?} 失败: {}",
+            item,
+            e
+        )
+        })?;
     Ok(())
 }
 
