@@ -108,7 +108,7 @@ pub async fn query_today_update_ani_list(state: State<'_, AppState>) -> Result<A
                        ai.update_time,
                        ai.platform
                 FROM ani_info ai
-                WHERE ai.update_time = ?
+                WHERE ai.update_time >= ?
            ;"#,
         )
         .bind(&today_ts)
