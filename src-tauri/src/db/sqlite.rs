@@ -181,27 +181,27 @@ pub async fn list_all_ani_info_by_update_time<>(pool: &SqlitePool, update_time:i
 /// 更新除 id 外的所有字段
 pub async fn update_ani_info(pool: &SqlitePool, item: &Ani) -> Result<u64> {
     let res = sqlx::query(
-        r#"UPDATE ani_info SET
-        title = ?,
-        update_count = ?,
-        update_info = ?,
-        image_url = ?,
-        detail_url = ?,
-        update_time = ?,
-        platform = ?
-        WHERE id = ?"#
-    )
-        .bind(&item.title)
-        .bind(&item.update_count)
-        .bind(&item.update_info)
-        .bind(&item.image_url)
-        .bind(&item.detail_url)
-        .bind(item.update_time)
-        .bind(&item.platform)
-        .bind(item.id)
-        .execute(pool)
-        .await
-        .context("更新 ani_info 失败")?;
+        r#" UPDATE ani_info SET
+                        title = ?,
+                        update_count = ?,
+                        update_info = ?,
+                        image_url = ?,
+                        detail_url = ?,
+                        update_time = ?,
+                        platform = ?
+                  WHERE id = ?
+            "#)
+            .bind(&item.title)
+            .bind(&item.update_count)
+            .bind(&item.update_info)
+            .bind(&item.image_url)
+            .bind(&item.detail_url)
+            .bind(item.update_time)
+            .bind(&item.platform)
+            .bind(item.id)
+            .execute(pool)
+            .await
+            .context("更新 ani_info 失败")?;
 
     Ok(res.rows_affected())
 }
@@ -425,29 +425,29 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_db_update() {
+    async fn test_db_update_ani_info() {
         let pool = SqlitePool::connect("sqlite::memory:").await.unwrap();
         let _ = init_test_table_data(&pool).await;
-
+        let ani_item = Ani {
+            id: 1,
+            title: "名侦探柯南-剧场版".to_string(),
+            update_count: "2100".to_string(),
+            update_info: "2025/07/14 更新".to_string(),
+            image_url: "https://mikanani.me/images/Bangumi/201310/91d95f43.jpg?width=400&height=400&format=webp".to_string(),
+            detail_url: "https://mikanani.me/Home/Bangumi/227".to_string(),
+            update_time: parse_date_to_millis("2025/07/14", true).unwrap(),
+            platform: "tencent".to_string(),
+        };
         // update sql 测试
-        sqlx::query("UPDATE ani_info SET update_count = ? WHERE title = ?;")
-            .bind("2100")
-            .bind("名侦探柯南")
-            .execute(&pool)
+        update_ani_info(&pool, &ani_item)
             .await
-            .unwrap();
-        let ani_item = sqlx::query_as::<_, AniItem>(
-            r#"SELECT 
-                                        title, update_count, update_info, 
-                                        platform, image_url, detail_url, 
-                                        update_time, platform, watched 
-                                FROM ani_info WHERE title = ?;"#,
-        )
-        .bind("名侦探柯南")
-        .fetch_one(&pool)
-        .await
-        .unwrap();
-        assert_eq!(ani_item.update_count, "2100");
+            .expect("更新数据失败");
+        let new_ani_item = get_ani_info_by_id(&pool, 1).await.unwrap();
+
+        assert_eq!(new_ani_item.title, "名侦探柯南-剧场版");
+        assert_eq!(new_ani_item.update_count, "2100");
+        assert_eq!(new_ani_item.update_time, parse_date_to_millis("2025/07/14", true).unwrap());
+        assert_eq!(new_ani_item.platform, "tencent".to_string());
     }
 
     #[tokio::test]
