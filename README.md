@@ -17,11 +17,11 @@
 
 ## 系统要求
 
-    目前支持Windows10+、Mac以及Linux等主流的桌面操作系统
+目前支持Windows10+、Mac以及Linux等主流的桌面操作系统
 
 ## 使用说明
 
-    开发环境准备，已经安装[rust](https://www.rust-lang.org/tools/install)和[nodejs](https://nodejs.org/en/download)
+开发环境准备，已经安装[rust](https://www.rust-lang.org/tools/install)和[nodejs](https://nodejs.org/en/download)
 
 1. 克隆仓库到本地：
     ```bash
