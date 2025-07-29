@@ -1,24 +1,25 @@
 use log::info;
 use serde_json::json;
-use sqlx::{Pool, Sqlite};
+use sqlx::{Pool, Sqlite, SqlitePool};
 use std::collections::HashMap;
 
 pub mod sqlite;
 pub mod po;
-mod common;
+pub mod common;
 
-use crate::db::sqlite::{creat_database_connection_pool, get_app_data_dir, get_or_set_db_path, upsert_ani_info};
+use crate::db::sqlite::{upsert_ani_info};
 use crate::platforms::{AniItemResult};
 use crate::utils::date_utils::{get_today_weekday, parse_date_to_millis, get_today_slash};
-use tauri::AppHandle;
+use tauri::{State};
+use crate::db::common::AppState;
 use crate::db::po::{Ani, AniDto, AniIResult, AniWatchHistory};
 
+pub fn ge_db_pool(pool: &SqlitePool) -> &SqlitePool { pool }
+
 #[tauri::command]
-pub async fn save_ani_item_data(app: AppHandle, ani_data: AniItemResult) -> Result<String, String> {
-    let db_path = get_or_set_db_path(get_app_data_dir(&app)).map_err(|e| e.to_string())?;
-    let pool: Pool<Sqlite> = creat_database_connection_pool(db_path)
-        .await
-        .map_err(|e| e.to_string())?;
+pub async fn save_ani_item_data(state: State<'_, AppState>, ani_data: AniItemResult) -> Result<String, String> {
+    // 拿到连接池
+    let pool = ge_db_pool(&state.db);
     let week_day_of_today = get_today_weekday().name_cn.to_string();
     let ani_items = ani_data.get(&week_day_of_today).ok_or("获取今日动漫数据失败")?;
 
@@ -43,15 +44,11 @@ pub async fn save_ani_item_data(app: AppHandle, ani_data: AniItemResult) -> Resu
 
 #[tauri::command]
 pub async fn watch_ani_item(
-    app: AppHandle,
+    state: State<'_, AppState>,
     ani_id: i64
 ) -> Result<String, String> {
     // 1. 打开数据库
-    let db_path = get_or_set_db_path(get_app_data_dir(&app))
-        .map_err(|e| e.to_string())?;
-    let pool: Pool<Sqlite> = creat_database_connection_pool(db_path)
-        .await
-        .map_err(|e| e.to_string())?;
+    let pool = ge_db_pool(&state.db);
     let today_date = get_today_slash();
     let today_ts = parse_date_to_millis(&today_date, true)
         .map_err(|e| format!("时间解析失败: {}", e))?;
@@ -94,11 +91,8 @@ pub async fn watch_ani_item(
 }
 
 #[tauri::command]
-pub async fn query_today_update_ani_list(app: AppHandle) -> Result<AniIResult, String> {
-    let db_path = get_or_set_db_path(get_app_data_dir(&app)).map_err(|e| e.to_string())?;
-    let pool: Pool<Sqlite> = creat_database_connection_pool(db_path)
-        .await
-        .map_err(|e| e.to_string())?;
+pub async fn query_today_update_ani_list(state: State<'_, AppState>) -> Result<AniIResult, String> {
+    let pool = ge_db_pool(&state.db);
     // 今天的日期，比如 "2025/07/13"
     let today_date = get_today_slash();
     let today_ts = parse_date_to_millis(&today_date, true)
@@ -118,7 +112,7 @@ pub async fn query_today_update_ani_list(app: AppHandle) -> Result<AniIResult, S
            ;"#,
         )
         .bind(&today_ts)
-        .fetch_all(&pool)
+        .fetch_all(pool)
         .await
         .map_err(|e| format!("查询错误: {}", e))?;
     let ani_dtos: Vec<AniDto> = ani_items.into_iter().map(AniDto::from).collect();
@@ -130,11 +124,8 @@ pub async fn query_today_update_ani_list(app: AppHandle) -> Result<AniIResult, S
 
 
 #[tauri::command]
-pub async fn query_watched_ani_item_list(app: AppHandle) -> Result<Vec<AniWatchHistory>, String> {
-    let db_path = get_or_set_db_path(get_app_data_dir(&app)).map_err(|e| e.to_string())?;
-    let pool: Pool<Sqlite> = creat_database_connection_pool(db_path)
-        .await
-        .map_err(|e| e.to_string())?;
+pub async fn query_watched_ani_item_list(state: State<'_, AppState>) -> Result<Vec<AniWatchHistory>, String> {
+    let pool = ge_db_pool(&state.db);
     // 今天的日期，比如 "2025/07/13"
     let today_date = get_today_slash();
     let today_ts = parse_date_to_millis(&today_date, true)
@@ -155,7 +146,7 @@ pub async fn query_watched_ani_item_list(app: AppHandle) -> Result<Vec<AniWatchH
         )
         .bind(today_ts)
         .bind("") // 用户ID，暂时留空
-        .fetch_all(&pool)
+        .fetch_all(pool)
         .await
         .map_err(|e| format!("查询错误: {}", e))?;
     
@@ -164,13 +155,9 @@ pub async fn query_watched_ani_item_list(app: AppHandle) -> Result<Vec<AniWatchH
 
 /// 获取关注动漫今日更新列表
 #[tauri::command]
-pub async fn query_favorite_ani_update_list(app: AppHandle ) -> Result<Vec<Ani>, String> {
+pub async fn query_favorite_ani_update_list(state: State<'_, AppState> ) -> Result<Vec<Ani>, String> {
     // 1. 打开数据库
-    let db_path = get_or_set_db_path(get_app_data_dir(&app))
-        .map_err(|e| e.to_string())?;
-    let pool: Pool<Sqlite> = creat_database_connection_pool(db_path)
-        .await
-        .map_err(|e| e.to_string())?;
+    let pool = ge_db_pool(&state.db);
     // 2. 获取今天的日期，比如 "2025/07/13"
     let today_date = get_today_slash();
     let today_ts = parse_date_to_millis(&today_date, true)
@@ -198,7 +185,7 @@ pub async fn query_favorite_ani_update_list(app: AppHandle ) -> Result<Vec<Ani>,
            ;"#,
         )
         .bind(today_ts)
-        .fetch_all(&pool)
+        .fetch_all(pool)
         .await
         .map_err(|e| format!("查询错误: {}", e))?;
 
@@ -208,13 +195,9 @@ pub async fn query_favorite_ani_update_list(app: AppHandle ) -> Result<Vec<Ani>,
 
 /// 关注动漫
 #[tauri::command]
-pub async fn collect_ani_item(app: AppHandle, ani_id: i64, ani_title: String) -> Result<String, String> {
+pub async fn collect_ani_item(state: State<'_, AppState>, ani_id: i64, ani_title: String) -> Result<String, String> {
     // 1. 打开数据库
-    let db_path = get_or_set_db_path(get_app_data_dir(&app))
-        .map_err(|e| e.to_string())?;
-    let pool: Pool<Sqlite> = creat_database_connection_pool(db_path)
-        .await
-        .map_err(|e| e.to_string())?;
+    let pool = ge_db_pool(&state.db);
     let today_date = get_today_slash();
     let today_ts = parse_date_to_millis(&today_date, true)
         .map_err(|e| format!("时间解析失败: {}", e))?;
@@ -235,7 +218,7 @@ pub async fn collect_ani_item(app: AppHandle, ani_id: i64, ani_title: String) ->
     .bind(ani_id)
     .bind(&ani_title)
     .bind(today_ts)
-    .execute(&pool)
+    .execute(pool)
     .await
     .map_err(|e| format!("插入或更新失败: {}", e))?;
 
@@ -249,13 +232,9 @@ pub async fn collect_ani_item(app: AppHandle, ani_id: i64, ani_title: String) ->
 
 /// 取消关注动漫
 #[tauri::command]
-pub async fn cancel_collect_ani_item(app: AppHandle, ani_id: i64, ani_title: String) -> Result<String, String> {
+pub async fn cancel_collect_ani_item(state: State<'_, AppState>, ani_id: i64, ani_title: String) -> Result<String, String> {
     // 1. 打开数据库
-    let db_path = get_or_set_db_path(get_app_data_dir(&app))
-        .map_err(|e| e.to_string())?;
-    let pool: Pool<Sqlite> = creat_database_connection_pool(db_path)
-        .await
-        .map_err(|e| e.to_string())?;
+    let pool = ge_db_pool(&state.db);
     // 开启事务
     let mut tx = pool.begin().await.map_err(|e| e.to_string())?;
     // 删除ani_collect表中的记录
@@ -282,13 +261,9 @@ pub async fn cancel_collect_ani_item(app: AppHandle, ani_id: i64, ani_title: Str
 
 /// 更新动漫关注状态为已观看
 #[tauri::command]
-pub async fn update_collected_ani_item(app: AppHandle, ani_id: i64, ani_title: String) -> Result<String, String> {
+pub async fn update_collected_ani_item(state: State<'_, AppState>, ani_id: i64, ani_title: String) -> Result<String, String> {
     // 1. 打开数据库
-    let db_path = get_or_set_db_path(get_app_data_dir(&app))
-        .map_err(|e| e.to_string())?;
-    let pool: Pool<Sqlite> = creat_database_connection_pool(db_path)
-        .await
-        .map_err(|e| e.to_string())?;
+    let pool = ge_db_pool(&state.db);
     // 开启事务
     let mut tx = pool.begin().await.map_err(|e| e.to_string())?;
     // 更新ani_collect表中的记录
