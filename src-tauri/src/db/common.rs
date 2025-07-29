@@ -16,3 +16,9 @@ pub async fn run_query<'q, T>(
         .context("执行查询失败")?;
     Ok(rows)
 }
+
+use std::sync::Arc;
+
+pub struct AppState {
+    pub db: Arc<SqlitePool>,
+}
