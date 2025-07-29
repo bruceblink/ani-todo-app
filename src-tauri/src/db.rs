@@ -1,6 +1,6 @@
 use log::info;
 use serde_json::json;
-use sqlx::{Pool, Sqlite, SqlitePool};
+use sqlx::{SqlitePool};
 use std::collections::HashMap;
 
 pub mod sqlite;
@@ -54,7 +54,7 @@ pub async fn watch_ani_item(
         .map_err(|e| format!("时间解析失败: {}", e))?;
     // 3. 执行更新
     // 开启事务
-    let mut tx = pool.begin().await.map_err(|e| e.to_string())?;
+    //let mut tx = pool.begin().await.map_err(|e| e.to_string())?;
     // 更新ani_item表中的watched状态
     sqlx::query(
         r#"
@@ -66,11 +66,11 @@ pub async fn watch_ani_item(
             ON CONFLICT(user_id, ani_item_id) DO UPDATE SET
                 watched_time = excluded.watched_time
         "#,
-    )
+       )
         .bind("")  // 用户ID，暂时留空
         .bind(&ani_id)
         .bind(today_ts)  // 当前时间
-        .execute(&mut *tx)
+        .execute(pool)
         .await
         .map_err(|e| format!("插入或更新失败: {}", e))?;
 /*    // 更新ani_collect表中的watched状态
@@ -80,7 +80,7 @@ pub async fn watch_ani_item(
         .await
         .map_err(|e| format!("插入或更新失败: {}", e))?;*/
     // 提交事务
-    tx.commit().await.map_err(|e| e.to_string())?;
+    //tx.commit().await.map_err(|e| e.to_string())?;
     info!("标记 watched: id = {}", ani_id);
     // 4. 返回统一的 JSON 字符串
     Ok(json!({
