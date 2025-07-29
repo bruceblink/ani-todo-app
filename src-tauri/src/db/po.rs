@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 use std::collections::HashMap;
-use crate::utils::date_utils::format_timestamp;
+use crate::utils::date_utils::format_timestamp_millis;
 
 #[derive(Debug, Clone, FromRow, Deserialize, Serialize)]
 pub struct Ani {
@@ -58,7 +58,7 @@ impl From<Ani> for AniDto {
             image_url: a.image_url,
             detail_url: a.detail_url,
             update_time: a.update_time,
-            update_time_str: format_timestamp(a.update_time, "%Y/%m/%d"), // 👈 格式化后的字符串
+            update_time_str: format_timestamp_millis(a.update_time, "%Y/%m/%d"), // 👈 格式化后的字符串
             platform: a.platform,
         }
     }

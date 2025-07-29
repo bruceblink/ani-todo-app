@@ -34,7 +34,7 @@ pub fn timestamp_to_date_string(t: i64, fmt: DateFormat) -> String {
 }
 
 /// 将时间戳(毫秒)格式化为字符串
-pub fn format_timestamp(ts: i64, fmt: &str) -> String {
+pub fn format_timestamp_millis(ts: i64, fmt: &str) -> String {
     Local.timestamp_millis_opt(ts)
         .single()
         .unwrap_or_else(|| Local.timestamp_millis_opt(0).unwrap())
@@ -147,7 +147,7 @@ mod tests {
     #[test]
     fn test_format_timestamp() {
         let ts = 1752768000000; // 2025-07-18 00:00:00 +08:00
-        let formatted = format_timestamp(ts, "%Y-%m-%d %H:%M:%S");
+        let formatted = format_timestamp_millis(ts, "%Y-%m-%d %H:%M:%S");
         assert_eq!(formatted, "2025-07-18 00:00:00");
     }
 
@@ -188,7 +188,7 @@ mod tests {
         assert_eq!(today.len(), 10); // 格式为 YYYY/MM/DD
         println!("{}", today);
 
-        let ts = format_timestamp(1753718400000, "%Y/%m/%d");
+        let ts = format_timestamp_millis(1753718400000, "%Y/%m/%d");
         assert_eq!(ts, "2025/07/29");
     }
 }
