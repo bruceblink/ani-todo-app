@@ -17,7 +17,7 @@ pub async fn save_ani_item_data(app: AppHandle, ani_data: AniItemResult) -> Resu
     let pool: Pool<Sqlite> = creat_database_connection_pool(db_path)
         .await
         .map_err(|e| e.to_string())?;
-    let week_day_of_today = get_today_slash();
+    let week_day_of_today = get_today_weekday().name_cn.to_string();
     let ani_items = ani_data.get(&week_day_of_today).ok_or("获取今日动漫数据失败")?;
 
     if ani_items.is_empty() {

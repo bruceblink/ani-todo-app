@@ -180,4 +180,15 @@ mod tests {
         let s = timestamp_to_date_string(1752768000, DateFormat::Slash);
         assert_eq!(s, "2025/07/18");
     }
+
+    #[test]
+    fn test_get_today_slash() {
+        let today = get_today_slash();
+        assert!(today.contains('/'));
+        assert_eq!(today.len(), 10); // 格式为 YYYY/MM/DD
+        println!("{}", today);
+
+        let ts = format_timestamp(1753718400000, "%Y/%m/%d");
+        assert_eq!(ts, "2025/07/29");
+    }
 }
