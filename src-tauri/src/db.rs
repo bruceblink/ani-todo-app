@@ -16,6 +16,7 @@ use crate::db::po::{Ani, AniDto, AniIResult, AniWatch, AniWatchHistory};
 
 pub fn ge_db_pool(pool: &SqlitePool) -> &SqlitePool { pool }
 
+/// 保存动漫数据到数据库
 #[tauri::command]
 pub async fn save_ani_item_data(state: State<'_, AppState>, ani_data: AniItemResult) -> Result<String, String> {
     // 拿到连接池
@@ -32,7 +33,7 @@ pub async fn save_ani_item_data(state: State<'_, AppState>, ani_data: AniItemRes
     }
     // 批量插入数据库
     for item in ani_items {
-        upsert_ani_info(&pool, &item).await.map_err(|e| format!("插入或更新错误: {}", e))?;
+        upsert_ani_info(&pool, &item).await.map_err(|e| format!("{}", e))?;
     }
 
     Ok(json!({
@@ -42,6 +43,8 @@ pub async fn save_ani_item_data(state: State<'_, AppState>, ani_data: AniItemRes
     .to_string())
 }
 
+
+/// 插入动漫观看历史数据到数据库
 #[tauri::command]
 pub async fn watch_ani_item(state: State<'_, AppState>, ani_id: i64) -> Result<String, String> {
     // 1. 打开数据库
@@ -52,7 +55,7 @@ pub async fn watch_ani_item(state: State<'_, AppState>, ani_id: i64) -> Result<S
         ani_item_id: ani_id,
         watched_time: today_date,
     };
-    upsert_ani_watch_history(&pool, &ani_watch).await.map_err(|e| format!("错误: {}", e))?;
+    upsert_ani_watch_history(&pool, &ani_watch).await.map_err(|e| format!("{}", e))?;
     info!("标记 watched: id = {}", ani_id);
     // 4. 返回统一的 JSON 字符串
     Ok(json!({
