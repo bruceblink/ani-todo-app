@@ -134,7 +134,7 @@ pub async fn upsert_ani_info(pool: &SqlitePool, item: &AniItem) -> Result<i64> {
 /// 根据 id 查询单条
 pub async fn get_ani_info_by_id(pool: &SqlitePool, id: i64) -> Result<Ani> {
     let rec = sqlx::query_as::<_, Ani>(
-        r#"  SELECT id,
+        r#" SELECT id,
                     title,
                     update_count,
                     update_info,
@@ -142,8 +142,8 @@ pub async fn get_ani_info_by_id(pool: &SqlitePool, id: i64) -> Result<Ani> {
                     detail_url,
                     update_time,
                     platform
-              FROM ani_info
-              WHERE
+                FROM ani_info
+                WHERE
                   id = ?
             ;"#
          )
@@ -154,20 +154,25 @@ pub async fn get_ani_info_by_id(pool: &SqlitePool, id: i64) -> Result<Ani> {
     Ok(rec)
 }
 
-/// 查询所有记录，按更新时间降序
-pub async fn list_all_ani_info<T>(pool: &SqlitePool) -> Result<Vec<Ani>> {
+/// 根据更新时间查询所有记录，按更新时间降序
+pub async fn list_all_ani_info_by_update_time<>(pool: &SqlitePool, update_time:i64) -> Result<Vec<Ani>> {
     // 构造带绑定参数的 QueryAs
     let query = sqlx::query_as::<_, Ani>(
-        r#"
-        SELECT *
-          FROM ani_info
-         /*WHERE platform = ?
-           AND update_time >= ?*/
-         ORDER BY update_time DESC
-        "#
-       )/*.bind("platform")
-        .bind("")*/;
-
+                r#"
+                SELECT id,
+                    title,
+                    update_count,
+                    update_info,
+                    image_url,
+                    detail_url,
+                    update_time,
+                    platform
+                FROM ani_info
+                WHERE
+                   update_time >= ?
+                ORDER BY update_time DESC
+                "#
+               ).bind(update_time);
     // 调用通用的 run_query
     let list = run_query(pool, query).await?;
     Ok(list)
@@ -412,14 +417,11 @@ mod tests {
         // 获取数据库连接池
         let pool = SqlitePool::connect("sqlite::memory:").await.unwrap();
         let _ = init_test_table_data(&pool).await;
-
+        let update_time = parse_date_to_millis("2025/07/13", true).unwrap();
         // 这里要求查询字段与结构体AniItem中 定义的字段个数和名称要一致
-        let ani_items = sqlx::query_as::<_, AniItem>("SELECT title, update_count, update_info, platform, image_url, detail_url, update_time, platform, watched FROM ani_info;")
-            .fetch_all(&pool)
-            .await
-            .unwrap();
+        let ani_items = list_all_ani_info_by_update_time(&pool, update_time).await.unwrap();
         assert_eq!(ani_items.len(), 5);
-        assert_eq!(ani_items[0].title, "名侦探柯南");
+        assert_eq!(ani_items[0].title, "琉璃的宝石");
     }
 
     #[tokio::test]
