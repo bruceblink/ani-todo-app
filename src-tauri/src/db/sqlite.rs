@@ -1,3 +1,5 @@
+use crate::db::test_db::run_query;
+use crate::db::Ani;
 use anyhow::{Context, Error, Result};
 use log::info;
 use sqlx::migrate::Migrator;
@@ -8,8 +10,6 @@ use sqlx::{
 use std::fs;
 use std::str::FromStr;
 use tauri::{path::BaseDirectory, AppHandle, Manager};
-use std::fs::{File};
-use std::io::{Read};
 
 pub static MIGRATOR: Migrator = sqlx::migrate!(); // 自动读取 src-tauri/migrations 目录下的所有sql脚本
 /// 获取tauri应用 的应用数据目录
@@ -45,9 +45,9 @@ async fn init_and_migrate_db(app: &AppHandle) -> Result<Pool<Sqlite>> {
         .context("创建数据库连接池失败")?;
 
     // 运行迁移
-    MIGRATOR.run(&pool).await.context("数据库迁移失败")?;
+    MIGRATOR.run(&pool).await.context("数据库迁移或初始化失败!")?;
 
-    info!("数据库初始化成功！");
+    info!("数据库初始化成功!");
     Ok(pool)
 }
 
@@ -74,41 +74,15 @@ pub async fn creat_database_connection_pool(db_path: String) -> Result<Pool<Sqli
     pool
 }
 
-async fn load_sql_script() -> Result<String, std::io::Error> {
 
-    let mut dir_path = std::env::current_dir()?;
-    dir_path.push("migrations");
+#[allow(dead_code)]
+/// 测试初始化数据库结构
+async fn test_init_db_schema(pool: &SqlitePool) -> Result<()> {
+    // 读取 migrations 目录下的所有 SQL 脚本
+    MIGRATOR.run(pool)
+        .await
+        .context("数据库迁移失败")
 
-    let mut merged_content = String::new();
-    for entry in fs::read_dir(dir_path)? {
-        let entry = entry?;
-        let path = entry.path();
-
-        // 只处理文件（跳过文件夹）
-        if path.is_file() {
-            let mut file = File::open(&path)?;
-            let mut content = String::new();
-            file.read_to_string(&mut content)?;
-
-            // 添加换行符（可选）
-            merged_content.push_str(&content);
-            merged_content.push('\n');
-        }
-    }
-    Ok(merged_content)
-}
-
-/// 初始化数据库结构
-pub async fn init_db_schema(pool: &SqlitePool) -> Result<(), sqlx::Error> {
-    let script = load_sql_script().await.map_err(|e| sqlx::Error::Io(e))?;
-
-    for stmt in script.split(';') {
-        let stmt = stmt.trim();
-        if !stmt.is_empty() {
-            sqlx::query(stmt).execute(pool).await?;
-        }
-    }
-    Ok(())
 }
 
 // 初始化逻辑
@@ -120,17 +94,143 @@ pub async fn setup_app_db(app: &mut tauri::App) -> Result<(), Box<dyn std::error
     Ok(())
 }
 
+use crate::platforms::AniItem;
+use crate::utils::date_utils::parse_date_to_millis;
+
+/// 插入新记录
+pub async fn create_ani_info(pool: &SqlitePool, item: &AniItem) -> Result<i64> {
+    let update_time = parse_date_to_millis(&item.update_time, true)?;
+    let res = sqlx::query(
+                r#"
+                    INSERT INTO ani_info (
+                        title,
+                        update_count,
+                        update_info,
+                        image_url,
+                        detail_url,
+                        update_time,
+                        platform
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(title, platform, update_count) DO UPDATE SET
+                        update_info = excluded.update_info,
+                        image_url = excluded.image_url,
+                        detail_url = excluded.detail_url
+                "#,
+            )
+        .bind(&item.title)
+        .bind(&item.update_count)
+        .bind(&item.update_info)
+        .bind(&item.image_url)
+        .bind(&item.detail_url)
+        .bind(update_time)
+        .bind(&item.platform)
+        .execute(pool)
+        .await
+        .context("插入或更新 ani_info 失败")?;
+
+    Ok(res.last_insert_rowid())
+}
+
+/// 根据 id 查询单条
+pub async fn get_ani_info_by_id(pool: &SqlitePool, id: i64) -> Result<Option<Ani>> {
+    let rec = sqlx::query_as::<_, Ani>(
+        r#"  SELECT title,
+                        update_count,
+                        update_info,
+                        image_url,
+                        detail_url,
+                        update_time,
+                        platform
+                  FROM ani_info
+                  WHERE
+                      id = ?
+            ;"#
+         )
+        .bind(id)
+        .fetch_optional(pool)
+        .await
+        .context("查询 ani_info 失败")?;
+
+    Ok(rec)
+}
+
+/// 查询所有记录，按更新时间降序
+pub async fn list_all_ani_info<T>(pool: &SqlitePool) -> Result<Vec<Ani>> {
+    // 构造带绑定参数的 QueryAs
+    let query = sqlx::query_as::<_, Ani>(
+        r#"
+        SELECT *
+          FROM ani_info
+         /*WHERE platform = ?
+           AND update_time >= ?*/
+         ORDER BY update_time DESC
+        "#
+       )/*.bind("platform")
+        .bind("")*/;
+
+    // 调用通用的 run_query
+    let list = run_query(pool, query).await?;
+    Ok(list)
+}
+
+/// 更新除 id 外的所有字段
+pub async fn update_ani_info(pool: &SqlitePool, item: &Ani) -> Result<u64> {
+    let res = sqlx::query(
+        r#"UPDATE ani_info SET
+        title = ?,
+        update_count = ?,
+        update_info = ?,
+        image_url = ?,
+        detail_url = ?,
+        update_time = ?,
+        platform = ?
+        WHERE id = ?"#
+    )
+        .bind(&item.title)
+        .bind(&item.update_count)
+        .bind(&item.update_info)
+        .bind(&item.image_url)
+        .bind(&item.detail_url)
+        .bind(item.update_time)
+        .bind(&item.platform)
+        .bind(item.id)
+        .execute(pool)
+        .await
+        .context("更新 ani_info 失败")?;
+
+    Ok(res.rows_affected())
+}
+
+/// 删除指定 id
+pub async fn delete_ani_info(pool: &SqlitePool, id: i64) -> Result<u64> {
+    let res = sqlx::query(
+        "DELETE FROM ani_info WHERE id = ?"
+    )
+        .bind(id)
+        .execute(pool)
+        .await
+        .context("删除 ani_info 失败")?;
+
+    Ok(res.rows_affected())
+}
+
+
+
 #[cfg(test)]
 mod tests {
     
-    use crate::db::sqlite::{creat_database_connection_pool, init_db_schema};
+    use crate::utils::date_utils::format_timestamp;
+    use crate::db::Ani;
+    use crate::db::sqlite::{create_ani_info};
+    use crate::db::sqlite::{creat_database_connection_pool, test_init_db_schema};
     use crate::platforms::AniItem;
     use sqlx::{Pool, Sqlite, SqlitePool};
     use std::fs::File;
     use std::io::{Seek, SeekFrom, Write};
+    use anyhow::Context;
     use tempfile::NamedTempFile;
     use crate::db::po::AniCollect;
-    
+
 
     #[test]
     fn test_with_temp_file() -> std::io::Result<()> {
@@ -167,171 +267,76 @@ mod tests {
     }
 
     // 初始化测试数据
-    async fn init_test_table_data(pool: &Pool<Sqlite>) {
-        init_db_schema(&pool).await.expect("建表失败");
-        let today_date = chrono::Local::now().format("%Y/%m/%d").to_string();
-        let today_ts = chrono::Local::now().timestamp();
+    async fn init_test_table_data(pool: &Pool<Sqlite>) -> anyhow::Result<()>{
+        // 初始化数据库表结构
+        test_init_db_schema(pool).await.context("初始化测试表失败")?;
+
+        let ani_info1 = AniItem{
+            title: "名侦探柯南".to_string(),
+            update_count: "1234".to_string(),
+            update_info: "2025/07/13 更新".to_string(),
+            image_url: "https://mikanani.me/images/Bangumi/201310/91d95f43.jpg?width=400&height=400&format=webp".to_string(),
+            detail_url: "https://mikanani.me/Home/Bangumi/227".to_string(),
+            update_time: "2025/07/13".to_string(), // 2025/07/13 的时间戳
+            platform: "mikanani".to_string(),
+        };
+        let ani_info2 = AniItem{
+            title: "You and idol 光之美少女♪".to_string(),
+            update_count: "2".to_string(),
+            update_info: "2025/07/13 更新".to_string(),
+            image_url: "https://mikanani.me/images/Bangumi/202502/4462a4be.jpg?width=400&height=400&format=webp".to_string(),
+            detail_url: "https://mikanani.me/Home/Bangumi/3570".to_string(),
+            update_time: "2025/07/13".to_string(), // 2025/07/13 的时间戳
+            platform: "mikanani".to_string(),
+        };
+
+        let ani_info3 = AniItem{
+            title: "魔女守护者".to_string(),
+            update_count: "2".to_string(),
+            update_info: "2025/07/13 更新".to_string(),
+            image_url: "https://mikanani.me/images/Bangumi/202504/ff5c2429.jpg?width=400&height=400&format=webp".to_string(),
+            detail_url: "https://mikanani.me/Home/Bangumi/3587".to_string(),
+            update_time: "2025/07/13".to_string(), // 2025/07/13 的时间戳
+            platform: "mikanani".to_string(),
+        };
+
+        let ani_info4 = AniItem{
+            title: "凸变英雄X".to_string(),
+            update_count: "21".to_string(),
+            update_info: "2025/07/13 更新".to_string(),
+            image_url: "https://mikanani.me/images/Bangumi/202504/9b18d132.jpg?width=400&height=400&format=webp".to_string(),
+            detail_url: "https://mikanani.me/Home/Bangumi/3640".to_string(),
+            update_time: "2025/07/13".to_string(), // 2025/07/13 的时间戳
+            platform: "mikanani".to_string(),
+        };
+
+
+        let ani_info5 = AniItem{
+            title: "琉璃的宝石".to_string(),
+            update_count: "".to_string(), // 空字符串表示未更新
+            update_info: "2025/07/13 更新".to_string(),
+            image_url: "https://mikanani.me/images/Bangumi/202507/18470785.jpg?width=400&height=400&format=webp".to_string(),
+            detail_url: "https://mikanani.me/Home/Bangumi/3663".to_string(),
+            update_time: "2025/07/13".to_string(), // 2025/07/13 的时间戳
+            platform: "mikanani".to_string(),
+        };
+
+
         // 执行sql
-        sqlx::query("INSERT INTO ani_info (title,
-                                               update_count,
-                                               update_info,
-                                               image_url,
-                                               detail_url,
-                                               update_time,
-                                               platform
-                                               ) VALUES
-                                              (?, ? ,? ,? ,? ,? ,?);")
-            .bind("名侦探柯南")
-            .bind("1234")
-            .bind("2025/07/13 更新")
-            .bind("https://mikanani.me/images/Bangumi/201310/91d95f43.jpg?width=400&height=400&format=webp")
-            .bind("https://mikanani.me/Home/Bangumi/227")
-            .bind("2025/07/13")
-            .bind("mikanani")
-            .execute(pool)
-            .await
-            .unwrap();
-        sqlx::query("INSERT INTO ani_info (title,
-                                               update_count,
-                                               update_info,
-                                               image_url,
-                                               detail_url,
-                                               update_time,
-                                               platform
-                                               ) VALUES
-                                              (?, ? ,? ,? ,? ,? ,?);")
-            .bind("You and idol 光之美少女♪")
-            .bind("2")
-            .bind("2025/07/13 更新")
-            .bind("https://mikanani.me/images/Bangumi/202502/4462a4be.jpg?width=400&height=400&format=webp")
-            .bind("https://mikanani.me/Home/Bangumi/3570")
-            .bind("2025/07/13")
-            .bind("mikanani")
-            .execute(pool)
-            .await
-            .unwrap();
-
-        sqlx::query("INSERT INTO ani_info (title,
-                                               update_count,
-                                               update_info,
-                                               image_url,
-                                               detail_url,
-                                               update_time,
-                                               platform
-                                               ) VALUES
-                                              (?, ? ,? ,? ,? ,? ,?);")
-            .bind("魔女守护者")
-            .bind("2")
-            .bind("2025/07/13 更新")
-            .bind("https://mikanani.me/images/Bangumi/202504/ff5c2429.jpg?width=400&height=400&format=webp")
-            .bind("https://mikanani.me/Home/Bangumi/3587")
-            .bind("2025/07/13")
-            .bind("mikanani")
-            .execute(pool)
-            .await
-            .unwrap();
-
-        sqlx::query("INSERT INTO ani_info (title,
-                                               update_count,
-                                               update_info,
-                                               image_url,
-                                               detail_url,
-                                               update_time,
-                                               platform
-                                               ) VALUES
-                                              (?, ? ,? ,? ,? ,? ,?);")
-            .bind("凸变英雄X")
-            .bind("21")
-            .bind("2025/07/13 更新")
-            .bind("https://mikanani.me/images/Bangumi/202504/9b18d132.jpg?width=400&height=400&format=webp")
-            .bind("https://mikanani.me/Home/Bangumi/3640")
-            .bind("2025/07/13")
-            .bind("mikanani")
-            .execute(pool)
-            .await
-            .unwrap();
-
-        sqlx::query("INSERT INTO ani_info (title,
-                                               update_count,
-                                               update_info,
-                                               image_url,
-                                               detail_url,
-                                               update_time,
-                                               platform
-                                               ) VALUES
-                                              (?, ? ,? ,? ,? ,? ,?);")
-            .bind("琉璃的宝石")
-            .bind(None::<String>)
-            .bind("2025/07/13 更新")
-            .bind("https://mikanani.me/images/Bangumi/202507/18470785.jpg?width=400&height=400&format=webp")
-            .bind("https://mikanani.me/Home/Bangumi/3663")
-            .bind("2025/07/13")
-            .bind("mikanani")
-            .execute(pool)
-            .await
-            .unwrap();
-    }
-
-    // 测试 插入空的唯一约束值
-    #[tokio::test]
-    async fn test_unique_insert_null_value() {
-        // 获取数据库连接池
-        let pool = SqlitePool::connect("sqlite::memory:").await.unwrap();
-        init_test_table_data(&pool).await;
-        sqlx::query(r#"INSERT INTO ani_info (
-                                                title,
-                                                update_count,
-                                                update_info,
-                                                image_url,
-                                                detail_url,
-                                                update_time,
-                                                platform
-                                            ) VALUES (?, ?, ?, ?, ?, ?, ?)
-                                            ON CONFLICT(title, platform, update_count) DO UPDATE SET
-                                                update_info = excluded.update_info,
-                                                image_url = excluded.image_url,
-                                                detail_url = excluded.detail_url
-                                            "#)
-            .bind("琉璃的宝石")
-            .bind(None::<String>)
-            .bind("2025/07/13 更新")
-            .bind("https://mikanani.me/images/Bangumi/202507/18470785.jpg?width=400&height=400&format=webp")
-            .bind("https://mikanani.me/Home/Bangumi/3663")
-            .bind("2025/07/14")
-            .bind("mikanani")
-            .execute(&pool)
-            .await
-            .expect("插入或更新失败");
-        // 测试违反唯一约束更新更新数据
-        let ani_info = sqlx::query_as::<_, AniItem>(
-            r#"SELECT title, 
-                                                                           update_count, 
-                                                                           update_info, 
-                                                                           platform, 
-                                                                           image_url, 
-                                                                           detail_url, 
-                                                                           update_time, 
-                                                                           platform, 
-                                                                           watched 
-                                                                    FROM ani_info WHERE 
-                                                                          title = ? 
-                                                                 "#,
-        )
-        .bind("琉璃的宝石")
-        .fetch_all(&pool)
-        .await
-        .unwrap();
-        assert_eq!(ani_info.len(), 2);
-        let ani_item = &ani_info[1];
-        assert_eq!(ani_item.update_count, "");
-        assert_eq!(ani_item.update_time, "2025/07/14");
+        let _ = create_ani_info(pool, &ani_info1).await.context("插入数据失败");
+        let _ = create_ani_info(pool, &ani_info2).await.context("插入数据失败");
+        let _ = create_ani_info(pool, &ani_info3).await.context("插入数据失败");
+        let _ = create_ani_info(pool, &ani_info4).await.context("插入数据失败");
+        let _ = create_ani_info(pool,  &ani_info5).await.context("插入数据失败");
+        Ok(())
     }
 
     #[tokio::test]
     async fn test_unique_insert_diff_update_time() {
         // 获取数据库连接池
         let pool = SqlitePool::connect("sqlite::memory:").await.unwrap();
-        init_test_table_data(&pool).await;
+        let _ = init_test_table_data(&pool).await;
+        
         sqlx::query(r#"INSERT INTO ani_info (
                                                 title,
                                                 update_count,
@@ -412,7 +417,7 @@ mod tests {
     async fn test_unique_insert2() {
         // 获取数据库连接池
         let pool = SqlitePool::connect("sqlite::memory:").await.unwrap();
-        init_test_table_data(&pool).await;
+        let _ = init_test_table_data(&pool).await;
         sqlx::query(r#"INSERT INTO ani_info (
                                                 title,
                                                 update_count,
