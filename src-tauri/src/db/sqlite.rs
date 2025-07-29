@@ -34,7 +34,7 @@ pub fn get_or_set_db_path(app_data_dir: std::path::PathBuf) -> Result<String> {
 }
 
 /// 初始化数据库连接池
-async fn init_and_migrate_db(app: &AppHandle) -> Result<Pool<Sqlite>> {
+pub async fn init_and_migrate_db(app: &AppHandle) -> Result<Pool<Sqlite>> {
     // 确保应用数据目录存在
     let app_data_dir = get_app_data_dir(app);
     if !app_data_dir.exists() {
