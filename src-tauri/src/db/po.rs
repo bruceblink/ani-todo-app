@@ -73,3 +73,10 @@ pub struct AniColl {
     pub collect_time: String,
     pub is_watched: bool,
 }
+
+#[derive(Debug, Clone, FromRow, PartialEq, Deserialize, Serialize)]
+pub struct AniWatch {
+    pub user_id: String,
+    pub ani_item_id: i64,
+    pub watched_time: String,
+}

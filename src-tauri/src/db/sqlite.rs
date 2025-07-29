@@ -1,3 +1,4 @@
+use crate::db::po::AniWatch;
 use crate::db::po::AniColl;
 use crate::db::common::run_query;
 use crate::db::Ani;
@@ -322,6 +323,32 @@ pub async fn list_all_ani_update_today<>(pool: &SqlitePool, today_ts: i64) -> Re
     let list = run_query(pool, sql).await?;
     Ok(list)
 }
+
+
+
+pub async fn upsert_ani_watch_history(pool: &SqlitePool, item: &AniWatch) -> Result<()> {
+    let watched_time = parse_date_to_millis(&item.watched_time, true)?;
+    let _ = sqlx::query(
+        r#"
+                INSERT INTO ani_watch_history (
+                    user_id,
+                    ani_item_id,
+                    watched_time
+                ) VALUES (?, ?, ?)
+                ON CONFLICT(user_id, ani_item_id) DO UPDATE SET
+                    watched_time = excluded.watched_time
+            "#,
+        )
+        .bind(&item.user_id)
+        .bind(&item.ani_item_id)
+        .bind(watched_time)
+        .execute(pool)
+        .await
+        .context(format!("插入或更新 ani_info: {:?}失败", item))?;
+
+    Ok(())
+}
+
 
 #[cfg(test)]
 mod tests {
