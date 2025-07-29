@@ -6,7 +6,6 @@ use base64::{engine::general_purpose, Engine as _};
 use log::{debug, info};
 use scraper::{Html, Selector};
 use std::collections::HashMap;
-use std::ops::Deref;
 
 #[tauri::command]
 pub async fn fetch_agedm_image(url: String) -> Result<String, String> {
