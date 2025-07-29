@@ -63,3 +63,13 @@ impl From<Ani> for AniDto {
         }
     }
 }
+
+
+#[derive(Debug, Clone, FromRow, PartialEq, Deserialize, Serialize)]
+pub struct AniColl {
+    pub user_id: String,
+    pub ani_item_id: i64,
+    pub ani_title: String,
+    pub collect_time: String,
+    pub is_watched: bool,
+}
