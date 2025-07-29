@@ -7,7 +7,7 @@ pub mod sqlite;
 pub mod po;
 mod common;
 
-use crate::db::sqlite::{creat_database_connection_pool, get_app_data_dir, get_or_set_db_path};
+use crate::db::sqlite::{creat_database_connection_pool, get_app_data_dir, get_or_set_db_path, upsert_ani_info};
 use crate::platforms::{AniItemResult};
 use crate::utils::date_utils::{get_today_weekday, parse_date_to_millis, get_today_slash};
 use tauri::AppHandle;
@@ -29,37 +29,9 @@ pub async fn save_ani_item_data(app: AppHandle, ani_data: AniItemResult) -> Resu
         })
         .to_string());
     }
-    let update_ts = parse_date_to_millis(&ani_items[0].update_time, true)
-        .map_err(|e| format!("时间解析失败: {}", e))?;
-
+    // 批量插入数据库
     for item in ani_items {
-        sqlx::query(
-            r#"
-            INSERT INTO ani_info (
-                title,
-                update_count,
-                update_info,
-                image_url,
-                detail_url,
-                update_time,
-                platform
-            ) VALUES (?, ?, ?, ?, ?, ?, ?)
-            ON CONFLICT(title, platform, update_count) DO UPDATE SET
-                update_info = excluded.update_info,
-                image_url = excluded.image_url,
-                detail_url = excluded.detail_url
-        "#,
-        )
-        .bind(&item.title)
-        .bind(&item.update_count)
-        .bind(&item.update_info)
-        .bind(&item.image_url)
-        .bind(&item.detail_url)
-        .bind(update_ts)
-        .bind(&item.platform)
-        .execute(&pool)
-        .await
-        .map_err(|e| format!("插入或更新失败: {}", e))?;
+        upsert_ani_info(&pool, &item).await.map_err(|e| format!("插入或更新错误: {}", e))?;
     }
 
     Ok(json!({

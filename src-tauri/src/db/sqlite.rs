@@ -100,9 +100,9 @@ use crate::platforms::AniItem;
 use crate::utils::date_utils::parse_date_to_millis;
 
 /// 动漫信息插入新记录
-pub async fn upsert_ani_info(pool: &SqlitePool, item: &AniItem) -> Result<i64> {
+pub async fn upsert_ani_info(pool: &SqlitePool, item: &AniItem) -> Result<()> {
     let update_time = parse_date_to_millis(&item.update_time, true)?;
-    let res = sqlx::query(
+    let _ = sqlx::query(
                 r#"
                     INSERT INTO ani_info (
                         title,
@@ -128,9 +128,9 @@ pub async fn upsert_ani_info(pool: &SqlitePool, item: &AniItem) -> Result<i64> {
         .bind(&item.platform)
         .execute(pool)
         .await
-        .context("插入或更新 ani_info 失败")?;
+        .context(format!("插入或更新 ani_info: {:?}失败", item))?;
 
-    Ok(res.last_insert_rowid())
+    Ok(())
 }
 
 /// 根据 id 查询单条
@@ -307,7 +307,7 @@ mod tests {
     use std::io::{Seek, SeekFrom, Write};
     use anyhow::Context;
     use tempfile::NamedTempFile;
-    
+
 
 
     #[test]
