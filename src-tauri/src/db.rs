@@ -5,6 +5,8 @@ use std::collections::HashMap;
 
 pub mod sqlite;
 pub mod po;
+mod common;
+
 use crate::db::sqlite::{creat_database_connection_pool, get_app_data_dir, get_or_set_db_path};
 use crate::platforms::{AniItemResult};
 use crate::utils::date_utils::{get_today_weekday, parse_date_to_millis, get_today_slash};

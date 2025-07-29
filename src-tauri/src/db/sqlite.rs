@@ -1,4 +1,4 @@
-use crate::db::test_db::run_query;
+use crate::db::common::run_query;
 use crate::db::Ani;
 use anyhow::{Context, Error, Result};
 use log::info;
