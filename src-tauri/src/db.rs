@@ -7,12 +7,12 @@ pub mod sqlite;
 pub mod po;
 pub mod common;
 
-use crate::db::sqlite::{upsert_ani_info};
+use crate::db::sqlite::{upsert_ani_info, upsert_ani_watch_history};
 use crate::platforms::{AniItemResult};
 use crate::utils::date_utils::{get_today_weekday, parse_date_to_millis, get_today_slash};
 use tauri::{State};
 use crate::db::common::AppState;
-use crate::db::po::{Ani, AniDto, AniIResult, AniWatchHistory};
+use crate::db::po::{Ani, AniDto, AniIResult, AniWatch, AniWatchHistory};
 
 pub fn ge_db_pool(pool: &SqlitePool) -> &SqlitePool { pool }
 
@@ -43,51 +43,22 @@ pub async fn save_ani_item_data(state: State<'_, AppState>, ani_data: AniItemRes
 }
 
 #[tauri::command]
-pub async fn watch_ani_item(
-    state: State<'_, AppState>,
-    ani_id: i64
-) -> Result<String, String> {
+pub async fn watch_ani_item(state: State<'_, AppState>, ani_id: i64) -> Result<String, String> {
     // 1. 打开数据库
     let pool = ge_db_pool(&state.db);
     let today_date = get_today_slash();
-    let today_ts = parse_date_to_millis(&today_date, true)
-        .map_err(|e| format!("时间解析失败: {}", e))?;
-    // 3. 执行更新
-    // 开启事务
-    //let mut tx = pool.begin().await.map_err(|e| e.to_string())?;
-    // 更新ani_item表中的watched状态
-    sqlx::query(
-        r#"
-            INSERT INTO ani_watch_history (
-                user_id,
-                ani_item_id,
-                watched_time
-            ) VALUES (?, ?, ?)
-            ON CONFLICT(user_id, ani_item_id) DO UPDATE SET
-                watched_time = excluded.watched_time
-        "#,
-       )
-        .bind("")  // 用户ID，暂时留空
-        .bind(&ani_id)
-        .bind(today_ts)  // 当前时间
-        .execute(pool)
-        .await
-        .map_err(|e| format!("插入或更新失败: {}", e))?;
-/*    // 更新ani_collect表中的watched状态
-    sqlx::query("UPDATE ani_collect SET watched = 1 WHERE ani_item_id = ?")
-        .bind(ani_id)
-        .execute(&mut *tx)
-        .await
-        .map_err(|e| format!("插入或更新失败: {}", e))?;*/
-    // 提交事务
-    //tx.commit().await.map_err(|e| e.to_string())?;
+    let ani_watch = AniWatch{
+        user_id: "".to_string(), // 用户ID，暂时留空
+        ani_item_id: ani_id,
+        watched_time: today_date,
+    };
+    upsert_ani_watch_history(&pool, &ani_watch).await.map_err(|e| format!("错误: {}", e))?;
     info!("标记 watched: id = {}", ani_id);
     // 4. 返回统一的 JSON 字符串
     Ok(json!({
         "status":  "ok",
         "message": "remove success"
-    })
-        .to_string())
+    }).to_string())
 }
 
 #[tauri::command]
