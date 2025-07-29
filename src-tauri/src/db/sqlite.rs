@@ -300,28 +300,20 @@ pub async fn list_all_ani_collect<>(pool: &SqlitePool) -> Result<Vec<AniCollect>
 /// 查询所有今日更新的动漫
 pub async fn list_all_ani_update_today<>(pool: &SqlitePool, today_ts: i64) -> Result<Vec<Ani>> {
     // 构造带绑定参数的 QueryAs
-    let sql = sqlx::query_as::<_, Ani>(
-        r#"
-                SELECT
-                    ai.id,
-                    ai.title,
-                    ai.update_count,
-                    ai.update_info,
-                    ai.image_url,
-                    ai.detail_url,
-                    ai.update_time,
-                    ai.platform
+    let sql = sqlx::query_as::<_, Ani>(r#"
+                SELECT ai.id,
+                       ai.title,
+                       ai.update_count,
+                       ai.update_info,
+                       ai.image_url,
+                       ai.detail_url,
+                       ai.update_time,
+                       ai.platform
                 FROM ani_info ai
-                WHERE
-                    ai.update_time = ?
-                  AND EXISTS (
-                      SELECT 1
-                      FROM ani_collect ac
-                      WHERE ac.ani_title = ai.title
-                        AND ac.is_watched = 0
-                );
+                WHERE ai.update_time >= ?
            ;"#,
-    ).bind(today_ts);
+        )
+        .bind(&today_ts);
     // 调用通用的 run_query
     let list = run_query(pool, sql).await?;
     Ok(list)
