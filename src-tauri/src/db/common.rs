@@ -1,9 +1,9 @@
+use anyhow::Result;
 use sqlx::{
     query::QueryAs,
     sqlite::{SqliteArguments, SqliteRow},
     FromRow, Sqlite, SqlitePool,
 };
-use anyhow::{Result, Context};
 
 /// 通用查询：接收一个已经 bind 好参数的 `QueryAs`，执行并返回 Vec<T>
 pub async fn run_query<'q, T>(
@@ -13,7 +13,10 @@ pub async fn run_query<'q, T>(
     let rows = query
         .fetch_all(pool)
         .await
-        .context("执行查询失败")?;
+        .map_err(|e| {
+            anyhow::anyhow!(
+            "query error: {:?}" ,e)
+        })?;
     Ok(rows)
 }
 
