@@ -1,0 +1,3 @@
+[build]
+# 相对于该文件所在目录
+target-dir = "target"
