@@ -7,7 +7,7 @@ pub mod sqlite;
 pub mod po;
 pub mod common;
 
-use crate::db::sqlite::{upsert_ani_info, upsert_ani_watch_history};
+use crate::db::sqlite::{list_all_ani_update_today, upsert_ani_info, upsert_ani_watch_history};
 use crate::platforms::{AniItemResult};
 use crate::utils::date_utils::{get_today_weekday, parse_date_to_millis, get_today_slash};
 use tauri::{State};
@@ -64,6 +64,8 @@ pub async fn watch_ani_item(state: State<'_, AppState>, ani_id: i64) -> Result<S
     }).to_string())
 }
 
+
+/// 查询今天更新的动漫列表
 #[tauri::command]
 pub async fn query_today_update_ani_list(state: State<'_, AppState>) -> Result<AniIResult, String> {
     let pool = ge_db_pool(&state.db);
@@ -72,23 +74,9 @@ pub async fn query_today_update_ani_list(state: State<'_, AppState>) -> Result<A
     let today_ts = parse_date_to_millis(&today_date, true)
         .map_err(|e| format!("时间解析失败: {}", e))?;
     // 查询当前更新的动漫
-    let ani_items = sqlx::query_as::<_, Ani>(r#"
-                SELECT ai.id,
-                       ai.title,
-                       ai.update_count,
-                       ai.update_info,
-                       ai.image_url,
-                       ai.detail_url,
-                       ai.update_time,
-                       ai.platform
-                FROM ani_info ai
-                WHERE ai.update_time >= ?
-           ;"#,
-        )
-        .bind(&today_ts)
-        .fetch_all(pool)
+    let ani_items = list_all_ani_update_today(pool, today_ts)
         .await
-        .map_err(|e| format!("查询错误: {}", e))?;
+        .map_err(|e| format!("{}", e))?;
     let ani_dtos: Vec<AniDto> = ani_items.into_iter().map(AniDto::from).collect();
     let weekday = get_today_weekday().name_cn.to_string();
     let mut result: AniIResult = HashMap::new();
@@ -97,6 +85,7 @@ pub async fn query_today_update_ani_list(state: State<'_, AppState>) -> Result<A
 }
 
 
+/// 查询今天已经观看的动漫列表
 #[tauri::command]
 pub async fn query_watched_ani_item_list(state: State<'_, AppState>) -> Result<Vec<AniWatchHistory>, String> {
     let pool = ge_db_pool(&state.db);
