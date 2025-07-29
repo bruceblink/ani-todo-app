@@ -474,7 +474,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_db_delete() {
+    async fn test_db_delete_ani_info() {
         // 获取数据库连接池
         let pool = SqlitePool::connect("sqlite::memory:").await.unwrap();
         let _ = init_test_table_data(&pool).await;
