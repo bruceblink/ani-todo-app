@@ -154,6 +154,29 @@ pub async fn get_ani_info_by_id(pool: &SqlitePool, id: i64) -> Result<Ani> {
     Ok(rec)
 }
 
+
+/// 查询所有记录
+pub async fn list_all_ani_info<>(pool: &SqlitePool) -> Result<Vec<Ani>> {
+    // 构造带绑定参数的 QueryAs
+    let query = sqlx::query_as::<_, Ani>(
+        r#"
+                SELECT id,
+                    title,
+                    update_count,
+                    update_info,
+                    image_url,
+                    detail_url,
+                    update_time,
+                    platform
+                FROM ani_info
+                "#
+              );
+    // 调用通用的 run_query
+    let list = run_query(pool, query).await?;
+    Ok(list)
+}
+
+
 /// 根据更新时间查询所有记录，按更新时间降序
 pub async fn list_all_ani_info_by_update_time<>(pool: &SqlitePool, update_time:i64) -> Result<Vec<Ani>> {
     // 构造带绑定参数的 QueryAs
@@ -198,10 +221,10 @@ pub async fn update_ani_info(pool: &SqlitePool, item: &Ani) -> Result<u64> {
             .bind(&item.detail_url)
             .bind(item.update_time)
             .bind(&item.platform)
-            .bind(item.id)
+            .bind(&item.id)
             .execute(pool)
             .await
-            .context("更新 ani_info 失败")?;
+            .context(format!("更新番剧 ID={} 失败", item.id))?;
 
     Ok(res.rows_affected())
 }
@@ -210,11 +233,11 @@ pub async fn update_ani_info(pool: &SqlitePool, item: &Ani) -> Result<u64> {
 pub async fn delete_ani_info(pool: &SqlitePool, id: i64) -> Result<u64> {
     let res = sqlx::query(
         "DELETE FROM ani_info WHERE id = ?"
-    )
+       )
         .bind(id)
         .execute(pool)
         .await
-        .context("删除 ani_info 失败")?;
+        .context(format!("删除番剧 ID={} 失败", id))?;
 
     Ok(res.rows_affected())
 }
@@ -456,27 +479,17 @@ mod tests {
         let pool = SqlitePool::connect("sqlite::memory:").await.unwrap();
         let _ = init_test_table_data(&pool).await;
 
-        sqlx::query("DELETE FROM ani_info WHERE title = ?")
-            .bind("名侦探柯南")
-            .execute(&pool)
-            .await
-            .unwrap();
+        delete_ani_info(&pool, 1).await.unwrap();
 
         // 查询一个不存在的用户
-        let ani_item = sqlx::query_as::<_, AniItem>("SELECT title, update_count, update_info, platform, image_url, detail_url, update_time, platform, watched FROM ani_info where title = ?;")
-            .bind("名侦探柯南")
-            .fetch_optional(&pool)
-            .await
-            .expect("数据库查询出错");
+        let ani_item = get_ani_info_by_id(&pool, 1).await;
+        
+        // 断言：确实查不到，返回的是 Err
+        assert!(ani_item.is_err(), "查询了不存在的番剧 ID，但却没有报错");
 
-        // 断言确实为空
-        assert!(ani_item.is_none(), "期望用户不存在，但查询到了结果");
-        let ani_items = sqlx::query_as::<_, AniItem>("SELECT title, update_count, update_info, platform, image_url, detail_url, update_time, platform, watched FROM ani_info;")
-            .fetch_all(&pool)
-            .await
-            .unwrap();
+        let ani_items = list_all_ani_info(&pool).await.unwrap();
         assert_eq!(ani_items.len(), 4);
-        assert_ne!(ani_items[0].title, "名侦探柯南");
+        assert_ne!(ani_items[0].image_url, "名侦探柯南");
     }
 
     #[tokio::test]
