@@ -129,7 +129,10 @@ pub async fn upsert_ani_info(pool: &SqlitePool, item: &AniItem) -> Result<()> {
         .bind(&item.platform)
         .execute(pool)
         .await
-        .context(format!("插入或更新 ani_info: {:?}失败", item))?;
+        .map_err(|e| {
+            anyhow::anyhow!("插入或更新 ani_info {:?} 失败: {}",item,e)
+            }
+        )?;
 
     Ok(())
 }
