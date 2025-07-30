@@ -14,6 +14,7 @@ use crate::platforms::{fetch_bilibili_ani_data, fetch_bilibili_image};
 use chrono::Local;
 use std::fmt;
 use std::sync::Arc;
+use log::info;
 use tauri::async_runtime::block_on;
 use tauri::Manager;
 use tauri_plugin_log::fern;
@@ -23,12 +24,7 @@ use crate::db::common::AppState;
 pub fn run() {
     tauri::Builder::default()
         .setup(|app| {
-            let handle = app.handle();
-            // 同步执行数据库初始化
-            let pool = block_on(init_and_migrate_db(&handle))?;
-            // 注入全局状态
-            handle.manage(AppState { db: Arc::new(pool) });
-            log::info!("数据库初始化完成并已注入状态");
+
             if cfg!(debug_assertions) {
                 // 自定义日志格式（使用本地时区）
                 let format = move |out: fern::FormatCallback,
@@ -49,7 +45,14 @@ pub fn run() {
                         .format(format) // 应用自定义格式
                         .build(),
                 )?;
+                info!("日志组件已经初始化完成");
             }
+            let handle = app.handle();
+            // 同步执行数据库初始化
+            let pool = block_on(init_and_migrate_db(&handle))?;
+            // 注入全局状态
+            handle.manage(AppState { db: Arc::new(pool) });
+            info!("数据库连接池已注入全局状态");
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![

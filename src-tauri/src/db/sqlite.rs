@@ -50,7 +50,7 @@ pub async fn init_and_migrate_db(app: &AppHandle) -> Result<Pool<Sqlite>> {
     // 运行迁移
     MIGRATOR.run(&pool).await.context("数据库迁移或初始化失败!")?;
 
-    info!("数据库初始化成功!");
+    info!("数据库初始化成功");
     Ok(pool)
 }
 
@@ -73,7 +73,7 @@ pub async fn creat_database_connection_pool(db_path: String) -> Result<Pool<Sqli
         .connect_with(connect_options)
         .await
         .with_context(|| format!("无法连接数据库: {}", db_path));
-    info!("获取数据库连接池初成功!");
+    info!("获取数据库连接池成功");
     pool
 }
 
