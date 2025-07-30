@@ -7,7 +7,7 @@ pub mod sqlite;
 pub mod po;
 pub mod common;
 
-use crate::db::sqlite::{list_all_ani_update_today, upsert_ani_info, upsert_ani_watch_history};
+use crate::db::sqlite::{list_all_ani_update_today, list_all_follow_ani_update_today, upsert_ani_info, upsert_ani_watch_history};
 use crate::platforms::{AniItemResult};
 use crate::utils::date_utils::{get_today_weekday, parse_date_to_millis, get_today_slash};
 use tauri::{State};
@@ -126,30 +126,7 @@ pub async fn query_favorite_ani_update_list(state: State<'_, AppState> ) -> Resu
     let today_date = get_today_slash();
     let today_ts = parse_date_to_millis(&today_date, true)
         .map_err(|e| format!("时间解析失败: {}", e))?;
-    let ani_collectors = sqlx::query_as::<_, Ani>(
-        r#"
-                SELECT
-                    ai.id,
-                    ai.title,
-                    ai.update_count,
-                    ai.update_info,
-                    ai.image_url,
-                    ai.detail_url,
-                    ai.update_time,
-                    ai.platform
-                FROM ani_info ai
-                WHERE
-                    ai.update_time = ?
-                  AND EXISTS (
-                      SELECT 1
-                      FROM ani_collect ac
-                      WHERE ac.ani_title = ai.title
-                        AND ac.is_watched = 0
-                );
-           ;"#,
-        )
-        .bind(today_ts)
-        .fetch_all(pool)
+    let ani_collectors = list_all_follow_ani_update_today(pool, today_ts)
         .await
         .map_err(|e| format!("查询错误: {}", e))?;
     debug!("获取所有关注的动漫：{:?}", ani_collectors);

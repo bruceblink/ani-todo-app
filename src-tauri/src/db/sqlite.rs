@@ -349,6 +349,36 @@ pub async fn upsert_ani_watch_history(pool: &SqlitePool, item: &AniWatch) -> Res
     Ok(())
 }
 
+/// 查询所有关注的动漫今日的更新
+pub async fn list_all_follow_ani_update_today<>(pool: &SqlitePool, today_ts: i64) -> Result<Vec<Ani>> {
+    // 构造带绑定参数的 QueryAs
+    let sql = sqlx::query_as::<_, Ani>(
+        r#"
+                SELECT
+                    ai.id,
+                    ai.title,
+                    ai.update_count,
+                    ai.update_info,
+                    ai.image_url,
+                    ai.detail_url,
+                    ai.update_time,
+                    ai.platform
+                FROM ani_info ai
+                WHERE
+                    ai.update_time = ?
+                  AND EXISTS (
+                      SELECT 1
+                      FROM ani_collect ac
+                      WHERE ac.ani_title = ai.title
+                        AND ac.is_watched = 0
+                );
+           ;"#,
+         )
+        .bind(today_ts);
+    // 调用通用的 run_query
+    let list = run_query(pool, sql).await?;
+    Ok(list)
+}
 
 #[cfg(test)]
 mod tests {
