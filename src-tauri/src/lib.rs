@@ -52,7 +52,7 @@ pub fn run() {
             let pool = block_on(init_and_migrate_db(&handle))?;
             // 注入全局状态
             handle.manage(AppState { db: Arc::new(pool) });
-            info!("数据库连接池已注入全局状态");
+            info!("数据库连接池已注册到全局状态");
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
