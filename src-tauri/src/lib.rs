@@ -2,9 +2,9 @@ pub mod configuration;
 pub mod db;
 pub mod platforms;
 pub mod utils;
+pub mod command;
 
 use crate::db::sqlite::{init_and_migrate_db};
-use crate::db::{cancel_collect_ani_item, collect_ani_item, query_favorite_ani_update_list, query_watched_ani_item_list, query_today_update_ani_list, watch_ani_item, save_ani_item_data};
 use crate::platforms::agedm::{fetch_agedm_ani_data, fetch_agedm_image};
 use crate::platforms::iqiyi::{fetch_iqiyi_ani_data, fetch_iqiyi_image};
 use crate::platforms::mikanani::{fetch_mikanani_ani_data, fetch_mikanani_image};
@@ -18,6 +18,7 @@ use log::info;
 use tauri::async_runtime::block_on;
 use tauri::Manager;
 use tauri_plugin_log::fern;
+use crate::command::service::{cancel_collect_ani_item, collect_ani_item, query_favorite_ani_update_list, query_today_update_ani_list, query_watched_ani_item_list, save_ani_item_data, watch_ani_item};
 use crate::db::common::AppState;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
