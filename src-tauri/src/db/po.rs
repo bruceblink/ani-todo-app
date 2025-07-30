@@ -35,7 +35,7 @@ pub struct AniWatchHistory {
     pub watched_time: i64,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct AniDto {
     pub id: i64,
     pub title: String,

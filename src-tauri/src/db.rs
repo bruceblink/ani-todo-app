@@ -1,4 +1,4 @@
-use log::info;
+use log::{debug};
 use serde_json::json;
 use sqlx::{SqlitePool};
 use std::collections::HashMap;
@@ -35,7 +35,7 @@ pub async fn save_ani_item_data(state: State<'_, AppState>, ani_data: AniItemRes
     for item in ani_items {
         upsert_ani_info(&pool, &item).await.map_err(|e| format!("{}", e))?;
     }
-
+    debug!("所有今天更新的动漫：{:?} 已经更新到数据库", ani_items);
     Ok(json!({
         "status": "ok",
         "message": "save success"
@@ -56,7 +56,7 @@ pub async fn watch_ani_item(state: State<'_, AppState>, ani_id: i64) -> Result<S
         watched_time: today_date,
     };
     upsert_ani_watch_history(&pool, &ani_watch).await.map_err(|e| format!("{}", e))?;
-    info!("标记 watched: id = {}", ani_id);
+    debug!("动漫: id = {} 已经更新到数据库", ani_id);
     // 4. 返回统一的 JSON 字符串
     Ok(json!({
         "status":  "ok",
@@ -80,7 +80,8 @@ pub async fn query_today_update_ani_list(state: State<'_, AppState>) -> Result<A
     let ani_dtos: Vec<AniDto> = ani_items.into_iter().map(AniDto::from).collect();
     let weekday = get_today_weekday().name_cn.to_string();
     let mut result: AniIResult = HashMap::new();
-    result.insert(weekday, ani_dtos);
+    result.insert(weekday, ani_dtos.clone());
+    debug!("获取所有今天更新的动漫：{:?}", ani_dtos);
     Ok(result)
 }
 
@@ -112,7 +113,7 @@ pub async fn query_watched_ani_item_list(state: State<'_, AppState>) -> Result<V
         .fetch_all(pool)
         .await
         .map_err(|e| format!("查询错误: {}", e))?;
-    
+    debug!("获取所有今天已经观看过的动漫：{:?}", ani_items);
     Ok(ani_items)
 }
 
@@ -151,7 +152,7 @@ pub async fn query_favorite_ani_update_list(state: State<'_, AppState> ) -> Resu
         .fetch_all(pool)
         .await
         .map_err(|e| format!("查询错误: {}", e))?;
-
+    debug!("获取所有关注的动漫：{:?}", ani_collectors);
     Ok(ani_collectors)
 }
 
@@ -185,7 +186,7 @@ pub async fn collect_ani_item(state: State<'_, AppState>, ani_id: i64, ani_title
     .await
     .map_err(|e| format!("插入或更新失败: {}", e))?;
 
-    info!("动漫《{}》标记为collected", ani_title);
+    debug!("动漫《{}》标记为collected", ani_title);
     // 4. 返回统一的 JSON 字符串
     Ok(json!({
         "status":  "ok",
@@ -214,7 +215,7 @@ pub async fn cancel_collect_ani_item(state: State<'_, AppState>, ani_id: i64, an
     // 提交事务
     tx.commit().await.map_err(|e| e.to_string())?;
 
-    info!("动漫《{}》ani_id = {}标记为 取消collected", ani_title, ani_id);
+    debug!("动漫《{}》ani_id = {}标记为 取消collected", ani_title, ani_id);
     // 4. 返回统一的 JSON 字符串
     Ok(json!({
         "status":  "ok",
@@ -241,7 +242,7 @@ pub async fn update_collected_ani_item(state: State<'_, AppState>, ani_id: i64, 
     // 提交事务
     tx.commit().await.map_err(|e| e.to_string())?;
 
-    info!("动漫《{}》ani_id = {}标记为已观看", ani_title, ani_id);
+    debug!("动漫《{}》ani_id = {}标记为已观看", ani_title, ani_id);
     // 4. 返回统一的 JSON 字符串
     Ok(json!({
         "status":  "ok",
