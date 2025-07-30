@@ -278,6 +278,23 @@ pub async fn upsert_ani_collect(pool: &SqlitePool, item: &AniColl) -> Result<i64
     Ok(res.last_insert_rowid())
 }
 
+/// 删除指定的动漫收藏
+pub async fn delete_ani_collect(pool: &SqlitePool, ani_id: i64, ani_title: String) -> Result<u64> {
+    let res = sqlx::query(
+        r#"DELETE FROM ani_collect
+                      WHERE
+                            ani_item_id = ? OR
+                            ani_title = ?
+                  ;"#)
+        .bind(&ani_id)
+        .bind(&ani_title)
+        .execute(pool)
+        .await
+        .context(format!("删除番剧收藏 ani_id={} ani_title ={}失败", ani_id, ani_title))?;
+
+    Ok(res.rows_affected())
+}
+
 /// 查询所有关注的动漫列表
 pub async fn list_all_ani_collect<>(pool: &SqlitePool) -> Result<Vec<AniCollect>> {
     // 构造带绑定参数的 QueryAs
