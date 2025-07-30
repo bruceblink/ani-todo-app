@@ -169,35 +169,8 @@ pub async fn cancel_collect_ani_item(state: State<'_, AppState>, ani_id: i64, an
     delete_ani_collect(pool, ani_id, ani_title.clone())
         .await
         .map_err(|e| format!("删除失败: {}", e))?;
-    
+
     debug!("动漫《{}》ani_id = {}标记为 取消collected", ani_title, ani_id);
-    // 4. 返回统一的 JSON 字符串
-    Ok(json!({
-        "status":  "ok",
-        "message": "cancel success"
-    }).to_string())
-}
-
-/// 更新动漫关注状态为已观看
-#[tauri::command]
-pub async fn update_collected_ani_item(state: State<'_, AppState>, ani_id: i64, ani_title: String) -> Result<String, String> {
-    // 1. 打开数据库
-    let pool = ge_db_pool(&state.db);
-    // 开启事务
-    let mut tx = pool.begin().await.map_err(|e| e.to_string())?;
-    // 更新ani_collect表中的记录
-    sqlx::query(r#" UPDATE ani_collect
-                        SET is_watched = 1
-                        WHERE ani_item_id = ?
-                        "#)
-        .bind(&ani_id)
-        .execute(&mut *tx) // ⭐️ 显式解引用
-        .await
-        .map_err(|e| format!("删除失败: {}", e))?;
-    // 提交事务
-    tx.commit().await.map_err(|e| e.to_string())?;
-
-    debug!("动漫《{}》ani_id = {}标记为已观看", ani_title, ani_id);
     // 4. 返回统一的 JSON 字符串
     Ok(json!({
         "status":  "ok",

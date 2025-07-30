@@ -4,7 +4,7 @@ pub mod platforms;
 pub mod utils;
 
 use crate::db::sqlite::{init_and_migrate_db};
-use crate::db::{cancel_collect_ani_item, collect_ani_item, query_favorite_ani_update_list, query_watched_ani_item_list, query_today_update_ani_list, watch_ani_item, save_ani_item_data, update_collected_ani_item};
+use crate::db::{cancel_collect_ani_item, collect_ani_item, query_favorite_ani_update_list, query_watched_ani_item_list, query_today_update_ani_list, watch_ani_item, save_ani_item_data};
 use crate::platforms::agedm::{fetch_agedm_ani_data, fetch_agedm_image};
 use crate::platforms::iqiyi::{fetch_iqiyi_ani_data, fetch_iqiyi_image};
 use crate::platforms::mikanani::{fetch_mikanani_ani_data, fetch_mikanani_image};
@@ -75,7 +75,6 @@ pub fn run() {
             query_favorite_ani_update_list,
             collect_ani_item,
             cancel_collect_ani_item,
-            update_collected_ani_item,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
