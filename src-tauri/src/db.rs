@@ -7,12 +7,12 @@ pub mod sqlite;
 pub mod po;
 pub mod common;
 
-use crate::db::sqlite::{list_all_ani_update_today, list_all_follow_ani_update_today, upsert_ani_info, upsert_ani_watch_history};
+use crate::db::sqlite::{list_all_ani_update_today, list_all_follow_ani_update_today, upsert_ani_collect, upsert_ani_info, upsert_ani_watch_history};
 use crate::platforms::{AniItemResult};
 use crate::utils::date_utils::{get_today_weekday, parse_date_to_millis, get_today_slash};
 use tauri::{State};
 use crate::db::common::AppState;
-use crate::db::po::{Ani, AniDto, AniIResult, AniWatch, AniWatchHistory};
+use crate::db::po::{Ani, AniColl, AniDto, AniIResult, AniWatch, AniWatchHistory};
 
 pub fn ge_db_pool(pool: &SqlitePool) -> &SqlitePool { pool }
 
@@ -140,28 +140,17 @@ pub async fn collect_ani_item(state: State<'_, AppState>, ani_id: i64, ani_title
     // 1. 打开数据库
     let pool = ge_db_pool(&state.db);
     let today_date = get_today_slash();
-    let today_ts = parse_date_to_millis(&today_date, true)
-        .map_err(|e| format!("时间解析失败: {}", e))?;
-    sqlx::query(
-        r#"
-            INSERT INTO ani_collect (
-                user_id,
-                ani_item_id,
-                ani_title,
-                collect_time
-            ) VALUES (?, ?, ?, ?)
-            ON CONFLICT(user_id, ani_item_id)
-            DO UPDATE SET
-                collect_time = excluded.collect_time
-        "#,
-    )
-    .bind("")  // 用户ID，暂时留空
-    .bind(ani_id)
-    .bind(&ani_title)
-    .bind(today_ts)
-    .execute(pool)
-    .await
-    .map_err(|e| format!("插入或更新失败: {}", e))?;
+    let ani_collect = AniColl {
+        user_id: "".to_string(), // 用户ID，暂时留空
+        ani_item_id: ani_id,
+        ani_title: ani_title.clone(),
+        collect_time: today_date,
+        is_watched: false, // 默认未观看
+    };
+    // 2. 插入或更新ani_collect表中的记录
+    upsert_ani_collect(pool, &ani_collect)
+        .await
+        .map_err(|e| format!("插入或更新失败: {}", e))?;
 
     debug!("动漫《{}》标记为collected", ani_title);
     // 4. 返回统一的 JSON 字符串
