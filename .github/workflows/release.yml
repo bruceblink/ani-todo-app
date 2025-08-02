@@ -1,0 +1,177 @@
+name: Release and Publish
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+\.[0-9]+\.[0-9]+'
+  workflow_dispatch:
+    inputs:
+      version_tag:
+        description: 'Release tag (e.g., v1.2.3)'
+        required: true
+
+permissions:
+  contents: write
+  packages: write
+
+env:
+  # ttauri-bundler 需要的环境变量，可根据项目调整
+  TAURI_PLATFORM: ${{ matrix.os }}
+
+jobs:
+  extract-version:
+    name: Extract Version
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.set-version.outputs.version }}
+    steps:
+      - name: Determine version tag
+        id: set-version
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            TAG="${{ github.event.inputs.version_tag }}"
+          else
+            TAG="${GITHUB_REF#refs/tags/}"
+          fi
+          if [[ ! "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Invalid version format: $TAG. Expected vX.Y.Z"
+            exit 1
+          fi
+          echo "version=$TAG" >> $GITHUB_OUTPUT
+
+  changelog:
+    name: Generate Changelog
+    runs-on: ubuntu-latest
+    needs: extract-version
+    outputs:
+      body: ${{ steps.gen.outputs.changelog_body }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Fetch all tags
+        run: git fetch --tags --force
+      - id: gen
+        run: |
+          PREV_TAG=$(git describe --tags --abbrev=0 "${{ needs.extract-version.outputs.version }}^" 2>/dev/null || echo "")
+          if [ -z "$PREV_TAG" ]; then
+            echo "changelog_body=首次发布，无变更日志" >> $GITHUB_OUTPUT
+          else
+            RANGE="${PREV_TAG}..${{ needs.extract-version.outputs.version }}"
+            if [ -f .github/changelog-include-prefixes.txt ] && [ -s .github/changelog-include-prefixes.txt ]; then
+              PREFIXES=$(paste -sd '|' .github/changelog-include-prefixes.txt)
+              LOG=$(git log $RANGE --pretty=format:"- %h %s" | grep -E "($PREFIXES):" || true)
+            else
+              LOG=$(git log $RANGE --pretty=format:"- %h %s")
+            fi
+            BODY="## Changelog (${PREV_TAG} → ${{ needs.extract-version.outputs.version }})\n\n$LOG"
+            echo -e "changelog_body<<EOF\n$BODY\nEOF" >> $GITHUB_OUTPUT
+          fi
+
+  build:
+    name: Build Tauri App (matrix)
+    needs: extract-version
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          components: rustfmt, clippy
+
+      - name: Cache Cargo
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Install Node.js & Yarn (for Tauri frontend)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      - run: yarn install --frozen-lockfile
+
+      - name: Build Tauri (release)
+        run: |
+          # 构建前端
+          yarn build
+          # 构建 Tauri 装载器
+          cargo tauri build --release
+
+      - name: Collect artifacts
+        run: |
+          mkdir -p release-assets/${{ matrix.os }}
+          # 假设 tauri 输出在 src-tauri/target/release/bundle
+          cp src-tauri/target/release/bundle/* release-assets/${{ matrix.os }}/
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: app-${{ matrix.os }}
+          path: release-assets/${{ matrix.os }}
+
+  publish:
+    name: Create GitHub Release & Upload Assets
+    needs: [changelog, build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ needs.extract-version.outputs.version }}
+          name: Release ${{ needs.extract-version.outputs.version }}
+          body: ${{ needs.changelog.outputs.body }}
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download and Upload Assets
+        uses: actions/download-artifact@v3
+        with:
+          name: app-ubuntu-latest
+          path: assets/ubuntu
+      - uses: actions/download-artifact@v3
+        with:
+          name: app-macos-latest
+          path: assets/macos
+      - uses: actions/download-artifact@v3
+        with:
+          name: app-windows-latest
+          path: assets/windows
+
+      - name: Upload Ubuntu package
+        uses: softprops/action-gh-release@v1
+        with:
+          files: assets/ubuntu/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload macOS package
+        uses: softprops/action-gh-release@v1
+        with:
+          files: assets/macos/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Windows package
+        uses: softprops/action-gh-release@v1
+        with:
+          files: assets/windows/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
