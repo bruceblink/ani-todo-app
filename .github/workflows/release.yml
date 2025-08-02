@@ -113,12 +113,21 @@ jobs:
         # 会自动运行 beforeBuildCommand pnpm build
         shell: bash
 
-      - name: Collect artifacts
+      - name: Collect artifacts (Unix)
+        if: matrix.os != 'windows-latest'
         run: |
           mkdir -p release-assets/${{ matrix.os }}
-          cp target/release/bundle/msi/*.msi release-assets/${{ matrix.os }}/
-          cp target/release/bundle/nsis/*.exe release-assets/${{ matrix.os }}/
+          cp -R target/release/bundle/* release-assets/${{ matrix.os }}/
         shell: bash
+
+      - name: Collect artifacts (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          # 创建目标目录
+          New-Item -ItemType Directory -Force -Path release-assets\${{ matrix.os }}
+          # 递归拷贝 bundle 下所有文件
+          Copy-Item target\release\bundle\* -Destination release-assets\${{ matrix.os }} -Recurse
+        shell: pwsh
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v3
