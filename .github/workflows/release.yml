@@ -167,7 +167,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ needs.extract-version.outputs.version }}
-          name: Release ${{ needs.extract-version.outputs.version }}
+          name: ${{ needs.extract-version.outputs.version }}
           body: ${{ needs.changelog.outputs.body }}
           draft: false
           prerelease: false
