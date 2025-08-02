@@ -85,6 +85,9 @@ jobs:
           toolchain: stable
           components: rustfmt, clippy
 
+      - name: Install Tauri CLI
+        run: cargo install tauri-cli
+
       - name: Cache Cargo
         uses: actions/cache@v3
         with:
