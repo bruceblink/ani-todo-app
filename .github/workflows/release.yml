@@ -14,11 +14,8 @@ permissions:
   contents: write
   packages: write
 
-env:
-  # ttauri-bundler 需要的环境变量，可根据项目调整
-  TAURI_PLATFORM: ${{ matrix.os }}
-
 jobs:
+  # 解析并校验版本号
   extract-version:
     name: Extract Version
     runs-on: ubuntu-latest
@@ -39,6 +36,7 @@ jobs:
           fi
           echo "version=$TAG" >> $GITHUB_OUTPUT
 
+  # 生成变更日志
   changelog:
     name: Generate Changelog
     runs-on: ubuntu-latest
@@ -58,7 +56,7 @@ jobs:
             echo "changelog_body=首次发布，无变更日志" >> $GITHUB_OUTPUT
           else
             RANGE="${PREV_TAG}..${{ needs.extract-version.outputs.version }}"
-            if [ -f .github/changelog-include-prefixes.txt ] && [ -s .github/changelog-include-prefixes.txt ]; then
+            if [ -s .github/changelog-include-prefixes.txt ]; then
               PREFIXES=$(paste -sd '|' .github/changelog-include-prefixes.txt)
               LOG=$(git log $RANGE --pretty=format:"- %h %s" | grep -E "($PREFIXES):" || true)
             else
@@ -68,8 +66,9 @@ jobs:
             echo -e "changelog_body<<EOF\n$BODY\nEOF" >> $GITHUB_OUTPUT
           fi
 
+  # 并行打包三大平台，利用 cargo tauri build 自动触发 pnpm build
   build:
-    name: Build Tauri App (matrix)
+    name: Build Tauri App (${{ matrix.os }})
     needs: extract-version
     runs-on: ${{ matrix.os }}
     strategy:
@@ -80,7 +79,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Install Rust
+      - name: Setup Rust toolchain
         uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
@@ -95,24 +94,31 @@ jobs:
             target
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
-      - name: Install Node.js & Yarn (for Tauri frontend)
+      - name: Setup Node.js & pnpm cache
         uses: actions/setup-node@v4
         with:
           node-version: '18'
-      - run: yarn install --frozen-lockfile
+          cache: 'pnpm'
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+        shell: bash
+
+      - name: Install frontend dependencies
+        run: pnpm install --frozen-lockfile
+        shell: bash
 
       - name: Build Tauri (release)
-        run: |
-          # 构建前端
-          yarn build
-          # 构建 Tauri 装载器
-          cargo tauri build --release
+        run: cargo tauri build
+        # 会自动运行 beforeBuildCommand pnpm build
+        shell: bash
 
       - name: Collect artifacts
         run: |
           mkdir -p release-assets/${{ matrix.os }}
-          # 假设 tauri 输出在 src-tauri/target/release/bundle
-          cp src-tauri/target/release/bundle/* release-assets/${{ matrix.os }}/
+          cp target/release/bundle/msi/*.msi release-assets/${{ matrix.os }}/
+          cp target/release/bundle/nsis/*.exe release-assets/${{ matrix.os }}/
+        shell: bash
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v3
@@ -120,13 +126,13 @@ jobs:
           name: app-${{ matrix.os }}
           path: release-assets/${{ matrix.os }}
 
+  # 创建 Release 并上传各平台资产
   publish:
     name: Create GitHub Release & Upload Assets
-    needs: [changelog, build]
+    needs: [extract-version, changelog, build]
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -141,37 +147,40 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Download and Upload Assets
+      - name: Download Ubuntu artifact
         uses: actions/download-artifact@v3
         with:
           name: app-ubuntu-latest
           path: assets/ubuntu
-      - uses: actions/download-artifact@v3
+      - name: Download macOS artifact
+        uses: actions/download-artifact@v3
         with:
           name: app-macos-latest
           path: assets/macos
-      - uses: actions/download-artifact@v3
+      - name: Download Windows artifact
+        uses: actions/download-artifact@v3
         with:
           name: app-windows-latest
           path: assets/windows
 
-      - name: Upload Ubuntu package
+      - name: Upload Ubuntu assets
         uses: softprops/action-gh-release@v1
         with:
+          tag_name: ${{ needs.extract-version.outputs.version }}
           files: assets/ubuntu/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload macOS package
+      - name: Upload macOS assets
         uses: softprops/action-gh-release@v1
         with:
+          tag_name: ${{ needs.extract-version.outputs.version }}
           files: assets/macos/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload Windows package
+      - name: Upload Windows assets
         uses: softprops/action-gh-release@v1
         with:
+          tag_name: ${{ needs.extract-version.outputs.version }}
           files: assets/windows/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
