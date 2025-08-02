@@ -94,24 +94,19 @@ jobs:
             target
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
-      - name: Setup Node.js & pnpm cache
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
-          cache: 'pnpm'
+          node-version: '22'
 
       - name: Install pnpm
         run: npm install -g pnpm
-        shell: bash
 
       - name: Install frontend dependencies
         run: pnpm install --frozen-lockfile
-        shell: bash
 
-      - name: Build Tauri (release)
+      - name: Build frontend & Tauri
         run: cargo tauri build
-        # 会自动运行 beforeBuildCommand pnpm build
-        shell: bash
 
       - name: Collect artifacts (Unix)
         if: matrix.os != 'windows-latest'
