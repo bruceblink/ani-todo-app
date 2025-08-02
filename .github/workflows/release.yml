@@ -174,11 +174,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Download Ubuntu artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: app-ubuntu-latest
-          path: assets/ubuntu
       - name: Download macOS artifact
         uses: actions/download-artifact@v4
         with:
@@ -190,13 +185,6 @@ jobs:
           name: app-windows-latest
           path: assets/windows
 
-      - name: Upload Ubuntu assets
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: ${{ needs.extract-version.outputs.version }}
-          files: assets/ubuntu/*
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Upload macOS assets
         uses: softprops/action-gh-release@v1
         with:
