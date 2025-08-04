@@ -1,4 +1,4 @@
-use crate::db::po::AniWatch;
+use crate::db::po::{AniWatch, AniWatchHistory};
 use crate::db::po::AniColl;
 use crate::db::common::run_query;
 use crate::db::Ani;
@@ -177,6 +177,29 @@ pub async fn list_all_ani_info<>(pool: &SqlitePool) -> Result<Vec<Ani>> {
                 FROM ani_info
                 "#
               );
+    // 调用通用的 run_query
+    let list = run_query(pool, query).await?;
+    Ok(list)
+}
+
+
+/// 查询所有今天观看过的动漫信息
+pub async fn list_all_ani_info_watched_today<>(pool: &SqlitePool, update_time:i64) -> Result<Vec<AniWatchHistory>> {
+    // 构造带绑定参数的 QueryAs
+    let query = sqlx::query_as::<_, AniWatchHistory>(
+        r#"SELECT id,
+                      user_id,
+                      ani_item_id,
+                      watched_time
+                FROM ani_watch_history
+                WHERE
+                    watched_time = ? AND
+                    user_id = ?
+                ORDER BY
+                    watched_time DESC
+           ;"#,
+         ).bind(update_time)
+          .bind(""); // 用户ID，暂时留空
     // 调用通用的 run_query
     let list = run_query(pool, query).await?;
     Ok(list)
