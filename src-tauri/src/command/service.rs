@@ -5,7 +5,7 @@ use tauri::State;
 use crate::command::ApiResponse;
 use crate::db::common::AppState;
 use crate::db::ge_db_pool;
-use crate::db::po::{AniColl, AniDto, AniIResult, AniWatch, AniWatchHistory};
+use crate::db::po::{AniColl, AniDto, AniIResult, AniWatch};
 use crate::db::sqlite::{
     delete_ani_collect,
     list_all_ani_update_today,

@@ -1,13 +1,14 @@
+import {invoke as _invoke} from "@tauri-apps/api/core";
 
-import {invoke} from "@tauri-apps/api/core";
-// 1. 定义所有命令的签名映射
-//   key：Tauri 命令名
-//   value.args：前端调用时传给命令的参数类型
-//   value.result：命令返回给前端的数据类型
 
-/**
- * 后端返回的 Ani 结构体对应的 TypeScript 接口
- */
+/** 后端返回的统一响应格式 */
+export interface ApiResponse<T = unknown> {
+    status: 'ok' | 'error'
+    message?: string
+    data?: T
+}
+
+/** Ani 结构体对应的 TS 接口 */
 export interface Ani {
     id: number;
     title: string;
@@ -35,6 +36,23 @@ export interface AniWatchHistory {
     user_id: number,
     ani_item_id: number,
     watched_time: string,
+}
+
+// 定义所有 抓取数据的命令的类型
+export type FetchCmd =
+    | 'fetch_bilibili_ani_data'
+    | 'fetch_iqiyi_ani_data'
+    | 'fetch_qq_ani_data'
+    | 'fetch_youku_ani_data'
+    | 'fetch_agedm_ani_data'
+
+
+/** 抓取命令的签名映射 */
+type FetchCommandsMap = {
+    [K in FetchCmd]: {
+        args: { url: string }
+        result: Record<string, Ani[]>
+    }
 }
 
 // 数据源描述
@@ -92,57 +110,54 @@ export const dataSources: DataSource[] = [
  * args：前端传参类型；
  * result：命令返回的类型
  */
-export interface ApiCommands {
-    fetch_ani_data: {
-        args: { url?: string }
+export type ApiCommands = FetchCommandsMap & {
+    query_today_update_ani_list: {
+        args: undefined
         result: Record<string, Ani[]>
     }
-    query_today_update_ani_list: {
-        args: { filter?: string }
-        result: Record<string, Ani[]>
-    },
     save_ani_item_data: {
         args: { aniData?: Record<string, Ani[]> }
-        result: Record<string, string>
-    },
+        result: { message: string }
+    }
     query_watched_ani_item_list: {
-        args: {filter?: string}
+        args: undefined
         result: AniWatchHistory[]
-    },
-    watch_ani_item : {
-        args: { aniId?: number }
-        result: Record<string, string>
-    },
+    }
+    watch_ani_item: {
+        args: { aniId: number }
+        result: { message: string }
+    }
     query_favorite_ani_update_list: {
-        args: { filter?: string  }
+        args: undefined
         result: Ani[]
     }
-    collect_ani_item : {
-        args: { aniId?: number, aniTitle: string }
-        result: Record<string, string>
-    },
-    update_collected_ani_item: {
-        args: { aniId?: number, aniTitle: string }
-        result: Record<string, string>
-    },
+    collect_ani_item: {
+        args: { aniId: number; aniTitle: string }
+        result: { message: string }
+    }
+    cancel_collect_ani_item: {
+        args: { aniId: number; aniTitle: string }
+        result: { message: string }
+    }
 }
 
 /**
- * 通用的 invokeApi 函数
- * @param cmd Tauri 命令名（必须为 ApiCommands 的 key）
- * @param args 对应命令的参数
- * @returns 对应命令的返回值
+ * 通用的 invokeApi 函数：
+ *  - 先调用 invoke<ApiResponse<T>>
+ *  - 根据 status 解包 data 或抛出 Error
  */
 export async function invokeApi<K extends keyof ApiCommands>(
-    cmd: K | string,
-    args: ApiCommands[K]["args"]
-): Promise<ApiCommands[K]["result"]> {
-    try {
-        // 只用一个泛型指定返回值类型，命令名由 K 保证安全
-        return await invoke<ApiCommands[K]['result']>(cmd, args)
-    } catch (e) {
-        console.error(`invokeApi ${String(cmd)} failed:`, e)
-        throw e
+    cmd: K,
+    args: ApiCommands[K]['args']
+): Promise<ApiCommands[K]['result']> {
+    const res = await _invoke<ApiResponse<ApiCommands[K]['result']>>(cmd as string, args)
+    if (res.status === 'ok') {
+        // data 一定存在，否则后端逻辑有误
+        console.log(res.data)
+        return res.data as ApiCommands[K]['result']
+    } else {
+        // 业务错误，统一抛出
+        throw new Error(res.message ?? 'Unknown error')
     }
 }
 
@@ -151,17 +166,17 @@ export async function invokeApi<K extends keyof ApiCommands>(
  */
 export const api = {
     /**
-     * 获取指定源的动画数据
-     * @param cmd 命令名
-     * @param url 可选的 URL 参数
-     * */
-    fetchAniData: (cmd: string, url: string) =>
+     * 动态抓取任意数据源
+     * @param cmd 必须是 FetchCmd 之一
+     * @param url 该源对应的请求 URL
+     */
+    fetchAniData: (cmd: FetchCmd, url: string) =>
         invokeApi(cmd, { url }),
     /**
      * 获取今日更新的动漫列表
      * */
     queryTodayUpdateAniList: () =>
-        invokeApi('query_today_update_ani_list', {}),
+        invokeApi('query_today_update_ani_list', undefined),
     /**
      * 保存动画数据
      * */
@@ -171,7 +186,7 @@ export const api = {
      * 查询已观看的动画 ID 列表
      * */
     queryWatchedAniIds: () =>
-        invokeApi('query_watched_ani_item_list', {}),
+        invokeApi('query_watched_ani_item_list', undefined),
     /**
      * 清除动漫(标记为已看)
      * */
@@ -181,7 +196,7 @@ export const api = {
      * 查询关注动漫今日更新的动画列表
      * */
     queryFavoriteUpdateAniList: () =>
-        invokeApi('query_favorite_ani_update_list', {}),
+        invokeApi('query_favorite_ani_update_list', undefined),
     /**
      * 收藏动漫
      */
