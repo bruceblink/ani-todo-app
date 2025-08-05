@@ -9,6 +9,7 @@ use reqwest::header;
 use scraper::{Html, Selector};
 use serde_json::Value;
 use std::collections::HashMap;
+use crate::command::ApiResponse;
 
 /// 全局 HTTP 客户端复用
 fn client() -> Result<reqwest::Client> {
@@ -43,32 +44,55 @@ pub async fn fetch_youku_image(url: String) -> Result<String, String> {
 }
 
 #[tauri::command]
-pub async fn fetch_youku_ani_data(url: String) -> Result<AniItemResult, String> {
+pub async fn fetch_youku_ani_data(url: String) -> Result<ApiResponse<AniItemResult>, String> {
+    // 1. 获取 HTTP 客户端
     let client = client().map_err(|e| e.to_string())?;
+    // 2. 请求页面并读取 HTML
     let html = client
         .get(&url)
-        .header(header::REFERER, "https://www.youku.com/")
+        .header(reqwest::header::REFERER, "https://www.youku.com/")
         .send()
         .await
         .map_err(|e| e.to_string())?
         .text()
         .await
         .map_err(|e| e.to_string())?;
+    debug!("Youku HTML 前200字符: {}", &html[..html.len().min(200)]);
 
-    debug!("HTML 前200字符: {}", &html[..html.len().min(200)]);
-    let data = extract_initial_data(&html).map_err(|e| e.to_string())?;
+    // 3. 提取初始数据
+    let data = match extract_initial_data(&html) {
+        Ok(d) => d,
+        Err(e) => {
+            // 业务层面解析失败，返回 ApiResponse::err
+            return Ok(ApiResponse::err(format!("解析初始数据失败：{}", e)));
+        }
+    };
 
-    let modules = data
-        .get("moduleList")
-        .and_then(Value::as_array)
-        .ok_or_else(|| "缺少 moduleList 数组".to_string())?;
+    // 4. 获取模块列表
+    let modules = match data.get("moduleList").and_then(Value::as_array) {
+        Some(arr) => arr,
+        None => {
+            // 没有找到模块，返回空结果
+            let empty: AniItemResult = AniItemResult::new();
+            return Ok(ApiResponse::ok(empty));
+        }
+    };
 
-    let comics = process_module_list(modules).map_err(|e| e.to_string())?;
+    // 5. 解析模块列表为 AniItem 列表
+    let comics = match process_module_list(modules) {
+        Ok(list) => list,
+        Err(e) => {
+            // 业务层面处理失败，同样返回 ApiResponse::err
+            return Ok(ApiResponse::err(format!("处理模块列表失败：{}", e)));
+        }
+    };
+
     info!("提取到 {} 部今日更新动漫", comics.len());
 
+    // 6. 构造并返回成功结果
     let mut result = AniItemResult::new();
     result.insert(get_today_weekday().name_cn.to_string(), comics);
-    Ok(result)
+    Ok(ApiResponse::ok(result))
 }
 
 /// 提取 Initial Data

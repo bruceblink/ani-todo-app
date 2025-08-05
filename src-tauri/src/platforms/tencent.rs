@@ -10,6 +10,7 @@ use scraper::{Html, Selector};
 use serde_json::Value;
 use std::collections::HashMap;
 use std::error::Error;
+use crate::command::ApiResponse;
 
 #[tauri::command]
 pub async fn fetch_qq_image(url: String) -> Result<String, String> {
@@ -40,7 +41,7 @@ pub async fn fetch_qq_image(url: String) -> Result<String, String> {
 
 /// 获取腾讯视频动漫频道今日更新数据
 #[tauri::command]
-pub async fn fetch_qq_ani_data(url: String) -> Result<AniItemResult, String> {
+pub async fn fetch_qq_ani_data(url: String) -> Result<ApiResponse<AniItemResult>, String> {
     let client = Client::new();
     let resp = client
         .get(&url)
@@ -48,7 +49,10 @@ pub async fn fetch_qq_ani_data(url: String) -> Result<AniItemResult, String> {
         .send()
         .await
         .map_err(|e| e.to_string())?;
-    let text = resp.text().await.map_err(|e| e.to_string())?;
+    let text = resp
+        .text()
+        .await
+        .map_err(|e| e.to_string())?;
     debug!(
         "解析从 腾讯视频 获取到的 HTML，前 200 字符：\n{}",
         &text[..200.min(text.len())]
@@ -65,7 +69,8 @@ pub async fn fetch_qq_ani_data(url: String) -> Result<AniItemResult, String> {
     let daily = find_daily_card(&pinia);
     if daily.is_none() {
         warn!("未找到“每日更新”模块，返回空结果。");
-        return Ok(HashMap::new()) ;
+        let empty: AniItemResult = HashMap::new();
+        return Ok(ApiResponse::ok(empty));
     }
     info!("成功获取腾讯视频动漫追番表数据");
     let daily = daily.unwrap();
@@ -97,8 +102,7 @@ pub async fn fetch_qq_ani_data(url: String) -> Result<AniItemResult, String> {
     info!("成功提取到 {} 部今日更新的动漫", comics.len());
     let mut result: AniItemResult = HashMap::new();
     result.insert(weekday, comics);
-
-    Ok(result)
+    Ok(ApiResponse::ok(result))
 }
 
 /// 从页面 HTML 中提取 window.__vikor__context__ 嵌入的 JSON

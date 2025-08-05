@@ -6,6 +6,7 @@ use base64::{engine::general_purpose, Engine as _};
 use log::{debug, info};
 use scraper::{Html, Selector};
 use std::collections::HashMap;
+use crate::command::ApiResponse;
 
 #[tauri::command]
 pub async fn fetch_agedm_image(url: String) -> Result<String, String> {
@@ -35,46 +36,48 @@ pub async fn fetch_agedm_image(url: String) -> Result<String, String> {
 }
 
 #[tauri::command]
-pub async fn fetch_agedm_ani_data(url: String) -> Result<AniItemResult, String> {
-    // 1. 发请求拿 响应
-    let client = http_client()?;
+pub async fn fetch_agedm_ani_data(url: String) -> Result<ApiResponse<AniItemResult>, String> {
+    // 1. 发请求拿响应
+    let client = http_client()?; // 若失败会 early-return Err(String)
     let response = client
         .get(&url)
-        // .header("User-Agent",
-        // "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36")
         .header("Referer", "https://www.agedm.vip/")
         .send()
         .await
         .map_err(|e| e.to_string())?;
 
-    // 2. 将响应解析成text的html
-    let body = response.text().await.map_err(|e| e.to_string())?;
+    // 2. 解析成 HTML 文本
+    let body = response
+        .text()
+        .await
+        .map_err(|e| e.to_string())?;
     debug!(
-        "解析从AGE动漫获取到的 HTML，前 200 字符：\n{}",
+        "解析从 AGE 动漫获取到的 HTML，前 200 字符：\n{}",
         &body[..200.min(body.len())]
     );
-    info!("成功获取AGE动漫今日更新数据");
-    // 解析 HTML
+    info!("成功获取 AGE 动漫今日更新数据");
+
+    // 3. 解析 HTML，找「今天」区块
     let document = Html::parse_document(&body);
     // 1. 找到那个包含“今天 (土曜日)”按钮的 <div class="video_list_box recent_update ...">
     let list_box_sel = Selector::parse("div.video_list_box.recent_update").unwrap();
-    let button_sel = Selector::parse("button.btn-danger").unwrap();
+    let button_sel   = Selector::parse("button.btn-danger").unwrap();
 
     // 遍历所有最近更新块，选第一个按钮文本以“今天”开头的那个
     // 先尝试找 “今天” 对应的列表节点
     let maybe_today_box = document
         .select(&list_box_sel)
-        .find(|box_node| {
-            box_node
-                .select(&button_sel)
+        .find(|bx| {
+            bx.select(&button_sel)
                 .any(|btn| btn.text().any(|t| t.trim().starts_with("今天")))
         });
-    // 如果找到了就处理，否则直接返回空 Vec
-    let today_box = if let Some(box_node) = maybe_today_box {
-        box_node
+
+    // 4. 如果没找到「今天」区块，返回空结果
+    let today_box = if let Some(bx) = maybe_today_box {
+        bx
     } else {
-        // 没有找到 “今天” 的节点，返回空结果
-        return Ok(HashMap::new());
+        let empty: AniItemResult = HashMap::new();
+        return Ok(ApiResponse::ok(empty));
     };
 
     // 2. 在这个块里，选出所有的视频单元
@@ -84,7 +87,6 @@ pub async fn fetch_agedm_ani_data(url: String) -> Result<AniItemResult, String> 
     let a_sel = Selector::parse("div.video_item-title a").unwrap();
 
     // 3. 初始化一个空的 result
-    let mut result: AniItemResult = HashMap::new();
     let weekday_str = get_today_weekday().name_cn.to_string();
     // 今天的日期，比如 "2025/07/13"
     let today_date = get_today_slash();
@@ -104,11 +106,11 @@ pub async fn fetch_agedm_ani_data(url: String) -> Result<AniItemResult, String> 
             .unwrap_or_default()
             .to_string();
 
-        // 当前更新到第几集
+        // 更新信息
         let update_info = col
             .select(&span_sel)
             .next()
-            .map(|span| span.text().collect::<Vec<_>>().join("").trim().to_string())
+            .map(|sp| sp.text().collect::<String>().trim().to_string())
             .unwrap_or_default();
 
         //更新集数字
@@ -130,26 +132,27 @@ pub async fn fetch_agedm_ani_data(url: String) -> Result<AniItemResult, String> 
                     .trim_end_matches('/') // 去掉末尾多余斜杠（可选）
                     .to_string(); // 拷贝成 String
                 let href = format!("{}/1/{}", href, update_count);
-
-                let txt = a.text().collect::<Vec<_>>().join("").trim().to_string();
+                let txt  = a.text().collect::<String>().trim().to_string();
                 (txt, href)
             })
             .unwrap_or_default();
-        // 构建 AniItem 并加入结果
-        let ani_item = AniItem {
+
+        info!("识别到更新：{} {}", title, update_info);
+        comics.push(AniItem {
             title,
             detail_url,
-            update_time: today_date.to_string(),
+            update_time: today_date.clone(),
             platform: "agedm".to_string(),
             image_url,
             update_count,
             update_info,
-        };
-        info!("识别到更新：{} {}", ani_item.title, ani_item.update_info);
-        comics.push(ani_item);
+        });
     }
+
     info!("成功提取到 {} 部今日更新的动漫", comics.len());
+
+    // 6. 构建并返回结果
+    let mut result: AniItemResult = HashMap::new();
     result.insert(weekday_str, comics);
-    
-    Ok(result)
+    Ok(ApiResponse::ok(result))
 }

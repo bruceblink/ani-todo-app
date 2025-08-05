@@ -6,6 +6,7 @@ use chrono::{Datelike, Local};
 use log::{error, info};
 use serde_json::Value;
 use std::collections::HashMap;
+use crate::command::ApiResponse;
 
 #[tauri::command]
 pub async fn fetch_iqiyi_image(url: String) -> Result<String, String> {
@@ -35,7 +36,7 @@ pub async fn fetch_iqiyi_image(url: String) -> Result<String, String> {
 }
 
 #[tauri::command]
-pub async fn fetch_iqiyi_ani_data(url: String) -> Result<AniItemResult, String> {
+pub async fn fetch_iqiyi_ani_data(url: String) -> Result<ApiResponse<AniItemResult>, String> {
     // 1. 发请求拿 JSON
     let client = reqwest::Client::new();
     let response = client
@@ -46,12 +47,16 @@ pub async fn fetch_iqiyi_ani_data(url: String) -> Result<AniItemResult, String> 
         .map_err(|e| e.to_string())?;
 
     // 2. 反序列化成 serde_json::Value
-    let json_value: Value = response.json().await.map_err(|e| e.to_string())?;
+    let json_value: Value = response
+        .json()
+        .await
+        .map_err(|e| e.to_string())?;
 
-    // 3. 处理解析json
+    // 3. 处理解析成 AniItemResult
     let result: AniItemResult = process_json_value(&json_value);
-    
-    Ok(result)
+
+    // 4. 返回统一包装
+    Ok(ApiResponse::ok(result))
 }
 
 fn process_json_value(json_value: &Value) -> AniItemResult {

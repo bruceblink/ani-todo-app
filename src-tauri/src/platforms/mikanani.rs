@@ -5,6 +5,7 @@ use log::{debug, info};
 use reqwest::Url;
 use scraper::{Html, Selector};
 use std::collections::HashMap;
+use crate::command::ApiResponse;
 
 #[tauri::command]
 pub async fn fetch_mikanani_image(url: String) -> Result<String, String> {
@@ -34,8 +35,8 @@ pub async fn fetch_mikanani_image(url: String) -> Result<String, String> {
 }
 
 #[tauri::command]
-pub async fn fetch_mikanani_ani_data(url: String) -> Result<AniItemResult, String> {
-    // 1. 发请求拿 响应
+pub async fn fetch_mikanani_ani_data(url: String) -> Result<ApiResponse<AniItemResult>, String> {
+    // 1. 发请求拿响应
     let client = reqwest::Client::new();
     let response = client
         .get(&url)
@@ -44,8 +45,11 @@ pub async fn fetch_mikanani_ani_data(url: String) -> Result<AniItemResult, Strin
         .await
         .map_err(|e| e.to_string())?;
 
-    // 2. 将响应解析成text的html
-    let body = response.text().await.map_err(|e| e.to_string())?;
+    // 2. 解析成 HTML 文本
+    let body = response
+        .text()
+        .await
+        .map_err(|e| e.to_string())?;
     debug!(
         "解析从 Mikanani 获取到的 HTML，前 200 字符：\n{}",
         &body[..200.min(body.len())]
@@ -93,8 +97,9 @@ pub async fn fetch_mikanani_ani_data(url: String) -> Result<AniItemResult, Strin
     }
     info!("成功提取到 {} 部今日更新的动漫", comics.len());
     result.insert(weekday_str, comics);
-   
-    Ok(result)
+
+    // 7. 返回包装后的结果
+    Ok(ApiResponse::ok(result))
 }
 
 fn build_mikanani_item(base_url: &Url, li: &scraper::element_ref::ElementRef) -> Option<AniItem> {
