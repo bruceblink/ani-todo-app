@@ -59,7 +59,7 @@ type FetchCommandsMap = {
 type DataSource = {
     name: string;
     url?: string;
-    cmd: string;
+    cmd: FetchCmd;
 };
 
 /**
@@ -153,7 +153,6 @@ export async function invokeApi<K extends keyof ApiCommands>(
     const res = await _invoke<ApiResponse<ApiCommands[K]['result']>>(cmd as string, args)
     if (res.status === 'ok') {
         // data 一定存在，否则后端逻辑有误
-        console.log(res.data)
         return res.data as ApiCommands[K]['result']
     } else {
         // 业务错误，统一抛出
