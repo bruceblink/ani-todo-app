@@ -394,24 +394,23 @@ pub async fn list_all_follow_ani_update_today<>(pool: &SqlitePool, today_ts: i64
     // 构造带绑定参数的 QueryAs
     let sql = sqlx::query_as::<_, Ani>(
         r#"
-                SELECT
-                    ai.id,
-                    ai.title,
-                    ai.update_count,
-                    ai.update_info,
-                    ai.image_url,
-                    ai.detail_url,
-                    ai.update_time,
-                    ai.platform
-                FROM ani_info ai
-                WHERE
-                    ai.update_time = ?
-                  AND EXISTS (
-                      SELECT 1
-                      FROM ani_collect ac
-                      WHERE ac.ani_title = ai.title
-                        AND ac.is_watched = 0
-                );
+            SELECT DISTINCT
+                ai.id,
+                ai.title,
+                ai.update_count,
+                ai.update_info,
+                ai.image_url,
+                ai.detail_url,
+                ai.update_time,
+                ai.platform
+            FROM ani_info ai
+                     INNER JOIN ani_collect ac
+                     ON ac.ani_title = ai.title
+                     LEFT JOIN ani_watch_history awh
+                     ON awh.ani_item_id = ai.id
+            WHERE
+                ai.update_time = ?
+              AND awh.ani_item_id IS NULL;
            ;"#,
          )
         .bind(today_ts);
