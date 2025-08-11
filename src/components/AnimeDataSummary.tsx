@@ -15,7 +15,7 @@ export default function AnimeDataSummary({ weekday, total, followingCount }: Pro
     const favoritesCount = followingCount > 0 ? followingCount : 0;
 
     return (
-        <div className="stats-header" style={{
+        <div className="ani-summary" style={{
             padding: '16px 24px 8px',
             borderBottom: '1px solid var(--header-border-color, #eee)',
             background: 'var(--header-bg-color, rgba(255, 255, 255, 0.95))',
