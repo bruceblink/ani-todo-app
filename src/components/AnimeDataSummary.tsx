@@ -1,15 +1,15 @@
-// 动漫数据更新统计
-
-import {useWatchedAni} from "@/hooks/useWatchedAni";
+// AnimeDataSummary.tsx
+import { useWatchedAni } from "@/hooks/useWatchedAni";
 
 interface Props {
-    weekday: string;  // 星期几
-    total: number;    // 动漫更新总数
-    followingCount: number; // 关注的动漫数量，可选
+    weekday: string;
+    total: number;
+    followingCount: number;
+    showFavorite: boolean;
     onFilterChange: (filter: 'all' | 'favorites') => void;
 }
 
-export default function AnimeDataSummary({ weekday, total, followingCount, onFilterChange }: Props) {
+export default function AnimeDataSummary({ weekday, total, followingCount, showFavorite, onFilterChange }: Props) {
     const { watchedAniIds } = useWatchedAni();
     const watchedNum = watchedAniIds.size;
     const percentage = total > 0 ? Math.round((watchedNum / total) * 100) : 0;
@@ -17,6 +17,8 @@ export default function AnimeDataSummary({ weekday, total, followingCount, onFil
 
     return (
         <div className="ani-summary" style={{
+            width: '640px',
+            margin: '0 auto',
             padding: '16px 24px 8px',
             borderBottom: '1px solid var(--header-border-color, #eee)',
             background: 'var(--header-bg-color, rgba(255, 255, 255, 0.95))',
@@ -59,15 +61,15 @@ export default function AnimeDataSummary({ weekday, total, followingCount, onFil
                 marginTop: 8,
                 flexShrink: 0
             }}>
-                {/* 这里可以放一些页面内部的筛选按钮，比如切换“全部”和“关注” */}
                 <button
                     onClick={() => onFilterChange('all')}
                     style={{
                         padding: '6px 16px',
                         borderRadius: 6,
-                        border: '1px solid #ddd',
-                        background: '#fff',
-                        color: '#666',
+                        border: showFavorite ? '1px solid #ddd' : '2px solid var(--primary-color)',
+                        background: showFavorite ? '#fff' : 'var(--primary-light-color)',
+                        color: showFavorite ? '#666' : 'var(--primary-dark-color)',
+                        fontWeight: showFavorite ? 'normal' : '600',
                         minWidth: 64,
                         fontSize: '0.9rem',
                         transition: 'all 0.2s ease',
@@ -82,12 +84,13 @@ export default function AnimeDataSummary({ weekday, total, followingCount, onFil
                     style={{
                         padding: '6px 16px',
                         borderRadius: 6,
-                        border: '1px solid #ddd',
-                        background: '#fff',
-                        color: '#666',
+                        border: showFavorite ? '2px solid var(--accent-color)' : '1px solid #ddd',
+                        background: showFavorite ? 'var(--accent-light-color)' : '#fff',
+                        color: showFavorite ? 'var(--accent-dark-color)' : '#666',
+                        fontWeight: showFavorite ? '600' : 'normal',
                         minWidth: 64,
                         fontSize: '0.9rem',
-                        position: 'relative',
+                        position: 'relative', // 新增：设置相对定位
                         transition: 'all 0.2s ease',
                         boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
                         cursor: 'pointer',
@@ -96,10 +99,17 @@ export default function AnimeDataSummary({ weekday, total, followingCount, onFil
                     关注列表
                     {favoritesCount > 0 && (
                         <span style={{
-                            marginLeft: 4,
-                            fontSize: '0.75rem',
-                            color: '#ffb300',
+                            // 新增：绝对定位，使其不影响父元素的宽度
+                            position: 'absolute',
+                            top: '-8px',
+                            right: '-8px',
+                            padding: '2px 6px',
+                            borderRadius: '9999px',
+                            backgroundColor: '#ffb300',
+                            color: 'white',
+                            fontSize: '0.7rem',
                             fontWeight: 'bold',
+                            boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
                         }}>{favoritesCount}</span>
                     )}
                 </button>

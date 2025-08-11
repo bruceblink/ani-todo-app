@@ -43,6 +43,7 @@ export default function HomePage() {
                 total={aniList.length}
                 followingCount={favoriteList.length}
                 onFilterChange={handleFilterChange}
+                showFavorite={showFavorite}
             />
             <RefreshButton loading={loading} onClick={refresh} />
             <div className="App" style={{
