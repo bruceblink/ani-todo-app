@@ -7,7 +7,7 @@ export default function Header() {
     const isAboutPage = location.pathname === '/about';
 
     return (
-        <div className="header" style={{
+        <nav className="header" style={{
             // 重新添加固定定位样式
             position: 'fixed',
             top: 0,
@@ -88,6 +88,6 @@ export default function Header() {
                     关于
                 </Link>
             </div>
-        </div>
+        </nav>
     );
 }
