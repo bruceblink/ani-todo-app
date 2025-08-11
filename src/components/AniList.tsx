@@ -20,7 +20,7 @@ export default function AniList({ list }: Props) {
             flexWrap: 'wrap',
             gap: 'min(24px, 2vw)',
             justifyContent: 'center',
-            padding: '120px 0 24px',
+            padding: '24px 0 24px',
             margin: '0 auto',
             width: '100%',
             maxWidth: '90%'
