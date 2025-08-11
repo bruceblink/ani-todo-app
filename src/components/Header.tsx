@@ -1,34 +1,30 @@
-
-import { useWatchedAni } from "@/hooks/useWatchedAni.ts";
-//import { useFavoriteAni } from "@/hooks/useFavoriteAni";
+import { Link, useLocation } from 'react-router-dom';
+import {useWatchedAni} from "@/hooks/useWatchedAni";
 
 interface Props {
-    weekday: string;  // 星期几
-    total: number;    // 动漫更新总数
-    showFavorite: boolean; // 是否显示关注列表
-    onToggleView: (showFavorite: boolean) => void; // 切换视图的回调
-    followingCount: number; // 关注的动漫数量，可选
+    weekday: string;
+    total: number;
+    followingCount: number;
 }
 
-export default function Header({ weekday, total, showFavorite, onToggleView, followingCount }: Props) {
+export default function Header({ weekday, total, followingCount }: Props) {
     const { watchedAniIds } = useWatchedAni();
     const watchedNum = watchedAniIds.size;
     const percentage = total > 0 ? Math.round((watchedNum / total) * 100) : 0;
     const favoritesCount = followingCount > 0 ? followingCount : 0;
+
+    const location = useLocation();
+    const isHomePage = location.pathname === '/';
+    const isFavoritesPage = location.pathname === '/favorites';
+
     return (
         <div className="header" style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            zIndex: 100,
-            borderBottom: '1px solid #eee',
-            background: 'rgba(255, 255, 255, 0.95)',
-            backdropFilter: 'blur(8px)',
+            borderBottom: '1px solid var(--header-border-color, #eee)',
+            background: 'var(--header-bg-color, rgba(255, 255, 255, 0.95))',
             transition: 'all 0.3s ease',
         }}>
-            <div style={{ 
-                width: '80%',
+            <div style={{
+                width: '100%',
                 margin: '0 auto',
                 padding: '16px 24px 8px',
                 boxSizing: 'border-box',
@@ -38,28 +34,28 @@ export default function Header({ weekday, total, showFavorite, onToggleView, fol
                 alignItems: 'center',
             }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                    <h1 style={{ 
-                        margin: 0, 
-                        fontSize: '1.5rem', 
+                    <h1 style={{
+                        margin: 0,
+                        fontSize: '1.5rem',
                         fontWeight: 600,
+                        color: 'var(--text-color, #333)'
                     }}>
                         今日({weekday})更新番剧 共 {total} 部
                     </h1>
-                    <div style={{ marginTop: 8, fontSize: '1rem', color: '#555' }}>
+                    <div style={{ marginTop: 8, fontSize: '1rem', color: 'var(--sub-text-color, #555)' }}>
                         已观看 {watchedNum} 部 — {percentage}% 完成
                     </div>
-                    <div style={{ width: 200, height: 12, background: '#ddd', borderRadius: 6, overflow: 'hidden', margin: '12px 0 0 0' }}>
+                    <div style={{ width: 200, height: 12, background: 'var(--progress-bg, #ddd)', borderRadius: 6, overflow: 'hidden', margin: '12px 0 0 0' }}>
                         <div
                             style={{
                                 width: `${percentage}%`,
                                 height: '100%',
-                                background: '#afe1b0',
+                                background: 'var(--progress-fill, #afe1b0)',
                                 transition: 'width 0.3s ease',
                             }}
                         />
                     </div>
                 </div>
-                {/* 按钮组 */}
                 <div style={{
                     display: 'flex',
                     gap: 8,
@@ -67,48 +63,51 @@ export default function Header({ weekday, total, showFavorite, onToggleView, fol
                     marginTop: 8,
                     flexShrink: 0
                 }}>
-                    <button
-                    onClick={() => onToggleView(false)}
-                    style={{
-                        padding: '6px 16px',
-                        borderRadius: 6,
-                        border: showFavorite ? '1px solid #ddd' : '2px solid #4f8cff',
-                        background: showFavorite ? '#fff' : '#e6f0ff',
-                        color: showFavorite ? '#666' : '#1976d2',
-                        fontWeight: showFavorite ? 'normal' : '600',
-                        cursor: 'pointer',
-                        minWidth: 64,
-                        fontSize: '0.9rem',
-                        transition: 'all 0.2s ease',
-                        boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-                    }}
-                >主页</button>
-                <button
-                    onClick={() => onToggleView(true)}
-                    style={{
-                        padding: '6px 16px',
-                        borderRadius: 6,
-                        border: showFavorite ? '2px solid #ffb300' : '1px solid #ddd',
-                        background: showFavorite ? '#fffbe6' : '#fff',
-                        color: showFavorite ? '#b26a00' : '#666',
-                        fontWeight: showFavorite ? '600' : 'normal',
-                        cursor: 'pointer',
-                        minWidth: 64,
-                        fontSize: '0.9rem',
-                        position: 'relative',
-                        transition: 'all 0.2s ease',
-                        boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-                    }}
-                >
-                    关注
-                    {favoritesCount > 0 && (
-                        <span style={{
-                            marginLeft: 4,
-                            fontSize: '0.75rem',
-                            color: '#ffb300',
-                            fontWeight: 'bold',
-                        }}>{favoritesCount}</span>
-                    )}</button>
+                    <Link
+                        to="/"
+                        style={{
+                            padding: '6px 16px',
+                            borderRadius: 6,
+                            border: isHomePage ? '2px solid var(--primary-color)' : '1px solid var(--button-border-color)',
+                            background: isHomePage ? 'var(--primary-light-color)' : 'var(--button-bg-color)',
+                            color: isHomePage ? 'var(--primary-dark-color)' : 'var(--text-color)',
+                            fontWeight: isHomePage ? '600' : 'normal',
+                            cursor: 'pointer',
+                            minWidth: 64,
+                            fontSize: '0.9rem',
+                            transition: 'all 0.2s ease',
+                            boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                            textDecoration: 'none',
+                        }}
+                    >主页</Link>
+                    <Link
+                        to="/favorites"
+                        style={{
+                            padding: '6px 16px',
+                            borderRadius: 6,
+                            border: isFavoritesPage ? '2px solid var(--accent-color)' : '1px solid var(--button-border-color)',
+                            background: isFavoritesPage ? 'var(--accent-light-color)' : 'var(--button-bg-color)',
+                            color: isFavoritesPage ? 'var(--accent-dark-color)' : 'var(--text-color)',
+                            fontWeight: isFavoritesPage ? '600' : 'normal',
+                            cursor: 'pointer',
+                            minWidth: 64,
+                            fontSize: '0.9rem',
+                            position: 'relative',
+                            transition: 'all 0.2s ease',
+                            boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                            textDecoration: 'none',
+                        }}
+                    >
+                        关注
+                        {favoritesCount > 0 && (
+                            <span style={{
+                                marginLeft: 4,
+                                fontSize: '0.75rem',
+                                color: 'var(--accent-dark-color)',
+                                fontWeight: 'bold',
+                            }}>{favoritesCount}</span>
+                        )}
+                    </Link>
                 </div>
             </div>
         </div>
