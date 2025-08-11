@@ -65,7 +65,7 @@ export default function Header() {
                         textDecoration: 'none',
                     }}
                 >
-                    关注
+                    历史
                 </Link>
                 <Link
                     to="/about"
