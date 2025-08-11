@@ -19,7 +19,9 @@ export default function HomePage() {
             setInitialized(true);
         }
     }, [isLoaded, favoriteAniItems, initialized]);
-
+    const handleFilterChange = (filter: 'all' | 'favorites') => {
+        setShowFavorite(filter === 'favorites');
+    };
     if (loading) return <div className="App">加载中…</div>;
     if (error) return <div className="App">出错了：{error}</div>;
     if (!Object.keys(data).length) return <div className="App">无数据</div>;
@@ -40,6 +42,7 @@ export default function HomePage() {
                 weekday={today}
                 total={aniList.length}
                 followingCount={favoriteList.length}
+                onFilterChange={handleFilterChange}
             />
             <RefreshButton loading={loading} onClick={refresh} />
             <div className="App" style={{

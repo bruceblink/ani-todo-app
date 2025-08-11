@@ -6,9 +6,10 @@ interface Props {
     weekday: string;  // 星期几
     total: number;    // 动漫更新总数
     followingCount: number; // 关注的动漫数量，可选
+    onFilterChange: (filter: 'all' | 'favorites') => void;
 }
 
-export default function AnimeDataSummary({ weekday, total, followingCount }: Props) {
+export default function AnimeDataSummary({ weekday, total, followingCount, onFilterChange }: Props) {
     const { watchedAniIds } = useWatchedAni();
     const watchedNum = watchedAniIds.size;
     const percentage = total > 0 ? Math.round((watchedNum / total) * 100) : 0;
@@ -60,6 +61,7 @@ export default function AnimeDataSummary({ weekday, total, followingCount }: Pro
             }}>
                 {/* 这里可以放一些页面内部的筛选按钮，比如切换“全部”和“关注” */}
                 <button
+                    onClick={() => onFilterChange('all')}
                     style={{
                         padding: '6px 16px',
                         borderRadius: 6,
@@ -76,6 +78,7 @@ export default function AnimeDataSummary({ weekday, total, followingCount }: Pro
                     全部番剧
                 </button>
                 <button
+                    onClick={() => onFilterChange('favorites')}
                     style={{
                         padding: '6px 16px',
                         borderRadius: 6,
