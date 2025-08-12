@@ -66,14 +66,12 @@ export default function AnimeDataSummary({ weekday, total, followingCount, showF
                     style={{
                         padding: '6px 16px',
                         borderRadius: 6,
-                        border: showFavorite ? '1px solid #ddd' : '2px solid var(--primary-color)',
                         background: showFavorite ? '#fff' : 'var(--primary-light-color)',
-                        color: showFavorite ? '#666' : 'var(--primary-dark-color)',
+                        color: showFavorite ? '#666' : 'var(--link-color)',
                         fontWeight: showFavorite ? 'normal' : '600',
                         minWidth: 64,
                         fontSize: '0.9rem',
                         transition: 'all 0.2s ease',
-                        boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
                         cursor: 'pointer',
                     }}
                 >
@@ -84,15 +82,13 @@ export default function AnimeDataSummary({ weekday, total, followingCount, showF
                     style={{
                         padding: '6px 16px',
                         borderRadius: 6,
-                        border: showFavorite ? '2px solid var(--accent-color)' : '1px solid #ddd',
                         background: showFavorite ? 'var(--accent-light-color)' : '#fff',
-                        color: showFavorite ? 'var(--accent-dark-color)' : '#666',
+                        color: showFavorite ? 'var(--link-color)' : '#666',
                         fontWeight: showFavorite ? '600' : 'normal',
                         minWidth: 64,
                         fontSize: '0.9rem',
                         position: 'relative', // 新增：设置相对定位
                         transition: 'all 0.2s ease',
-                        boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
                         cursor: 'pointer',
                     }}
                 >
