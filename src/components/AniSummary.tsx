@@ -1,4 +1,4 @@
-// AnimeDataSummary.tsx
+// AniSummary.tsx
 import { useWatchedAni } from "@/hooks/useWatchedAni";
 
 interface Props {
@@ -9,7 +9,7 @@ interface Props {
     onFilterChange: (filter: 'all' | 'favorites') => void;
 }
 
-export default function AnimeDataSummary({ weekday, total, followingCount, showFavorite, onFilterChange }: Props) {
+export default function AniSummary({ weekday, total, followingCount, showFavorite, onFilterChange }: Props) {
     const { watchedAniIds } = useWatchedAni();
     const watchedNum = watchedAniIds.size;
     const percentage = total > 0 ? Math.round((watchedNum / total) * 100) : 0;

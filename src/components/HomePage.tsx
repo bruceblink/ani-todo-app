@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import AniList from "@/components/AniList";
-import AnimeDataSummary from "@/components/AnimeDataSummary.tsx"; // 新增的统计组件
+import AniSummary from "@/components/AniSummary.tsx"; // 新增的统计组件
 import RefreshButton from "@/components/RefreshButton";
 import { useAniData } from "@/hooks/useAniData";
 import { useFavoriteAni } from "@/hooks/useFavoriteAni";
@@ -37,8 +37,8 @@ export default function HomePage() {
             width: '100%',
             margin: '0 auto',
         }}>
-            {/* 新的 AnimeDataSummary 组件用于显示数据统计 */}
-            <AnimeDataSummary
+            {/* 新的 AniSummary 组件用于显示数据统计 */}
+            <AniSummary
                 weekday={today}
                 total={aniList.length}
                 followingCount={favoriteList.length}
