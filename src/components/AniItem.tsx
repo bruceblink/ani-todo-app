@@ -123,7 +123,7 @@ export default function AniItem({
                     />
                 </button>
 
-                {/* 清除按钮 */}
+                {/* 标记为已观看 */}
                 <button
                     onClick={handleClearClick}
                     style={{
@@ -152,7 +152,7 @@ export default function AniItem({
                         color: isHovered ? "#fff" : "#666",
                         zIndex: 10,
                     }}
-                    title="已观看此番剧"
+                    title="标记为已观看"
                 >
                     <X size={18} color={isHovered ? "#fff" : "#666"} strokeWidth={2.5} />
                 </button>
