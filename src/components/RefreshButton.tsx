@@ -13,7 +13,6 @@ export default function RefreshButton({ loading, onClick }: RefreshButtonProps) 
             disabled={loading}
             style={{
                 position: 'fixed',
-                top: '16px',
                 right: '16px',
                 background: 'white',
                 border: '1px solid #ccc',
