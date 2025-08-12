@@ -179,7 +179,7 @@ function linkStyle(isActive: boolean, colorType: ColorType) {
         accent: {
             border: '2px solid var(--accent-color)',
             background: 'var(--accent-light-color)',
-            color: '#646cff',
+            color: 'var(--link-color)',
         },
         default: {
             border: '1px solid var(--button-border-color)',
