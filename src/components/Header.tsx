@@ -1,15 +1,23 @@
-import { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { useState } from "react";
+import { Link, useLocation } from "react-router-dom";
+import AniSearch from "@/components/AniSearch.tsx";
 
 export default function Header() {
     const location = useLocation();
-    const isHomePage = location.pathname === '/';
-    const isFavoritesPage = location.pathname === '/favorites';
-    const isAboutPage = location.pathname === '/about';
+    const isHomePage = location.pathname === "/";
+    const isFavoritesPage = location.pathname === "/favorites";
+    const isAboutPage = location.pathname === "/about";
 
     const [menuOpen, setMenuOpen] = useState(false);
 
     const handleLinkClick = () => setMenuOpen(false);
+
+    const [searchValue, setSearchValue] = useState("");
+
+    const handleSearch = (value: string) => {
+        setSearchValue(value);
+        console.log("搜索内容:", searchValue);
+    };
 
     return (
         <>
@@ -30,8 +38,8 @@ export default function Header() {
                     alignItems: 'center',
                     padding: '0 24px',
                     boxSizing: 'border-box',
-                    justifyContent: 'flex-start',  // 全部左对齐
-                    gap: '16px',                  // 汉堡和菜单间隔
+                    justifyContent: "space-between", // 左右两边分开
+                    gap: "16px",
                 }}
             >
                 {/* 汉堡按钮 */}
@@ -77,11 +85,12 @@ export default function Header() {
                     />
                 </button>
 
-                {/* 菜单项 */}
+                {/* 左侧菜单组 */}
                 <div
                     className="nav-links"
                     style={{
                         display: 'flex',
+                        alignItems: "center",
                     }}
                 >
                     <Link
@@ -106,6 +115,17 @@ export default function Header() {
                         关于
                     </Link>
                 </div>
+
+                {/* 右侧搜索 — 始终显示 */}
+                <div
+                    className="search-container"
+                    style={{
+                        display: "flex",
+                        alignItems: "center",
+                    }}
+                >
+                    <AniSearch onSearch={handleSearch} />
+                </div>
             </nav>
 
             {/* 移动端弹出菜单 */}
@@ -127,6 +147,7 @@ export default function Header() {
                         zIndex: 99,
                     }}
                 >
+                    {/* 移动端弹出菜单只显示菜单项，不显示搜索 */}
                     <Link
                         to="/"
                         onClick={handleLinkClick}
@@ -151,15 +172,16 @@ export default function Header() {
                 </div>
             )}
 
-            {/* 媒体查询控制汉堡显示和菜单隐藏 */}
+            {/* 媒体查询：控制汉堡按钮和菜单显示，搜索容器始终显示 */}
             <style>{`
         @media (max-width: 768px) {
           .nav-links {
-            display: none !important;
+            display: none !important;   /* 隐藏菜单项 */
           }
           .hamburger-btn {
-            display: block !important;
+            display: block !important;  /* 显示汉堡按钮 */
           }
+          /* 搜索容器不隐藏 */
         }
       `}</style>
         </>
