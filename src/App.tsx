@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { ThemeProvider } from "@mui/material";
+import {ThemeProvider} from "@mui/material";
 import { Toaster } from "react-hot-toast";
 
 // 导入你的页面组件
@@ -9,6 +9,7 @@ import Header from "@/components/Header.tsx";
 import HistoryPage from "@/pages/HistoryPage.tsx";
 import AboutPage from "@/pages/AboutPage.tsx";
 import {useState} from "react";
+import BackToTop from "@/components/BackToTop.tsx";
 
 export default function App() {
     const [searchValue, setSearchValue] = useState("");
@@ -27,7 +28,7 @@ export default function App() {
                         <Route path="/favorites" element={<HistoryPage />} />
                     </Routes>
                 </div>
-
+                <BackToTop/>
                 <Toaster
                     position="top-center"
                     toastOptions={{
