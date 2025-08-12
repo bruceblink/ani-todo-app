@@ -19,7 +19,7 @@
         "title": "ani-todo-app",
         "width": 985,
         "height": 1200,
-        "minWidth": 720,
+        "minWidth": 800,
         "minHeight": 1005,
         "resizable": true,
         "fullscreen": false
