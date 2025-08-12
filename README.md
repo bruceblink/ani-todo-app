@@ -7,7 +7,7 @@
 **关注**页面截图如下：
 ![snapshot](/public/snapshotv0.3.0-2.png)
 
-**技术栈：React + TypeScript + Vite + Tauri(Rust)**
+**技术栈：React + TypeScript + Vite + pnpm + Tauri(Rust)**
 
 ## 功能特点
 - 🔄 自动/手动更新：自动抓取各大视频平台的动漫最新更新信息
