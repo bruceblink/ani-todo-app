@@ -82,7 +82,6 @@ export default function Header() {
                     className="nav-links"
                     style={{
                         display: 'flex',
-                        gap: 24,
                     }}
                 >
                     <Link
