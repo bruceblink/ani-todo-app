@@ -4,10 +4,10 @@ import { Toaster } from "react-hot-toast";
 
 // 导入你的页面组件
 import theme from "@/theme.ts";
-import HomePage from "@/components/HomePage.tsx";
+import HomePage from "@/pages/HomePage.tsx";
 import Header from "@/components/Header.tsx";
-import HistoryPage from "@/components/HistoryPage.tsx";
-import AboutPage from "@/components/AboutPage.tsx";
+import HistoryPage from "@/pages/HistoryPage.tsx";
+import AboutPage from "@/pages/AboutPage.tsx";
 
 export default function App() {
 

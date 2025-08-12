@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
-import AniList from "@/components/AniList";
+import AniList from "@/components/AniList.tsx";
 import AniSummary from "@/components/AniSummary.tsx"; // 新增的统计组件
-import RefreshButton from "@/components/RefreshButton";
-import { useAniData } from "@/hooks/useAniData";
-import { useFavoriteAni } from "@/hooks/useFavoriteAni";
-import type { Ani } from "@/utils/api";
+import RefreshButton from "@/components/RefreshButton.tsx";
+import { useAniData } from "@/hooks/useAniData.ts";
+import { useFavoriteAni } from "@/hooks/useFavoriteAni.ts";
+import type { Ani } from "@/utils/api.ts";
 
 export default function HomePage() {
     const { data, loading, error, refresh } = useAniData();
