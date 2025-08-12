@@ -88,7 +88,7 @@ export default function Header() {
                     <Link
                         to="/"
                         onClick={handleLinkClick}
-                        style={linkStyle(isHomePage, 'primary')}
+                        style={linkStyle(isHomePage, 'accent')}
                     >
                         主页
                     </Link>
@@ -179,7 +179,7 @@ function linkStyle(isActive: boolean, colorType: ColorType) {
         accent: {
             border: '2px solid var(--accent-color)',
             background: 'var(--accent-light-color)',
-            color: 'var(--accent-dark-color)',
+            color: '#646cff',
         },
         default: {
             border: '1px solid var(--button-border-color)',
@@ -193,7 +193,6 @@ function linkStyle(isActive: boolean, colorType: ColorType) {
     return {
         padding: '6px 16px',
         borderRadius: 6,
-        border: isActive ? activeColors.border : colors.default.border,
         background: isActive ? activeColors.background : colors.default.background,
         color: isActive ? activeColors.color : colors.default.color,
         fontWeight: isActive ? '600' : 'normal',
@@ -201,7 +200,6 @@ function linkStyle(isActive: boolean, colorType: ColorType) {
         minWidth: 64,
         fontSize: '0.9rem',
         textDecoration: 'none',
-        boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
         transition: 'all 0.2s ease',
     };
 }
