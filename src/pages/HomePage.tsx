@@ -6,7 +6,11 @@ import { useAniData } from "@/hooks/useAniData.ts";
 import { useFavoriteAni } from "@/hooks/useFavoriteAni.ts";
 import type { Ani } from "@/utils/api.ts";
 
-export default function HomePage() {
+interface HomePageProps {
+    searchQuery: string;
+}
+
+export default function HomePage({ searchQuery }: HomePageProps) {
     const { data, loading, error, refresh } = useAniData();
     const { favoriteAniItems, isLoaded } = useFavoriteAni();
 
@@ -28,7 +32,8 @@ export default function HomePage() {
 
     const today = Object.keys(data)[0];
     const aniList = data[today] as Ani[];
-    const favoriteList = aniList.filter(ani => favoriteAniItems.has(ani.title));
+    const filteredAniList = aniList.filter(ani => ani.title.includes(searchQuery)); // 根据搜索查询过滤动画列表
+    const favoriteList = filteredAniList.filter(ani => favoriteAniItems.has(ani.title)); // 过滤出收藏的动画并匹配搜索查询
 
     return (
         <div className="HomePage-container" style={{
@@ -53,7 +58,7 @@ export default function HomePage() {
                 {showFavorite ? (
                     <AniList list={favoriteList} />
                 ) : (
-                    <AniList list={aniList} />
+                    <AniList list={filteredAniList} />
                 )}
             </div>
         </div>

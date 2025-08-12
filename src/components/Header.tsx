@@ -2,7 +2,12 @@ import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import AniSearch from "@/components/AniSearch.tsx";
 
-export default function Header() {
+
+interface HeaderProps {
+    onSearchChange: (value: string) => void;
+}
+
+export default function Header({ onSearchChange }: HeaderProps) {
     const location = useLocation();
     const isHomePage = location.pathname === "/";
     const isFavoritesPage = location.pathname === "/favorites";
@@ -12,11 +17,8 @@ export default function Header() {
 
     const handleLinkClick = () => setMenuOpen(false);
 
-    const [searchValue, setSearchValue] = useState("");
-
     const handleSearch = (value: string) => {
-        setSearchValue(value);
-        console.log("搜索内容:", searchValue);
+        onSearchChange(value);
     };
 
     return (
