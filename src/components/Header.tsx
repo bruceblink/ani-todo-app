@@ -176,16 +176,16 @@ export default function Header({ onSearchChange }: HeaderProps) {
 
             {/* 媒体查询：控制汉堡按钮和菜单显示，搜索容器始终显示 */}
             <style>{`
-        @media (max-width: 768px) {
-          .nav-links {
-            display: none !important;   /* 隐藏菜单项 */
-          }
-          .hamburger-btn {
-            display: block !important;  /* 显示汉堡按钮 */
-          }
-          /* 搜索容器不隐藏 */
-        }
-      `}</style>
+                @media (max-width: 768px) {
+                  .nav-links {
+                    display: none !important;   /* 隐藏菜单项 */
+                  }
+                  .hamburger-btn {
+                    display: block !important;  /* 显示汉堡按钮 */
+                  }
+                  /* 搜索容器不隐藏 */
+                }
+          `}</style>
         </>
     );
 }
