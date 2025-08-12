@@ -3,9 +3,9 @@
 ## 项目简介
 这是一个使用 **Tauri** 框架构建的跨平台桌面应用，旨在帮助用户追踪和管理他们的动漫观看列表。该应用支持自动和手动更新各大视频平台的动漫最新信息，并提供了一个简洁易用的界面来查看和管理这些信息。
 桌面端应用**主页**截图如下：
-![snapshot](/public/snapshotv0.2.3.png)
+![snapshot](/public/snapshotv0.3.0-1.png)
 **关注**页面截图如下：
-![snapshot](/public/snapshotv0.2.3-1.png)
+![snapshot](/public/snapshotv0.3.0-2.png)
 
 **技术栈：React + TypeScript + Vite + Tauri(Rust)**
 
@@ -78,10 +78,10 @@ ani-todo-app/
   - [x] AGE动漫
 - [x] 添加图形用户界面（GUI）
 - [x] 🎯 个性化追踪：可以根据个人喜好设置关注的节目
+- [x] 支持简单搜索
 - [ ] 📅 每日更新提醒：及时获取最新剧集更新信息
-- [ ] 支持自定义过滤器
 - [ ] 添加导出功能
-
+- [ ] ...更多功能
 ## 许可证
 
 本项目采用 MIT 许可证 - 详情请查看 [LICENSE](LICENSE) 文件
