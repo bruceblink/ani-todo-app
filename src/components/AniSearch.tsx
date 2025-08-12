@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
 interface SearchProps {
     onSearch: (value: string) => void;
@@ -6,6 +6,8 @@ interface SearchProps {
 
 export default function AniSearch({ onSearch }: SearchProps) {
     const [expanded, setExpanded] = useState(false);
+    const [value, setValue] = useState("");
+    const [isComposing, setIsComposing] = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
 
     // 展开时自动聚焦输入框
@@ -14,6 +16,19 @@ export default function AniSearch({ onSearch }: SearchProps) {
             inputRef.current.focus();
         }
     }, [expanded]);
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setValue(e.target.value);
+        if (!isComposing) {
+            onSearch(e.target.value);
+        }
+    };
+
+    const handleCompositionStart = () => setIsComposing(true);
+    const handleCompositionEnd = (e: React.CompositionEvent<HTMLInputElement>) => {
+        setIsComposing(false);
+        onSearch(e.currentTarget.value); // 中文确认后再触发一次
+    };
 
     return (
         <>
@@ -25,7 +40,10 @@ export default function AniSearch({ onSearch }: SearchProps) {
                             type="text"
                             placeholder="输入动漫标题搜索..."
                             ref={inputRef}
-                            onChange={(e) => onSearch(e.target.value)}
+                            value={value}
+                            onChange={handleChange}
+                            onCompositionStart={handleCompositionStart}
+                            onCompositionEnd={handleCompositionEnd}
                             onBlur={() => setExpanded(false)}
                         />
                     </>
