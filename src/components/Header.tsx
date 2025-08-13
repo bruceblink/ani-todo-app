@@ -107,7 +107,7 @@ export default function Header({ onSearchChange }: HeaderProps) {
                         onClick={handleLinkClick}
                         style={linkStyle(isFavoritesPage, 'accent')}
                     >
-                        历史数据
+                        历史
                     </Link>
                     <Link
                         to="/about"
