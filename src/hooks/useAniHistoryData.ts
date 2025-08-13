@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { type AniHistoryInfo, api } from "@/utils/api";
+import type {GridFilterModel} from "@mui/x-data-grid";
 
 export type UseAniHistoryData = {
     data: {
@@ -14,7 +15,8 @@ export type UseAniHistoryData = {
 export function useAniHistoryData(
     page: number,
     pageSize: number,
-    isServer: boolean = true // 新增参数，默认服务端模式
+    isServer: boolean = true, // 新增参数，默认服务端模式
+    filterModel: GridFilterModel,
 ): UseAniHistoryData {
     const [data, setData] = useState<{ total: number; items: AniHistoryInfo[] } | null>(null);
     const [loading, setLoading] = useState(false);
@@ -25,6 +27,7 @@ export function useAniHistoryData(
         setError(null);
 
         try {
+            console.log(filterModel)
             const res = await api.queryAniHistoryList({
                 page: isServer ? page : 1,
                 pageSize: isServer ? pageSize : Number.MAX_SAFE_INTEGER, // 本地模式一次性拉全量
@@ -36,7 +39,7 @@ export function useAniHistoryData(
         } finally {
             setLoading(false);
         }
-    }, [page, pageSize, isServer]);
+    }, [page, pageSize, isServer, filterModel]);
 
     useEffect(() => {
         void loadData();
