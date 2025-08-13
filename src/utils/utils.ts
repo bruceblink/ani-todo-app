@@ -1,5 +1,5 @@
 import type {Ani} from "@/utils/api";
-
+import dayjs from 'dayjs';
 /**
  * 判断两个标题是否相似
  * @param a
@@ -45,3 +45,8 @@ export function mergeAniGroups(successList: Record<string, Ani[]>[]): Record<str
     }, {} as Record<string, Ani[]>)
 }
 
+export function formatUnixTimestampMs(ts: number) {
+    if(ts) {
+        return dayjs(ts).format('YYYY-MM-DD')
+    }
+}
