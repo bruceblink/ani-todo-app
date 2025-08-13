@@ -8,17 +8,6 @@ export interface ApiResponse<T = unknown> {
     data?: T
 }
 
-// 分页数据结构
-export interface PaginationData<T> {
-    items: T[];
-    totalCount: number;
-    page: number;
-    pageSize: number;
-}
-
-// 组合泛型类型
-export type ApiPaginationResponse<T> = ApiResponse<PaginationData<T>>;
-
 /** Ani 结构体对应的 TS 接口 */
 export interface Ani {
     id: number;
@@ -36,11 +25,11 @@ export interface Ani {
 export interface AniHistoryInfo {
     id: number;
     title: string;
-    update_count: string;
-    is_watched: boolean,
+    updateCount: string;
+    isWatched: boolean,
     userId: string;
-    update_time: number;
-    watch_time: string;
+    updateTime: number;
+    watchedTime: number;
     platform: string;
 }
 
