@@ -25,4 +25,3 @@ target
 *.sw?
 
 #rust
-Cargo.lock
