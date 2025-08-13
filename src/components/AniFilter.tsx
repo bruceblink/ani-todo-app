@@ -31,7 +31,7 @@ export default function AniFilter({followingCount, showFavorite, onFilterChange 
                             cursor: 'pointer',
                         }}
                     >
-                        全部番剧
+                        全部更新
                     </button>
                     <button
                         onClick={() => onFilterChange('favorites')}
@@ -48,7 +48,7 @@ export default function AniFilter({followingCount, showFavorite, onFilterChange 
                             cursor: 'pointer',
                         }}
                     >
-                        关注列表
+                        关注更新
                         {favoritesCount > 0 && (
                             <span style={{
                                 // 新增：绝对定位，使其不影响父元素的宽度
