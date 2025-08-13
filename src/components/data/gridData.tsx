@@ -1,6 +1,6 @@
 import Chip from '@mui/material/Chip';
 import type {GridColDef} from '@mui/x-data-grid';
-import {formatUnixTimestampMs} from "@/utils/utils.ts";
+import {formatUnixMs2Date, formatUnixMs2Timestamp} from "@/utils/utils.ts";
 
 function renderStatus(isWatcher: boolean) {
 
@@ -46,16 +46,16 @@ export const columns: GridColDef[] = [
     align: 'right',
     flex: 1,
     minWidth: 80,
-    renderCell: (params) => formatUnixTimestampMs(params.value),
+    renderCell: (params) => formatUnixMs2Date(params.value),
   },
   {
     field: 'watchedTime',
     headerName: '观看时间',
     headerAlign: 'right',
     align: 'right',
-    flex: 1,
-    minWidth: 80,
-    renderCell: (params) => formatUnixTimestampMs(params.value),
+    flex: 1.5,
+    minWidth: 120,
+    renderCell: (params) => formatUnixMs2Timestamp(params.value),
   },
   {
     field: 'platform',

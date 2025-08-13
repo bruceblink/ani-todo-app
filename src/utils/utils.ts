@@ -45,8 +45,14 @@ export function mergeAniGroups(successList: Record<string, Ani[]>[]): Record<str
     }, {} as Record<string, Ani[]>)
 }
 
-export function formatUnixTimestampMs(ts: number) {
+export function formatUnixMs2Date(ts: number) {
     if(ts) {
         return dayjs(ts).format('YYYY-MM-DD')
+    }
+}
+
+export function formatUnixMs2Timestamp(ts: number) {
+    if(ts) {
+        return dayjs(ts).format('YYYY-MM-DD HH:mm:ss')
     }
 }
