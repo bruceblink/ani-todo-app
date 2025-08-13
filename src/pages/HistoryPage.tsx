@@ -1,11 +1,14 @@
-import {Link} from "react-router-dom";
+import Typography from '@mui/material/Typography';
+import CustomizedDataGrid from "@/components/CustomizedDataGrid.tsx";
+
 
 export default function HistoryPage() {
     return (
         <div style={{ padding: '24px', textAlign: 'center' }}>
-            <h2>观看历史</h2>
-            <p>这里将显示你观看过的所有番剧。</p>
-            <Link to="/">返回主页</Link>
+            <Typography component="h2" variant="h6" sx={{ mb: 2 }}>
+                动漫历史数据
+            </Typography>
+            <CustomizedDataGrid />
         </div>
     )
 }
