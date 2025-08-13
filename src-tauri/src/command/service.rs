@@ -17,7 +17,7 @@ use crate::db::sqlite::{
     list_all_ani_history_data
 };
 use crate::platforms::AniItemResult;
-use crate::utils::date_utils::{get_today_slash, get_today_weekday, parse_date_to_millis};
+use crate::utils::date_utils::{get_today_slash, get_today_weekday, get_unix_timestamp_millis_now, parse_date_to_millis};
 
 /// 保存动漫数据到数据库
 #[tauri::command]
@@ -54,7 +54,7 @@ pub async fn watch_ani_item(
     let record = AniWatch {
         user_id: "".to_string(),
         ani_item_id: ani_id,
-        watched_time: get_today_slash(),
+        watched_time: get_unix_timestamp_millis_now(),
     };
 
     if let Err(e) = upsert_ani_watch_history(&pool, &record).await {

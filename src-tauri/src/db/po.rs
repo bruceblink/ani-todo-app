@@ -78,7 +78,7 @@ pub struct AniColl {
 pub struct AniWatch {
     pub user_id: String,
     pub ani_item_id: i64,
-    pub watched_time: String,
+    pub watched_time: i64,
 }
 
 #[derive(Serialize, Debug, Clone ,FromRow)]

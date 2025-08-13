@@ -363,7 +363,6 @@ pub async fn list_all_ani_update_today<>(pool: &SqlitePool, today_ts: i64) -> Re
 
 
 pub async fn upsert_ani_watch_history(pool: &SqlitePool, item: &AniWatch) -> Result<()> {
-    let watched_time = parse_date_to_millis(&item.watched_time, true)?;
     let _ = sqlx::query(
         r#"
                 INSERT INTO ani_watch_history (
@@ -377,7 +376,7 @@ pub async fn upsert_ani_watch_history(pool: &SqlitePool, item: &AniWatch) -> Res
         )
         .bind(&item.user_id)
         .bind(&item.ani_item_id)
-        .bind(watched_time)
+        .bind(&item.watched_time)
         .execute(pool)
         .await
         .map_err(|e| {
