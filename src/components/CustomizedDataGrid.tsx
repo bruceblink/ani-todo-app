@@ -1,54 +1,36 @@
-import {DataGrid, type GridPaginationModel} from '@mui/x-data-grid';
-
+import { DataGrid, type GridPaginationModel } from '@mui/x-data-grid';
 import { columns } from './data/gridData';
-import {useEffect, useState} from "react";
-import {type AniHistoryInfo, api} from "@/utils/api.ts";
-
+import { useEffect, useState } from 'react';
+import { useAniHistoryData } from '@/hooks/useAniHistoryData'; // 根据你的路径调整
+import type { AniHistoryInfo } from '@/utils/api';
+import {toast} from "react-hot-toast";
 
 export default function CustomizedDataGrid() {
-
-
-    const [rows, setRows] = useState<AniHistoryInfo[]>([]);
-    const [loading, setLoading] = useState(false);
-    const [rowCount, setRowCount] = useState(0);
-
     const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({
         pageSize: 20,
         page: 0,
     });
 
-    useEffect(() => {
-        async function fetchData() {
-            setLoading(true);
-            try {
-                // 调用你封装的服务端分页 API
-                const res = await api.queryAniHistoryList({
-                        page : paginationModel.page + 1,
-                        pageSize : paginationModel.pageSize
-                    });
-                // res.items 是当前页数据，res.total 是总条数
-                setRows(res.items);
-                setRowCount(res.total);
-            } catch (err) {
-                console.error(err);
-                setRows([]);
-                setRowCount(0);
-            } finally {
-                setLoading(false);
-            }
-        }
+    // 注意：hook 接受的是后端的 page（从 1 开始），因此传 paginationModel.page + 1
+    const { data, loading, error } = useAniHistoryData(
+        paginationModel.page + 1,
+        paginationModel.pageSize
+    );
 
-        void fetchData();
-    }, [paginationModel]);
+    useEffect(() => {
+        if (error) {
+            toast.error(`加载番剧历史出错：${error}`);
+        }
+    }, [error]);
 
     return (
         <DataGrid
-            rows={rows}
+            rows={(data?.items ?? []) as AniHistoryInfo[]}
             columns={columns}
             loading={loading}
             pagination
             paginationMode="server"
-            rowCount={rowCount}
+            rowCount={data?.total ?? 0}
             paginationModel={paginationModel}
             onPaginationModelChange={setPaginationModel}
             pageSizeOptions={[10, 20, 50]}
