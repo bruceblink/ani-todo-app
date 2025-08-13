@@ -11,39 +11,41 @@ export const columns: GridColDef[] = [
   {
     field: 'title',
     headerName: '动漫标题',
-    flex: 1.5,
-    minWidth: 200
+    flex: 2,
+    minWidth: 250
   },
   {
     field: 'updateCount',
     headerName: '集数',
-    headerAlign: 'right',
-    align: 'right',
-    flex: 1,
-    minWidth: 100,
+    headerAlign: 'center',
+    align: 'center',
+    flex: 0.5,
+    minWidth: 50,
   },
   {
     field: 'isWatched',
     headerName: '观看状态',
-    flex: 0.5,
+    headerAlign: 'center',
+    align: 'center',
+    flex: 1,
     minWidth: 80,
     renderCell: (params) => renderStatus(params.value),
   },
-  {
+/*  {
     field: 'userId',
     headerName: '用户',
-    headerAlign: 'right',
-    align: 'right',
+    headerAlign: 'center',
+    align: 'center',
     flex: 1,
     minWidth: 80,
-  },
+  },*/
   {
     field: 'updateTime',
     headerName: '更新时间',
     headerAlign: 'right',
     align: 'right',
     flex: 1,
-    minWidth: 120,
+    minWidth: 80,
     renderCell: (params) => formatUnixTimestampMs(params.value),
   },
   {
@@ -52,15 +54,15 @@ export const columns: GridColDef[] = [
     headerAlign: 'right',
     align: 'right',
     flex: 1,
-    minWidth: 120,
+    minWidth: 80,
     renderCell: (params) => formatUnixTimestampMs(params.value),
   },
   {
     field: 'platform',
     headerName: '播出平台',
-    headerAlign: 'right',
-    align: 'right',
+    headerAlign: 'center',
+    align: 'center',
     flex: 1,
-    minWidth: 100,
+    minWidth: 80,
   },
 ];
