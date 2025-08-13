@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import {ThemeProvider} from "@mui/material";
+import {Box, ThemeProvider} from "@mui/material";
 import { Toaster } from "react-hot-toast";
 
 // 导入你的页面组件
@@ -13,27 +13,29 @@ import BackToTop from "@/components/BackToTop.tsx";
 
 export default function App() {
     const [searchValue, setSearchValue] = useState("");
+
     return (
         <ThemeProvider theme={theme}>
             <Router>
-                {/* 将 Header 放在 Routes 外部，使其在所有页面都可见 */}
-                {/* 传递搜索状态和修改函数给 Header */}
                 <Header onSearchChange={setSearchValue} />
 
-                {/* 用一个主容器来包裹路由内容，并添加 padding-top */}
-                <div style={{ paddingTop: '80px' }}>
+                <Box
+                    component="main"
+                    sx={{ paddingTop: '80px', width: '100%', margin: '0 auto', boxSizing: 'border-box' }}
+                >
                     <Routes>
                         <Route path="/" element={<HomePage searchQuery={searchValue} />} />
                         <Route path="/about" element={<AboutPage />} />
                         <Route path="/favorites" element={<HistoryPage />} />
                     </Routes>
-                </div>
-                <BackToTop/>
+                </Box>
+
+                <BackToTop />
+
                 <Toaster
                     position="top-center"
                     toastOptions={{
-                        className:
-                            'bg-gray-50 dark:bg-slate-600 dark:text-white rounded-md shadow-md',
+                        className: 'bg-gray-50 dark:bg-slate-600 dark:text-white rounded-md shadow-md',
                     }}
                 />
             </Router>

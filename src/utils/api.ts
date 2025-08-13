@@ -21,13 +21,16 @@ export interface Ani {
     platform: string;
 }
 
-// 动漫收藏
-export interface AniCollect {
-    id: number,
-    ani_item_id: number,
-    ani_title: string,
-    collect_time: string,
-    is_watched: boolean,
+// 动漫历史信息
+export interface AniHistoryInfo {
+    id: number;
+    title: string;
+    updateCount: string;
+    isWatched: boolean,
+    userId: string;
+    updateTime: number;
+    watchedTime: number;
+    platform: string;
 }
 
 //动漫观看历史
@@ -139,6 +142,16 @@ export type ApiCommands = FetchCommandsMap & {
         args: { aniId: number; aniTitle: string }
         result: { message: string }
     }
+    query_ani_history_list: {
+        args: {
+            page: number;       // 当前页
+            pageSize: number;   // 每页大小
+        }
+        result: {
+            total: number;        // 总条数
+            items: AniHistoryInfo[];  // 当前页数据数组
+        }
+    }
 }
 
 /**
@@ -206,4 +219,13 @@ export const api = {
      * */
     cancelCollectAni: (aniId: number, aniTitle: string) =>
         invokeApi('cancel_collect_ani_item', {aniId, aniTitle}),
+
+    /**
+     * 查询动漫历史列表
+     */
+    queryAniHistoryList: ( params: {
+        page: number;
+        pageSize: number;
+    }) =>
+        invokeApi('query_ani_history_list', params),
 }

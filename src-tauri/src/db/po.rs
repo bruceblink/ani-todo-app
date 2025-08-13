@@ -78,5 +78,19 @@ pub struct AniColl {
 pub struct AniWatch {
     pub user_id: String,
     pub ani_item_id: i64,
-    pub watched_time: String,
+    pub watched_time: i64,
+}
+
+#[derive(Serialize, Debug, Clone ,FromRow)]
+#[serde(rename_all = "camelCase")]
+pub struct AniHistoryInfo {
+    id: i64,
+    title: String,
+    update_count: String,
+    is_watched: bool,
+    user_id: String,
+    update_time: i64,
+    watched_time: Option<i64>,
+    platform: String,
+    pub total_count: i64,
 }

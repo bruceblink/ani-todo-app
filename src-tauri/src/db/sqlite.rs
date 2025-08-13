@@ -1,3 +1,4 @@
+use crate::db::po::AniHistoryInfo;
 use crate::db::po::{AniWatch, AniWatchHistory};
 use crate::db::po::AniColl;
 use crate::db::common::run_query;
@@ -193,7 +194,7 @@ pub async fn list_all_ani_info_watched_today<>(pool: &SqlitePool, update_time:i6
                       watched_time
                 FROM ani_watch_history
                 WHERE
-                    watched_time = ? AND
+                    watched_time >= ? AND
                     user_id = ?
                 ORDER BY
                     watched_time DESC
@@ -362,7 +363,6 @@ pub async fn list_all_ani_update_today<>(pool: &SqlitePool, today_ts: i64) -> Re
 
 
 pub async fn upsert_ani_watch_history(pool: &SqlitePool, item: &AniWatch) -> Result<()> {
-    let watched_time = parse_date_to_millis(&item.watched_time, true)?;
     let _ = sqlx::query(
         r#"
                 INSERT INTO ani_watch_history (
@@ -376,7 +376,7 @@ pub async fn upsert_ani_watch_history(pool: &SqlitePool, item: &AniWatch) -> Res
         )
         .bind(&item.user_id)
         .bind(&item.ani_item_id)
-        .bind(watched_time)
+        .bind(&item.watched_time)
         .execute(pool)
         .await
         .map_err(|e| {
@@ -414,6 +414,35 @@ pub async fn list_all_follow_ani_update_today<>(pool: &SqlitePool, today_ts: i64
            ;"#,
          )
         .bind(today_ts);
+    // 调用通用的 run_query
+    let list = run_query(pool, sql).await?;
+    Ok(list)
+}
+
+/// 查询所有动漫的历史数据
+pub async fn list_all_ani_history_data<>(pool: &SqlitePool, page: i64, page_size: i64) -> Result<Vec<AniHistoryInfo>> {
+    // 构造带绑定参数的 QueryAs
+    let sql = sqlx::query_as::<_, AniHistoryInfo>(
+        r#"
+                SELECT
+                    ai.id AS id,
+                    ai.title AS title,
+                    update_count,
+                    CASE WHEN awh.id IS NOT NULL THEN 1 ELSE 0 END AS is_watched,
+                    COALESCE(awh.user_id, '') AS user_id,
+                    update_time,
+                    watched_time,
+                    platform,
+                    COUNT(*) OVER() AS total_count  -- 总条数使用窗口函数SQLite 3.25+ 支持
+                FROM ani_info ai
+                LEFT JOIN ani_watch_history awh
+                       ON ai.id = awh.ani_item_id
+                ORDER BY ai.update_time DESC
+                LIMIT ? OFFSET ?
+           ;"#,
+        )
+        .bind(page_size)
+        .bind((page - 1) * page_size);
     // 调用通用的 run_query
     let list = run_query(pool, sql).await?;
     Ok(list)
