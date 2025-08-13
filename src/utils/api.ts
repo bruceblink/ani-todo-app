@@ -8,6 +8,17 @@ export interface ApiResponse<T = unknown> {
     data?: T
 }
 
+// 分页数据结构
+export interface PaginationData<T> {
+    items: T[];
+    totalCount: number;
+    page: number;
+    pageSize: number;
+}
+
+// 组合泛型类型
+export type ApiPaginationResponse<T> = ApiResponse<PaginationData<T>>;
+
 /** Ani 结构体对应的 TS 接口 */
 export interface Ani {
     id: number;
@@ -21,13 +32,16 @@ export interface Ani {
     platform: string;
 }
 
-// 动漫收藏
-export interface AniCollect {
-    id: number,
-    ani_item_id: number,
-    ani_title: string,
-    collect_time: string,
+// 动漫历史信息
+export interface AniHistoryInfo {
+    id: number;
+    title: string;
+    update_count: string;
     is_watched: boolean,
+    userId: string;
+    update_time: number;
+    watch_time: string;
+    platform: string;
 }
 
 //动漫观看历史
@@ -139,6 +153,10 @@ export type ApiCommands = FetchCommandsMap & {
         args: { aniId: number; aniTitle: string }
         result: { message: string }
     }
+    query_ani_history_list: {
+        args: { aniId: number; aniTitle: string }
+        result: AniHistoryInfo[]
+    }
 }
 
 /**
@@ -206,4 +224,12 @@ export const api = {
      * */
     cancelCollectAni: (aniId: number, aniTitle: string) =>
         invokeApi('cancel_collect_ani_item', {aniId, aniTitle}),
+
+    /**
+     * 查询动漫历史列表
+     * @param aniId
+     * @param aniTitle
+     */
+    queryAniHistoryList: (aniId: number, aniTitle: string) =>
+        invokeApi('query_ani_history_list', {aniId, aniTitle}),
 }
