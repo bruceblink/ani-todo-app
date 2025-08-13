@@ -194,7 +194,7 @@ pub async fn list_all_ani_info_watched_today<>(pool: &SqlitePool, update_time:i6
                       watched_time
                 FROM ani_watch_history
                 WHERE
-                    watched_time = ? AND
+                    watched_time >= ? AND
                     user_id = ?
                 ORDER BY
                     watched_time DESC
