@@ -80,3 +80,16 @@ pub struct AniWatch {
     pub ani_item_id: i64,
     pub watched_time: String,
 }
+
+#[derive(Serialize, Debug, Clone ,FromRow)]
+pub struct AniHistoryInfo {
+    id: i64,
+    title: String,
+    update_count: String,
+    is_watched: bool,
+    user_id: String,
+    update_time: i64,
+    watch_time: Option<i64>,
+    platform: String,
+    pub total_count: i64,
+}

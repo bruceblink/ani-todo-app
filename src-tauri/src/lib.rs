@@ -18,7 +18,7 @@ use log::info;
 use tauri::async_runtime::block_on;
 use tauri::Manager;
 use tauri_plugin_log::fern;
-use crate::command::service::{cancel_collect_ani_item, collect_ani_item, query_favorite_ani_update_list, query_today_update_ani_list, query_watched_ani_item_list, save_ani_item_data, watch_ani_item};
+use crate::command::service::{cancel_collect_ani_item, collect_ani_item, query_ani_history_list, query_favorite_ani_update_list, query_today_update_ani_list, query_watched_ani_item_list, save_ani_item_data, watch_ani_item};
 use crate::db::common::AppState;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -76,6 +76,7 @@ pub fn run() {
             query_favorite_ani_update_list,
             collect_ani_item,
             cancel_collect_ani_item,
+            query_ani_history_list,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use log::debug;
 use serde_json::json;
 use tauri::State;
-use crate::command::ApiResponse;
+use crate::command::{ApiResponse, PageData};
 use crate::db::common::AppState;
 use crate::db::ge_db_pool;
 use crate::db::po::{AniColl, AniDto, AniIResult, AniWatch};
@@ -14,6 +14,7 @@ use crate::db::sqlite::{
     upsert_ani_collect,
     upsert_ani_info,
     upsert_ani_watch_history,
+    list_all_ani_history_data
 };
 use crate::platforms::AniItemResult;
 use crate::utils::date_utils::{get_today_slash, get_today_weekday, parse_date_to_millis};
@@ -179,4 +180,33 @@ pub async fn cancel_collect_ani_item(
 
     debug!("已取消收藏：《{}》(id={})", ani_title, ani_id);
     Ok(ApiResponse::ok(json!({ "message": "cancel success" })))
+}
+
+
+/// 查询动漫历史更新信息列表
+#[tauri::command]
+pub async fn query_ani_history_list(
+    state: State<'_, AppState>,
+    page: i64,
+    page_size: i64,
+) -> Result<ApiResponse, String> {
+    let pool = ge_db_pool(&state.db);
+    //查询数据
+    let list = match list_all_ani_history_data(&pool, page, page_size).await {
+        Ok(v) => v,
+        Err(e) => return Ok(ApiResponse::err(format!("查询失败：{}", e))),
+    };
+    if list.is_empty() {
+        return Ok(ApiResponse::ok(json!({ "message": "没有历史更新数据" })));
+    }
+    let total_count: i64 = list[0].total_count;
+    debug!("历史更新数据：{:?}", list);
+    // 3. 组织分页数据
+    let data = PageData {
+        items: list,
+        total: total_count as usize,
+        page,
+        page_size,
+    };
+    Ok(ApiResponse::ok(json!(data)))
 }
