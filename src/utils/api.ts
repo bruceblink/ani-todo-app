@@ -154,8 +154,14 @@ export type ApiCommands = FetchCommandsMap & {
         result: { message: string }
     }
     query_ani_history_list: {
-        args: { aniId: number; aniTitle: string }
-        result: AniHistoryInfo[]
+        args: {
+            page: number;       // 当前页
+            pageSize: number;   // 每页大小
+        }
+        result: {
+            total: number;        // 总条数
+            items: AniHistoryInfo[];  // 当前页数据数组
+        }
     }
 }
 
@@ -227,9 +233,10 @@ export const api = {
 
     /**
      * 查询动漫历史列表
-     * @param aniId
-     * @param aniTitle
      */
-    queryAniHistoryList: (aniId: number, aniTitle: string) =>
-        invokeApi('query_ani_history_list', {aniId, aniTitle}),
+    queryAniHistoryList: ( params: {
+        page: number;
+        pageSize: number;
+    }) =>
+        invokeApi('query_ani_history_list', params),
 }
