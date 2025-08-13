@@ -75,11 +75,6 @@ button:hover {
     border-color: #646cff;
 }
 
-button:focus,
-button:focus-visible {
-    outline: 2px solid #007bff; /* 红色轮廓，宽度2px */
-    /*outline-offset: 2px;  可选：设置轮廓与元素边缘的偏移 */
-}
 
 @media (prefers-color-scheme: light) {
     :root {
