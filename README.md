@@ -6,6 +6,8 @@
 ![snapshot](/picture/snapshotv0.3.0-1.png)
 **关注**页面截图如下：
 ![snapshot](/picture/snapshotv0.3.0-2.png)
+**历史**页面截图如下：
+![snapshot](/picture/snapshotv0.3.2-1.png)
 
 **技术栈：React + TypeScript + Vite + pnpm + Tauri(Rust)**
 
