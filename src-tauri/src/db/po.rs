@@ -82,6 +82,7 @@ pub struct AniWatch {
 }
 
 #[derive(Serialize, Debug, Clone ,FromRow)]
+#[serde(rename_all = "camelCase")]
 pub struct AniHistoryInfo {
     id: i64,
     title: String,
@@ -89,7 +90,7 @@ pub struct AniHistoryInfo {
     is_watched: bool,
     user_id: String,
     update_time: i64,
-    watch_time: Option<i64>,
+    watched_time: Option<i64>,
     platform: String,
     pub total_count: i64,
 }
