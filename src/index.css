@@ -103,3 +103,11 @@ button:hover {
         transform: rotate(360deg);
     }
 }
+
+.loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 50vh; /* 占满视口高度 */
+    font-size: 1.2rem;
+}

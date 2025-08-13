@@ -26,9 +26,9 @@ export default function HomePage({ searchQuery }: HomePageProps) {
     const handleFilterChange = (filter: 'all' | 'favorites') => {
         setShowFavorite(filter === 'favorites');
     };
-    if (loading) return <div className="App">加载中…</div>;
-    if (error) return <div className="App">出错了：{error}</div>;
-    if (!Object.keys(data).length) return <div className="App">无数据</div>;
+    if (loading) return <div className="loading">加载中…</div>;
+    if (error) return <div className="loading">出错了：{error}</div>;
+    if (!Object.keys(data).length) return <div className="loading">无数据</div>;
 
     const today = Object.keys(data)[0];
     const aniList = data[today] as Ani[];
