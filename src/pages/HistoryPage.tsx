@@ -16,7 +16,7 @@ export default function HistoryPage() {
             }}
         >
             <Typography component="h2" variant="h6" sx={{ mb: 2 }}>
-                动漫历史数据
+                历史观看数据
             </Typography>
             <CustomizedDataGrid />
         </Box>
