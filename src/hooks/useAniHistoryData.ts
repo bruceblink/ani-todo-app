@@ -8,13 +8,13 @@ export type UseAniHistoryData = {
     } | null;
     loading: boolean;
     error: string | null;
-    /** 刷新网络并重新加载，返回一个 Promise */
     refresh: () => Promise<void>;
 };
 
 export function useAniHistoryData(
     page: number,
-    pageSize: number
+    pageSize: number,
+    isServer: boolean = true // 新增参数，默认服务端模式
 ): UseAniHistoryData {
     const [data, setData] = useState<{ total: number; items: AniHistoryInfo[] } | null>(null);
     const [loading, setLoading] = useState(false);
@@ -25,7 +25,10 @@ export function useAniHistoryData(
         setError(null);
 
         try {
-            const res = await api.queryAniHistoryList({ page, pageSize });
+            const res = await api.queryAniHistoryList({
+                page: isServer ? page : 1,
+                pageSize: isServer ? pageSize : Number.MAX_SAFE_INTEGER, // 本地模式一次性拉全量
+            });
             setData(res);
         } catch (e: unknown) {
             const err = e instanceof Error ? e : new Error('未知错误');
@@ -33,7 +36,7 @@ export function useAniHistoryData(
         } finally {
             setLoading(false);
         }
-    }, [page, pageSize]);
+    }, [page, pageSize, isServer]);
 
     useEffect(() => {
         void loadData();

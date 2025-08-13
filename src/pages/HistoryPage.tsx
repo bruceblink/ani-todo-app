@@ -18,7 +18,7 @@ export default function HistoryPage() {
             <Typography component="h2" variant="h6" sx={{ mb: 2 }}>
                 历史记录
             </Typography>
-            <CustomizedDataGrid />
+            <CustomizedDataGrid isServer />
         </Box>
     )
 }

@@ -1,20 +1,24 @@
 import { DataGrid, type GridPaginationModel } from '@mui/x-data-grid';
 import { columns } from './data/gridData';
 import { useEffect, useState } from 'react';
-import { useAniHistoryData } from '@/hooks/useAniHistoryData'; // 根据你的路径调整
+import { useAniHistoryData } from '@/hooks/useAniHistoryData';
 import type { AniHistoryInfo } from '@/utils/api';
-import {toast} from "react-hot-toast";
+import { toast } from 'react-hot-toast';
 
-export default function CustomizedDataGrid() {
+type Props = {
+    isServer?: boolean; // 新增
+};
+
+export default function CustomizedDataGrid({ isServer = true }: Props) {
     const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({
         pageSize: 20,
         page: 0,
     });
 
-    // 注意：hook 接受的是后端的 page（从 1 开始），因此传 paginationModel.page + 1
     const { data, loading, error } = useAniHistoryData(
         paginationModel.page + 1,
-        paginationModel.pageSize
+        paginationModel.pageSize,
+        isServer
     );
 
     useEffect(() => {
@@ -29,7 +33,7 @@ export default function CustomizedDataGrid() {
             columns={columns}
             loading={loading}
             pagination
-            paginationMode="server"
+            paginationMode={isServer ? 'server' : 'client'} // 自动切换
             rowCount={data?.total ?? 0}
             paginationModel={paginationModel}
             onPaginationModelChange={setPaginationModel}
