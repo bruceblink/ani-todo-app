@@ -21,7 +21,7 @@ export default function AniStat({ weekday, total}: Props) {
                     fontWeight: 600,
                     color: 'var(--text-color, #333)'
                 }}>
-                    今日({weekday})更新番剧 共 {total} 部
+                    今天({weekday})更新番剧 共 {total} 部
                 </h1>
                 <div style={{ marginTop: 8, fontSize: '1rem', color: 'var(--sub-text-color, #555)' }}>
                     已观看 {watchedNum} 部 — {percentage}% 完成

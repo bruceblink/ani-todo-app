@@ -100,7 +100,7 @@ export default function Header({ onSearchChange }: HeaderProps) {
                         onClick={handleLinkClick}
                         style={linkStyle(isHomePage, 'accent')}
                     >
-                        今日更新
+                        今天
                     </Link>
                     <Link
                         to="/favorites"
