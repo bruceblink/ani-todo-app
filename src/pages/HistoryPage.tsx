@@ -1,5 +1,5 @@
 import Typography from '@mui/material/Typography';
-import CustomizedDataGrid from "@/components/CustomizedDataGrid.tsx";
+import HistoryDataGrid from "@/components/HistoryDataGrid.tsx";
 import {Box} from "@mui/material";
 
 
@@ -18,7 +18,7 @@ export default function HistoryPage() {
             <Typography component="h2" variant="h6" sx={{ mb: 2 }}>
                 历史记录
             </Typography>
-            <CustomizedDataGrid isServer={false} />
+            <HistoryDataGrid isServer={false} />
         </Box>
     )
 }

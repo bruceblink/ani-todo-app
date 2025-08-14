@@ -9,7 +9,7 @@ type Props = {
     isServer?: boolean; // 是否服务端分页
 };
 
-export default function CustomizedDataGrid({ isServer = true }: Props) {
+export default function HistoryDataGrid({ isServer = true }: Props) {
     const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({
         pageSize: 20,
         page: 0,
