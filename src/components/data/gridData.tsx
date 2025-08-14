@@ -23,6 +23,15 @@ export const columns: GridColDef[] = [
     minWidth: 50,
   },
   {
+    field: 'updateTime',
+    headerName: '更新日期',
+    headerAlign: 'right',
+    align: 'right',
+    flex: 1,
+    minWidth: 80,
+    renderCell: (params) => formatUnixMs2Date(params.value),
+  },
+  {
     field: 'isWatched',
     headerName: '观看状态',
     headerAlign: 'center',
@@ -39,15 +48,6 @@ export const columns: GridColDef[] = [
     flex: 1,
     minWidth: 80,
   },*/
-  {
-    field: 'updateTime',
-    headerName: '更新时间',
-    headerAlign: 'right',
-    align: 'right',
-    flex: 1,
-    minWidth: 80,
-    renderCell: (params) => formatUnixMs2Date(params.value),
-  },
   {
     field: 'watchedTime',
     headerName: '观看时间',
