@@ -3,8 +3,8 @@ import {
     useReactTable,
     getCoreRowModel,
     getPaginationRowModel,
-    flexRender,
     getSortedRowModel,
+    flexRender,
     type ColumnDef,
     type SortingState,
 } from '@tanstack/react-table';
@@ -24,6 +24,8 @@ import {
     IconButton,
     Menu,
     MenuItem,
+    Checkbox,
+    FormControlLabel,
     Select,
     FormControl,
     InputLabel,
@@ -60,11 +62,10 @@ const testData: AniHistoryInfo[] = Array.from({ length: 55 }, (_, i) => ({
 export default function NotionStyleTable() {
     const [pageIndex, setPageIndex] = useState(0);
     const [pageSize, setPageSize] = useState(10);
-    const [filters, setFilters] = useState<Record<string, string>>({});
+    const [filters, setFilters] = useState<Record<string, Set<string>>>({});
     const [sorting, setSorting] = useState<SortingState>([]);
     const [open, setOpen] = useState(false);
     const [selectedAni, setSelectedAni] = useState<AniHistoryInfo | null>(null);
-
     const [anchorEls, setAnchorEls] = useState<Record<string, HTMLElement | null>>({});
 
     // 列定义
@@ -107,10 +108,10 @@ export default function NotionStyleTable() {
     // 多条件筛选
     const filteredData = useMemo(() => {
         let rows = testData;
-        Object.entries(filters).forEach(([key, value]) => {
-            if (!value) return;
+        Object.entries(filters).forEach(([key, valueSet]) => {
+            if (!valueSet || valueSet.size === 0) return;
             rows = rows.filter(row =>
-                String(row[key as keyof AniHistoryInfo]).toLowerCase().includes(value.toLowerCase())
+                valueSet.has(String(row[key as keyof AniHistoryInfo]))
             );
         });
         return rows;
@@ -147,6 +148,25 @@ export default function NotionStyleTable() {
         else setSorting([]);
     };
 
+    const handleToggleFilter = (columnId: string, value: string) => {
+        setFilters(prev => {
+            const prevSet = prev[columnId] ?? new Set<string>();
+            const newSet = new Set(prevSet);
+            if (newSet.has(value)) newSet.delete(value);
+            else newSet.add(value);
+            return { ...prev, [columnId]: newSet };
+        });
+    };
+
+    const handleClearFilter = (columnId: string) => {
+        setFilters(prev => {
+            const newFilters = { ...prev };
+            delete newFilters[columnId];
+            return newFilters;
+        });
+        handleCloseMenu(columnId);
+    };
+
     return (
         <Box p={2}>
             <TableContainer component={Paper} sx={{ mb: 2 }}>
@@ -159,6 +179,7 @@ export default function NotionStyleTable() {
                                         <Stack direction="row" alignItems="center" spacing={1}>
                                             {flexRender(header.column.columnDef.header, header.getContext())}
                                             <Stack direction="row" spacing={0.5}>
+                                                {/* 排序 */}
                                                 <IconButton
                                                     size="small"
                                                     onClick={() => toggleSort(header.column.id)}
@@ -167,6 +188,7 @@ export default function NotionStyleTable() {
                                                         ? <ArrowDownwardIcon fontSize="small" />
                                                         : <ArrowUpwardIcon fontSize="small" />}
                                                 </IconButton>
+                                                {/* 筛选 */}
                                                 <IconButton
                                                     size="small"
                                                     onClick={(e) => handleOpenMenu(header.column.id, e)}
@@ -174,32 +196,26 @@ export default function NotionStyleTable() {
                                                     <FilterListIcon fontSize="small" />
                                                 </IconButton>
                                             </Stack>
+                                            {/* 筛选菜单 */}
                                             <Menu
                                                 anchorEl={anchorEls[header.column.id]}
                                                 open={Boolean(anchorEls[header.column.id])}
                                                 onClose={() => handleCloseMenu(header.column.id)}
                                             >
                                                 {uniqueValues(header.column.id as keyof AniHistoryInfo).map(val => (
-                                                    <MenuItem
-                                                        key={val}
-                                                        onClick={() => {
-                                                            setFilters(prev => ({ ...prev, [header.column.id]: val }));
-                                                            handleCloseMenu(header.column.id);
-                                                        }}
-                                                    >
-                                                        {val}
+                                                    <MenuItem key={val}>
+                                                        <FormControlLabel
+                                                            control={
+                                                                <Checkbox
+                                                                    checked={filters[header.column.id]?.has(val) ?? false}
+                                                                    onChange={() => handleToggleFilter(header.column.id, val)}
+                                                                />
+                                                            }
+                                                            label={val}
+                                                        />
                                                     </MenuItem>
                                                 ))}
-                                                <MenuItem
-                                                    onClick={() => {
-                                                        setFilters(prev => {
-                                                            const newFilters = { ...prev };
-                                                            delete newFilters[header.column.id];
-                                                            return newFilters;
-                                                        });
-                                                        handleCloseMenu(header.column.id);
-                                                    }}
-                                                >
+                                                <MenuItem onClick={() => handleClearFilter(header.column.id)}>
                                                     清空
                                                 </MenuItem>
                                             </Menu>
