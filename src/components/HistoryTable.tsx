@@ -7,6 +7,14 @@ import {
     type ColumnDef,
 } from '@tanstack/react-table';
 import {
+    Box,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+    Paper,
     Button,
     Dialog,
     DialogTitle,
@@ -17,6 +25,8 @@ import {
     Select,
     FormControl,
     InputLabel,
+    Typography,
+    Stack,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import FilterListIcon from '@mui/icons-material/FilterList';
@@ -60,6 +70,7 @@ export default function NotionStyleTable() {
                 cell: (info) => (
                     <Button
                         variant="text"
+                        color="primary"
                         onClick={() => {
                             setSelectedAni(info.row.original);
                             setOpen(true);
@@ -96,8 +107,6 @@ export default function NotionStyleTable() {
         []
     );
 
-    // ---------------------------
-    // 多列筛选
     const filteredData = useMemo(() => {
         let rows = testData;
         Object.entries(filters).forEach(([key, value]) => {
@@ -111,8 +120,6 @@ export default function NotionStyleTable() {
         return rows;
     }, [filters]);
 
-    // ---------------------------
-    // 创建表格实例
     const table = useReactTable({
         data: filteredData,
         columns,
@@ -135,84 +142,84 @@ export default function NotionStyleTable() {
         Array.from(new Set(testData.map((d) => String(d[key]))));
 
     return (
-        <>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead>
-                {table.getHeaderGroups().map((headerGroup) => (
-                    <tr key={headerGroup.id}>
-                        {headerGroup.headers.map((header) => (
-                            <th
-                                key={header.id}
-                                style={{
-                                    borderBottom: '1px solid #ddd',
-                                    textAlign: 'left',
-                                    padding: '4px',
-                                    position: 'relative',
-                                }}
-                            >
-                                {flexRender(header.column.columnDef.header, header.getContext())}
-                                <IconButton
-                                    size="small"
-                                    onClick={(e) => handleOpenMenu(header.column.id, e)}
-                                    style={{ marginLeft: 4 }}
-                                >
-                                    <FilterListIcon fontSize="small" />
-                                </IconButton>
-                                <Menu
-                                    anchorEl={anchorEls[header.column.id]}
-                                    open={Boolean(anchorEls[header.column.id])}
-                                    onClose={() => handleCloseMenu(header.column.id)}
-                                >
-                                    {uniqueValues(header.column.id as keyof AniHistoryInfo).map((val) => (
-                                        <MenuItem
-                                            key={val}
-                                            onClick={() => {
-                                                setFilters((prev) => ({ ...prev, [header.column.id]: val }));
-                                                handleCloseMenu(header.column.id);
-                                            }}
-                                        >
-                                            {val}
-                                        </MenuItem>
-                                    ))}
-                                    <MenuItem
-                                        onClick={() => {
-                                            setFilters((prev) => ({ ...prev, [header.column.id]: '' }));
-                                            handleCloseMenu(header.column.id);
-                                        }}
+        <Box p={2}>
+            <TableContainer component={Paper} sx={{ mb: 2 }}>
+                <Table>
+                    <TableHead>
+                        {table.getHeaderGroups().map((headerGroup) => (
+                            <TableRow key={headerGroup.id}>
+                                {headerGroup.headers.map((header) => (
+                                    <TableCell
+                                        key={header.id}
+                                        sx={{ fontWeight: 'bold', position: 'relative' }}
                                     >
-                                        清空
-                                    </MenuItem>
-                                </Menu>
-                            </th>
+                                        <Stack direction="row" alignItems="center" spacing={1}>
+                                            {flexRender(header.column.columnDef.header, header.getContext())}
+                                            <IconButton
+                                                size="small"
+                                                onClick={(e) => handleOpenMenu(header.column.id, e)}
+                                            >
+                                                <FilterListIcon fontSize="small" />
+                                            </IconButton>
+                                            <Menu
+                                                anchorEl={anchorEls[header.column.id]}
+                                                open={Boolean(anchorEls[header.column.id])}
+                                                onClose={() => handleCloseMenu(header.column.id)}
+                                            >
+                                                {uniqueValues(header.column.id as keyof AniHistoryInfo).map((val) => (
+                                                    <MenuItem
+                                                        key={val}
+                                                        onClick={() => {
+                                                            setFilters((prev) => ({ ...prev, [header.column.id]: val }));
+                                                            handleCloseMenu(header.column.id);
+                                                        }}
+                                                    >
+                                                        {val}
+                                                    </MenuItem>
+                                                ))}
+                                                <MenuItem
+                                                    onClick={() => {
+                                                        setFilters((prev) => ({ ...prev, [header.column.id]: '' }));
+                                                        handleCloseMenu(header.column.id);
+                                                    }}
+                                                >
+                                                    清空
+                                                </MenuItem>
+                                            </Menu>
+                                        </Stack>
+                                    </TableCell>
+                                ))}
+                            </TableRow>
                         ))}
-                    </tr>
-                ))}
-                </thead>
-                <tbody>
-                {table.getRowModel().rows.map((row) => (
-                    <tr key={row.id}>
-                        {row.getVisibleCells().map((cell) => (
-                            <td
-                                key={cell.id}
-                                style={{ borderBottom: '1px solid #eee', padding: '4px' }}
-                            >
-                                {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                            </td>
+                    </TableHead>
+                    <TableBody>
+                        {table.getRowModel().rows.map((row) => (
+                            <TableRow key={row.id} hover>
+                                {row.getVisibleCells().map((cell) => (
+                                    <TableCell key={cell.id}>
+                                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                    </TableCell>
+                                ))}
+                            </TableRow>
                         ))}
-                    </tr>
-                ))}
-                </tbody>
-            </table>
+                    </TableBody>
+                </Table>
+            </TableContainer>
 
             {/* 分页 */}
-            <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 12 }}>
-                <Button onClick={() => setPageIndex((old) => Math.max(old - 1, 0))} disabled={pageIndex === 0}>
+            <Stack direction="row" alignItems="center" spacing={2}>
+                <Button
+                    variant="outlined"
+                    onClick={() => setPageIndex((old) => Math.max(old - 1, 0))}
+                    disabled={pageIndex === 0}
+                >
                     上一页
                 </Button>
-                <span>
-          {pageIndex + 1} / {totalPages} 页 ({filteredData.length} 条)
-        </span>
+                <Typography>
+                    {pageIndex + 1} / {totalPages} 页 ({filteredData.length} 条)
+                </Typography>
                 <Button
+                    variant="outlined"
                     onClick={() => setPageIndex((old) => Math.min(old + 1, totalPages - 1))}
                     disabled={pageIndex + 1 >= totalPages}
                 >
@@ -224,9 +231,8 @@ export default function NotionStyleTable() {
                         value={pageSize}
                         onChange={(e) => {
                             setPageSize(Number(e.target.value));
-                            setPageIndex(0); // 切换 pageSize 时回到第一页
+                            setPageIndex(0);
                         }}
-                        style={{ minWidth: 80 }}
                     >
                         {[5, 10, 20, 50].map((size) => (
                             <MenuItem key={size} value={size}>
@@ -235,7 +241,7 @@ export default function NotionStyleTable() {
                         ))}
                     </Select>
                 </FormControl>
-            </div>
+            </Stack>
 
             {/* Dialog */}
             <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="md">
@@ -253,6 +259,6 @@ export default function NotionStyleTable() {
                     <pre>{JSON.stringify(selectedAni, null, 2)}</pre>
                 </DialogContent>
             </Dialog>
-        </>
+        </Box>
     );
 }
