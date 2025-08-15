@@ -5,7 +5,7 @@ import {
     type GridColDef,
     type GridRenderCellParams,
 } from '@mui/x-data-grid';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useAniHistoryData } from '@/hooks/useAniHistoryData';
 import type { AniHistoryInfo } from '@/utils/api';
 import { toast } from 'react-hot-toast';
@@ -37,6 +37,7 @@ export default function HistoryDataGrid({ isServer = true }: Props) {
 
     const [open, setOpen] = useState(false);
     const [selectedAni, setSelectedAni] = useState<AniHistoryInfo | null>(null);
+    const triggerButtonRef = useRef<HTMLButtonElement | null>(null);
 
     const { data, loading, error } = useAniHistoryData(
         paginationModel.page + 1,
@@ -49,7 +50,6 @@ export default function HistoryDataGrid({ isServer = true }: Props) {
         if (error) toast.error(`加载番剧历史出错：${error}`);
     }, [error]);
 
-    // 本地模式下多列筛选
     const filteredRows = useMemo(() => {
         if (isServer) return data?.items ?? [];
         let rows = data?.items ?? [];
@@ -71,6 +71,7 @@ export default function HistoryDataGrid({ isServer = true }: Props) {
                     renderCell: (params: GridRenderCellParams<AniHistoryInfo, string>) => (
                         <button
                             type="button"
+                            ref={triggerButtonRef} // 保存触发按钮的 ref
                             onClick={() => {
                                 setSelectedAni(params.row);
                                 setOpen(true);
@@ -93,6 +94,12 @@ export default function HistoryDataGrid({ isServer = true }: Props) {
                 : col
         );
     }, []);
+
+    const handleCloseDialog = () => {
+        setOpen(false);
+        // 关闭 Dialog 后将焦点返回触发按钮
+        triggerButtonRef.current?.focus();
+    };
 
     return (
         <>
@@ -122,18 +129,18 @@ export default function HistoryDataGrid({ isServer = true }: Props) {
                 paginationModel={paginationModel}
                 onPaginationModelChange={setPaginationModel}
                 filterModel={filterModel}
-                onFilterModelChange={setFilterModel} // MUI UI 保持单列
+                onFilterModelChange={setFilterModel}
                 pageSizeOptions={[10, 20, 50]}
                 disableColumnResize
                 density="compact"
             />
 
-            <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="md">
+            <Dialog open={open} onClose={handleCloseDialog} fullWidth maxWidth="md">
                 <DialogTitle>
                     {selectedAni?.title ?? '番剧详情'}
                     <IconButton
                         aria-label="close"
-                        onClick={() => setOpen(false)}
+                        onClick={handleCloseDialog}
                         sx={{ position: 'absolute', right: 8, top: 8 }}
                     >
                         <CloseIcon />
