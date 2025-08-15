@@ -31,6 +31,7 @@ import {
     InputLabel,
     Typography,
     Stack,
+    Divider,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import FilterListIcon from '@mui/icons-material/FilterList';
@@ -167,6 +168,8 @@ export default function NotionStyleTable() {
         handleCloseMenu(columnId);
     };
 
+    const countSelected = (columnId: string) => filters[columnId]?.size ?? 0;
+
     return (
         <Box p={2}>
             <TableContainer component={Paper} sx={{ mb: 2 }}>
@@ -178,29 +181,39 @@ export default function NotionStyleTable() {
                                     <TableCell key={header.id} sx={{ fontWeight: 'bold', position: 'relative' }}>
                                         <Stack direction="row" alignItems="center" spacing={1}>
                                             {flexRender(header.column.columnDef.header, header.getContext())}
-                                            <Stack direction="row" spacing={0.5}>
-                                                {/* 排序 */}
+                                            <Stack direction="row" spacing={0.5} alignItems="center">
                                                 <IconButton
                                                     size="small"
                                                     onClick={() => toggleSort(header.column.id)}
                                                 >
                                                     {sorting.find(s => s.id === header.column.id)?.desc
                                                         ? <ArrowDownwardIcon fontSize="small" />
-                                                        : <ArrowUpwardIcon fontSize="small" />}
+                                                        : sorting.find(s => s.id === header.column.id)
+                                                            ? <ArrowUpwardIcon fontSize="small" />
+                                                            : <ArrowUpwardIcon fontSize="small" sx={{ opacity: 0.3 }} />}
                                                 </IconButton>
-                                                {/* 筛选 */}
                                                 <IconButton
                                                     size="small"
                                                     onClick={(e) => handleOpenMenu(header.column.id, e)}
                                                 >
                                                     <FilterListIcon fontSize="small" />
+                                                    {countSelected(header.column.id) > 0 && (
+                                                        <Typography variant="caption" sx={{ ml: 0.5 }}>
+                                                            {countSelected(header.column.id)}
+                                                        </Typography>
+                                                    )}
                                                 </IconButton>
                                             </Stack>
-                                            {/* 筛选菜单 */}
+
                                             <Menu
                                                 anchorEl={anchorEls[header.column.id]}
                                                 open={Boolean(anchorEls[header.column.id])}
                                                 onClose={() => handleCloseMenu(header.column.id)}
+                                                slotProps={{
+                                                    paper: {
+                                                        sx: { maxHeight: 300, minWidth: 160 }
+                                                    }
+                                                }}
                                             >
                                                 {uniqueValues(header.column.id as keyof AniHistoryInfo).map(val => (
                                                     <MenuItem key={val}>
@@ -215,6 +228,7 @@ export default function NotionStyleTable() {
                                                         />
                                                     </MenuItem>
                                                 ))}
+                                                <Divider />
                                                 <MenuItem onClick={() => handleClearFilter(header.column.id)}>
                                                     清空
                                                 </MenuItem>
@@ -239,7 +253,6 @@ export default function NotionStyleTable() {
                 </Table>
             </TableContainer>
 
-            {/* 分页 */}
             <Stack direction="row" alignItems="center" spacing={2}>
                 <Button
                     variant="outlined"
@@ -274,7 +287,6 @@ export default function NotionStyleTable() {
                 </FormControl>
             </Stack>
 
-            {/* Dialog */}
             <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="md">
                 <DialogTitle>
                     {selectedAni?.title ?? '番剧详情'}
