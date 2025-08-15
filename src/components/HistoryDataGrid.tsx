@@ -9,8 +9,6 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useAniHistoryData } from '@/hooks/useAniHistoryData';
 import type { AniHistoryInfo } from '@/utils/api';
 import { toast } from 'react-hot-toast';
-import { Dialog, DialogTitle, DialogContent, IconButton } from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
 import { columns as baseColumns } from './data/gridData';
 import {formatUnixMs2Date} from "@/utils/utils.ts";
 import {useWatchedAni} from "@/hooks/useWatchedAni.ts";
@@ -143,52 +141,50 @@ export default function HistoryDataGrid({ isServer = true }: Props) {
                 density="compact"
             />
 
-            <Dialog
-                open={open}
-                onClose={handleCloseDialog}
-                maxWidth={false}
-                slotProps={{
-                    paper: {
-                        sx: {
-                            width: 450,
-                            maxWidth: 900,
-                            minWidth: 450,
-                            height: 350,
-                            maxHeight: 700,
-                            minHeight: 350,
-                        },
-                    },
-                }}
-            >
-                <DialogTitle>
-                    番剧详情
-                    <IconButton
-                        aria-label="close"
-                        onClick={handleCloseDialog}
-                        sx={{ position: 'absolute', right: 8, top: 8 }}
-                    >
-                        <CloseIcon />
-                    </IconButton>
-                </DialogTitle>
-                <DialogContent dividers>
-                    <AniItem
-                        ani={{
-                            id: selectedAni?.id ?? 0,
-                            title: selectedAni?.title ?? '',
-                            update_count: selectedAni?.updateCount ?? '',
-                            detail_url: selectedAni?.detailUrl ?? '',
-                            image_url: selectedAni?.imageUrl ?? '',
-                            update_time: selectedAni?.updateTime ?? 0,
-                            update_info: selectedAni?.updateInfo ?? '',
-                            update_time_str: formatUnixMs2Date(selectedAni?.updateTime ?? 0) ?? '',
-                            platform: selectedAni?.platform ?? '',
-                        }}
-                        onClear={handleClearAndRefresh}
-                        isFavorite={favoriteAniItems.has(selectedAni?.title ?? '')}
-                        onToggleFavorite={handleFavor}
-                    />
-                </DialogContent>
-            </Dialog>
+            {open && (
+                <div
+                    style={{
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        width: '100vw',
+                        height: '100vh',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        zIndex: 1300,
+                        backgroundColor: 'rgba(0,0,0,0.2)', // 可选半透明遮罩
+                    }}
+                    onClick={handleCloseDialog} // 点击遮罩关闭
+                >
+                    <div key={selectedAni?.id ?? 0}
+                         onClick={(e) => e.stopPropagation()} // 阻止点击AniItem内部关闭
+                         style={{
+                        width: 'calc(clamp(480px, calc(90vw/4 - 24px), 360px) * 0.8)',   // 缩小宽度为原来的80%
+                        height: 'calc(calc(clamp(480px, calc(90vw/4 - 24px), 360px) * 0.618) * 0.8)',  // 缩小高度为原来的80%
+                        flexShrink: 0,
+                    }}>
+                        <AniItem
+                            ani={{
+                                id: selectedAni?.id ?? 0,
+                                title: selectedAni?.title ?? '',
+                                update_count: selectedAni?.updateCount ?? '',
+                                detail_url: selectedAni?.detailUrl ?? '',
+                                image_url: selectedAni?.imageUrl ?? '',
+                                update_time: selectedAni?.updateTime ?? 0,
+                                update_info: selectedAni?.updateInfo ?? '',
+                                update_time_str: formatUnixMs2Date(selectedAni?.updateTime ?? 0) ?? '',
+                                platform: selectedAni?.platform ?? '',
+                            }}
+                            onClear={handleClearAndRefresh}
+                            isFavorite={favoriteAniItems.has(selectedAni?.title ?? '')}
+                            onToggleFavorite={handleFavor}
+                        />
+
+                    </div>
+
+                </div>
+            )}
         </>
     );
 }
