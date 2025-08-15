@@ -168,6 +168,17 @@ export default function NotionStyleTable() {
         handleCloseMenu(columnId);
     };
 
+    // 新增：全选
+    const handleSelectAll = (columnId: string) => {
+        const allValues = uniqueValues(columnId as keyof AniHistoryInfo);
+        setFilters(prev => ({ ...prev, [columnId]: new Set(allValues) }));
+    };
+
+    // 新增：全不选
+    const handleSelectNone = (columnId: string) => {
+        setFilters(prev => ({ ...prev, [columnId]: new Set() }));
+    };
+
     const countSelected = (columnId: string) => filters[columnId]?.size ?? 0;
 
     return (
@@ -215,6 +226,13 @@ export default function NotionStyleTable() {
                                                     }
                                                 }}
                                             >
+                                                <MenuItem onClick={() => handleSelectAll(header.column.id)}>
+                                                    全选
+                                                </MenuItem>
+                                                <MenuItem onClick={() => handleSelectNone(header.column.id)}>
+                                                    全不选
+                                                </MenuItem>
+                                                <Divider />
                                                 {uniqueValues(header.column.id as keyof AniHistoryInfo).map(val => (
                                                     <MenuItem key={val}>
                                                         <FormControlLabel
