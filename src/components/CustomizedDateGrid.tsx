@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import {
     useReactTable,
     getCoreRowModel,
@@ -63,17 +63,17 @@ interface FilterMenuProps {
     onSearchChange: (value: string) => void;
 }
 
-function FilterMenu({
-                        anchorEl,
-                        open,
-                        onClose,
-                        values,
-                        selectedValues,
-                        onToggleValue,
-                        onToggleAll,
-                        searchValue,
-                        onSearchChange,
-                    }: FilterMenuProps) {
+const FilterMenu = React.memo(function FilterMenu({
+                                                      anchorEl,
+                                                      open,
+                                                      onClose,
+                                                      values,
+                                                      selectedValues,
+                                                      onToggleValue,
+                                                      onToggleAll,
+                                                      searchValue,
+                                                      onSearchChange,
+                                                  }: FilterMenuProps) {
     const allSelected = selectedValues.size === values.length && values.length > 0;
     const indeterminate = selectedValues.size > 0 && selectedValues.size < values.length;
 
@@ -121,7 +121,7 @@ function FilterMenu({
             </Typography>
         </Menu>
     );
-}
+});
 
 // --------------------- DetailDialog ---------------------
 interface DetailDialogProps<T extends { title?: string }> {
@@ -175,13 +175,24 @@ export function DataGrid<T extends Record<string, unknown>>({
     const [selectedRow, setSelectedRow] = useState<T | null>(null);
     const [dialogOpen, setDialogOpen] = useState(false);
 
-    const table = useReactTable({
-        data: rows.filter(row => {
+    // 把根据 filters 筛选数据的计算用 useMemo 包裹，避免每次渲染都创建新数组
+    const filteredData = useMemo(() => {
+        return rows.filter(row => {
             return Object.entries(filters).every(([key, valSet]) => {
                 if (!valSet || valSet.size === 0) return true;
                 return valSet.has(String(row[key as keyof T]));
             });
-        }),
+        });
+    }, [rows, filters]);
+
+    // 当 filteredData 或 pageSize 改变时重置页码为 0（避免页码超出范围并触发表格内部 reset 导致循环）
+    const filtersKey = JSON.stringify(filters);
+    useEffect(() => {
+        setPageIndex(0);
+    }, [filtersKey, pageSize]);
+
+    const table = useReactTable({
+        data: filteredData,
         columns,
         state: { pagination: { pageIndex, pageSize }, sorting },
         getCoreRowModel: getCoreRowModel(),
@@ -190,7 +201,7 @@ export function DataGrid<T extends Record<string, unknown>>({
         onSortingChange: setSorting,
     });
 
-    const totalPages = Math.ceil(table.getRowModel().rows.length / pageSize);
+    const totalPages = Math.max(1, Math.ceil(table.getRowModel().rows.length / pageSize));
 
     const uniqueValues = (key: keyof T) => Array.from(new Set(rows.map(r => String(r[key]))));
 
@@ -206,8 +217,27 @@ export function DataGrid<T extends Record<string, unknown>>({
     const handleToggleAll = (columnId: string) => {
         const allVals = uniqueValues(columnId as keyof T);
         const current = filters[columnId] ?? new Set<string>();
-        if (current.size === allVals.length) setFilters(prev => ({ ...prev, [columnId]: new Set() }));
-        else setFilters(prev => ({ ...prev, [columnId]: new Set(allVals) }));
+        if (current.size === allVals.length) {
+            setFilters(prev => ({ ...prev, [columnId]: new Set() }));
+        } else {
+            setFilters(prev => ({ ...prev, [columnId]: new Set(allVals) }));
+        }
+    };
+
+    // 打开菜单（只在需要时 setState）
+    const handleOpenMenu = (columnId: string, el: HTMLElement) => {
+        setAnchorEls(prev => {
+            if (prev[columnId] === el) return prev;
+            return { ...prev, [columnId]: el };
+        });
+    };
+
+    // 关闭菜单（如果已为 null 就不 set）
+    const handleCloseMenu = (columnId: string) => {
+        setAnchorEls(prev => {
+            if (!prev[columnId]) return prev;
+            return { ...prev, [columnId]: null };
+        });
     };
 
     return (
@@ -235,7 +265,7 @@ export function DataGrid<T extends Record<string, unknown>>({
                                                             : <ArrowUpwardIcon fontSize="small" sx={{ opacity: 0.3 }} />}
                                                 </IconButton>
 
-                                                <IconButton size="small" onClick={e => setAnchorEls(prev => ({ ...prev, [header.column.id]: e.currentTarget }))}>
+                                                <IconButton size="small" onClick={e => handleOpenMenu(header.column.id, e.currentTarget)}>
                                                     <FilterListIcon fontSize="small" />
                                                     {filters[header.column.id]?.size ? (
                                                         <Typography variant="caption" sx={{ ml: 0.5 }}>
@@ -245,9 +275,9 @@ export function DataGrid<T extends Record<string, unknown>>({
                                                 </IconButton>
 
                                                 <FilterMenu
-                                                    anchorEl={anchorEls[header.column.id]}
+                                                    anchorEl={anchorEls[header.column.id] ?? null}
                                                     open={Boolean(anchorEls[header.column.id])}
-                                                    onClose={() => setAnchorEls(prev => ({ ...prev, [header.column.id]: null }))}
+                                                    onClose={() => handleCloseMenu(header.column.id)}
                                                     values={uniqueValues(header.column.id as keyof T)}
                                                     selectedValues={filters[header.column.id] ?? new Set()}
                                                     onToggleValue={v => handleToggleFilter(header.column.id, v)}
@@ -305,28 +335,4 @@ export function DataGrid<T extends Record<string, unknown>>({
             <DetailDialog open={dialogOpen} onClose={() => setDialogOpen(false)} rowData={selectedRow} />
         </Box>
     );
-}
-
-// --------------------- 测试用例 ---------------------
-const testData: AniHistoryInfo[] = Array.from({ length: 55 }, (_, i) => ({
-    id: i + 1,
-    title: `动漫 ${i + 1}`,
-    updateCount: Math.floor(Math.random() * 24) + 1,
-    updateTime: Date.now() - Math.floor(Math.random() * 1000000000),
-    isWatched: Math.random() > 0.5,
-    watchedTime: Date.now() - Math.floor(Math.random() * 1000000000),
-    platform: ['Bilibili', '腾讯', 'Mikanani'][i % 3],
-}));
-
-export default function Apps() {
-    const columns: ColumnDef<AniHistoryInfo>[] = useMemo(() => [
-        { accessorKey: 'title', header: '动漫标题', cell: info => info.getValue() },
-        { accessorKey: 'updateCount', header: '集数' },
-        { accessorKey: 'updateTime', header: '更新日期', cell: info => new Date(info.getValue() as number).toLocaleDateString() },
-        { accessorKey: 'isWatched', header: '观看状态', cell: info => info.getValue() ? '已观看' : '未观看' },
-        { accessorKey: 'watchedTime', header: '观看时间', cell: info => new Date(info.getValue() as number).toLocaleString() },
-        { accessorKey: 'platform', header: '播出平台' },
-    ], []);
-
-    return <DataGrid rows={testData} columns={columns} />;
 }
