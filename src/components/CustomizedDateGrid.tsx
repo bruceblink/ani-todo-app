@@ -159,7 +159,7 @@ interface DataGridProps<T extends Record<string, unknown>> {
     onRowClick?: (row: T) => void;
 }
 
-export function DataGrid<T extends Record<string, unknown>>({
+export default function CustomizedDataGrid<T extends Record<string, unknown>>({
                                                                 rows,
                                                                 columns,
                                                                 pageSizeOptions = [5, 10, 20, 50],
