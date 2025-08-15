@@ -26,6 +26,9 @@ export interface AniHistoryInfo {
     id: number;
     title: string;
     updateCount: string;
+    updateInfo: string;
+    imageUrl: string;
+    detailUrl: string;
     isWatched: boolean,
     userId: string;
     updateTime: number;

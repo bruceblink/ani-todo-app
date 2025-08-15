@@ -9,9 +9,11 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useAniHistoryData } from '@/hooks/useAniHistoryData';
 import type { AniHistoryInfo } from '@/utils/api';
 import { toast } from 'react-hot-toast';
-import { Dialog, DialogTitle, DialogContent, IconButton, TextField, Box } from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
 import { columns as baseColumns } from './data/gridData';
+import {formatUnixMs2Date} from "@/utils/utils.ts";
+import {useWatchedAni} from "@/hooks/useWatchedAni.ts";
+import {useFavoriteAni} from "@/hooks/useFavoriteAni.ts";
+import AniItem from "@/components/AniItem.tsx";
 
 type Props = {
     isServer?: boolean; // 是否服务端分页
@@ -23,48 +25,62 @@ export default function HistoryDataGrid({ isServer = true }: Props) {
         page: 0,
     });
 
-    // 单列 filterModel，用于 MUI UI 显示
     const [filterModel, setFilterModel] = useState<GridFilterModel>({
-        items: [{ field: 'title', operator: 'contains', value: '' }],
-    });
-
-    // 多列本地筛选条件
-    const [localFilters, setLocalFilters] = useState<Record<string, string>>({
-        title: '',
-        isWatched: '',
-        platform: '',
+        items: [
+            { field: 'title', operator: 'contains', value: '' },
+            { field: 'isWatched', operator: 'equals', value: '' },
+            { field: 'platform', operator: 'contains', value: '' },
+        ],
     });
 
     const [open, setOpen] = useState(false);
     const [selectedAni, setSelectedAni] = useState<AniHistoryInfo | null>(null);
     const triggerButtonRef = useRef<HTMLButtonElement | null>(null);
 
-    const { data, loading, error } = useAniHistoryData(
+    const { data, loading, error, refresh } = useAniHistoryData(
         paginationModel.page + 1,
         paginationModel.pageSize,
         isServer,
-        filterModel
+        filterModel // 传给后端做服务端筛选
     );
 
+    const { handleWatch } = useWatchedAni();
+    const { handleFavor, favoriteAniItems } = useFavoriteAni();
+
     useEffect(() => {
-        if (error) toast.error(`加载番剧历史出错：${error}`);
+        if (error) {
+            toast.error(`加载番剧历史出错：${error}`);
+        }
     }, [error]);
 
-    // 本地多列筛选
+    // 本地模式下多列筛选
     const filteredRows = useMemo(() => {
         if (isServer) return data?.items ?? [];
         let rows = data?.items ?? [];
-        Object.entries(localFilters).forEach(([field, value]) => {
-            if (!value) return;
+        filterModel.items.forEach(({ field, value, operator }) => {
+            if (!field || !value) return; // 没值不筛选
             rows = rows.filter((row) => {
-                const cell = row[field as keyof AniHistoryInfo];
-                return String(cell ?? '').toLowerCase().includes(value.toLowerCase());
+                const cell = (row as unknown as Record<string, string | number | boolean>)[field];
+                switch (operator) {
+                    case 'contains':
+                        return String(cell ?? '').toLowerCase().includes(String(value).toLowerCase());
+                    case 'equals':
+                    case '=':
+                        return String(cell ?? '') === String(value);
+                    case '>':
+                        return Number(cell) > Number(value);
+                    case '<':
+                        return Number(cell) < Number(value);
+                    case 'isEmpty':
+                        return cell == null || cell === '';
+                    default:
+                        return true;
+                }
             });
         });
         return rows;
-    }, [isServer, data?.items, localFilters]);
+    }, [isServer, data?.items, filterModel]);
 
-    // columns 渲染 title 为可点击按钮
     const columns: GridColDef<AniHistoryInfo>[] = useMemo(() => {
         return baseColumns.map((col) =>
             col.field === 'title'
@@ -73,7 +89,7 @@ export default function HistoryDataGrid({ isServer = true }: Props) {
                     renderCell: (params: GridRenderCellParams<AniHistoryInfo, string>) => (
                         <button
                             type="button"
-                            ref={triggerButtonRef} // 保存触发按钮的 ref
+                            ref={triggerButtonRef}
                             onClick={() => {
                                 setSelectedAni(params.row);
                                 setOpen(true);
@@ -99,26 +115,17 @@ export default function HistoryDataGrid({ isServer = true }: Props) {
 
     const handleCloseDialog = () => {
         setOpen(false);
-        // 关闭 Dialog 后将焦点返回触发按钮
         triggerButtonRef.current?.focus();
+    };
+
+    const handleClearAndRefresh = async (id: number) => {
+        handleWatch(id);       // 执行清除逻辑
+        handleCloseDialog();   // 关闭 Dialog
+        await refresh();       // 重新加载数据
     };
 
     return (
         <>
-            {/* 可自定义的多列筛选输入 */}
-            <Box display="flex" gap={2} mb={1}>
-                {Object.keys(localFilters).map((field) => (
-                    <TextField
-                        key={field}
-                        label={field}
-                        size="small"
-                        value={localFilters[field]}
-                        onChange={(e) =>
-                            setLocalFilters((prev) => ({ ...prev, [field]: e.target.value }))
-                        }
-                    />
-                ))}
-            </Box>
 
             <DataGrid
                 rows={isServer ? data?.items ?? [] : (filteredRows as AniHistoryInfo[])}
@@ -136,21 +143,50 @@ export default function HistoryDataGrid({ isServer = true }: Props) {
                 density="compact"
             />
 
-            <Dialog open={open} onClose={handleCloseDialog} fullWidth maxWidth="md">
-                <DialogTitle>
-                    {selectedAni?.title ?? '番剧详情'}
-                    <IconButton
-                        aria-label="close"
-                        onClick={handleCloseDialog}
-                        sx={{ position: 'absolute', right: 8, top: 8 }}
-                    >
-                        <CloseIcon />
-                    </IconButton>
-                </DialogTitle>
-                <DialogContent dividers>
+            {open && (
+                <div
+                    style={{
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        width: '100vw',
+                        height: '100vh',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        zIndex: 1300,
+                        backgroundColor: 'rgba(0,0,0,0.2)', // 可选半透明遮罩
+                    }}
+                    onClick={handleCloseDialog} // 点击遮罩关闭
+                >
+                    <div key={selectedAni?.id ?? 0}
+                         onClick={(e) => e.stopPropagation()} // 阻止点击AniItem内部关闭
+                         style={{
+                        width: 'calc(clamp(480px, calc(90vw/4 - 24px), 360px) * 0.8)',   // 缩小宽度为原来的80%
+                        height: 'calc(calc(clamp(480px, calc(90vw/4 - 24px), 360px) * 0.618) * 0.8)',  // 缩小高度为原来的80%
+                        flexShrink: 0,
+                    }}>
+                        <AniItem
+                            ani={{
+                                id: selectedAni?.id ?? 0,
+                                title: selectedAni?.title ?? '',
+                                update_count: selectedAni?.updateCount ?? '',
+                                detail_url: selectedAni?.detailUrl ?? '',
+                                image_url: selectedAni?.imageUrl ?? '',
+                                update_time: selectedAni?.updateTime ?? 0,
+                                update_info: selectedAni?.updateInfo ?? '',
+                                update_time_str: formatUnixMs2Date(selectedAni?.updateTime ?? 0) ?? '',
+                                platform: selectedAni?.platform ?? '',
+                            }}
+                            onClear={handleClearAndRefresh}
+                            isFavorite={favoriteAniItems.has(selectedAni?.title ?? '')}
+                            onToggleFavorite={handleFavor}
+                        />
 
-                </DialogContent>
-            </Dialog>
+                    </div>
+
+                </div>
+            )}
         </>
     );
 }
