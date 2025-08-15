@@ -1,18 +1,20 @@
 import Chip from '@mui/material/Chip';
-import type {GridColDef} from '@mui/x-data-grid';
-import {formatUnixMs2Date, formatUnixMs2Timestamp} from "@/utils/utils.ts";
+import type { GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
+import { formatUnixMs2Date, formatUnixMs2Timestamp } from '@/utils/utils.ts';
+import type { AniHistoryInfo } from '@/utils/api';
 
 function renderStatus(isWatcher: boolean) {
-
-  return isWatcher ? <Chip label="已观看" color="success" size="small" />:
-      <Chip label="未观看" color="default" size="small" />;
+  return isWatcher
+      ? <Chip label="已观看" color="success" size="small" />
+      : <Chip label="未观看" color="default" size="small" />;
 }
-export const columns: GridColDef[] = [
+
+export const columns: GridColDef<AniHistoryInfo>[] = [
   {
     field: 'title',
     headerName: '动漫标题',
     flex: 2,
-    minWidth: 250
+    minWidth: 250,
   },
   {
     field: 'updateCount',
@@ -29,7 +31,8 @@ export const columns: GridColDef[] = [
     align: 'right',
     flex: 1,
     minWidth: 80,
-    renderCell: (params) => formatUnixMs2Date(params.value),
+    renderCell: (params: GridRenderCellParams<AniHistoryInfo, number>) =>
+        formatUnixMs2Date(params.value ?? 0),
   },
   {
     field: 'isWatched',
@@ -38,16 +41,9 @@ export const columns: GridColDef[] = [
     align: 'center',
     flex: 1,
     minWidth: 80,
-    renderCell: (params) => renderStatus(params.value),
+    renderCell: (params: GridRenderCellParams<AniHistoryInfo, boolean>) =>
+        renderStatus(params.value ?? false),
   },
-/*  {
-    field: 'userId',
-    headerName: '用户',
-    headerAlign: 'center',
-    align: 'center',
-    flex: 1,
-    minWidth: 80,
-  },*/
   {
     field: 'watchedTime',
     headerName: '观看时间',
@@ -55,7 +51,8 @@ export const columns: GridColDef[] = [
     align: 'right',
     flex: 1.5,
     minWidth: 120,
-    renderCell: (params) => formatUnixMs2Timestamp(params.value),
+    renderCell: (params: GridRenderCellParams<AniHistoryInfo, number>) =>
+        formatUnixMs2Timestamp(params.value ?? 0),
   },
   {
     field: 'platform',
