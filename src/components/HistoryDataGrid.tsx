@@ -12,6 +12,10 @@ import { toast } from 'react-hot-toast';
 import { Dialog, DialogTitle, DialogContent, IconButton } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { columns as baseColumns } from './data/gridData';
+import {formatUnixMs2Date} from "@/utils/utils.ts";
+import {useWatchedAni} from "@/hooks/useWatchedAni.ts";
+import {useFavoriteAni} from "@/hooks/useFavoriteAni.ts";
+import AniItem from "@/components/AniItem.tsx";
 
 type Props = {
     isServer?: boolean; // 是否服务端分页
@@ -35,12 +39,15 @@ export default function HistoryDataGrid({ isServer = true }: Props) {
     const [selectedAni, setSelectedAni] = useState<AniHistoryInfo | null>(null);
     const triggerButtonRef = useRef<HTMLButtonElement | null>(null);
 
-    const { data, loading, error } = useAniHistoryData(
+    const { data, loading, error, refresh } = useAniHistoryData(
         paginationModel.page + 1,
         paginationModel.pageSize,
         isServer,
-        filterModel // 传给后端做服务端筛选
+        filterModel,
     );
+
+    const { handleWatch } = useWatchedAni();
+    const { handleFavor, favoriteAniItems } = useFavoriteAni();
 
     useEffect(() => {
         if (error) {
@@ -48,12 +55,11 @@ export default function HistoryDataGrid({ isServer = true }: Props) {
         }
     }, [error]);
 
-    // 本地模式下多列筛选
     const filteredRows = useMemo(() => {
         if (isServer) return data?.items ?? [];
         let rows = data?.items ?? [];
         filterModel.items.forEach(({ field, value, operator }) => {
-            if (!field || !value) return; // 没值不筛选
+            if (!field || !value) return;
             rows = rows.filter((row) => {
                 const cell = (row as unknown as Record<string, string | number | boolean>)[field];
                 switch (operator) {
@@ -76,7 +82,6 @@ export default function HistoryDataGrid({ isServer = true }: Props) {
         return rows;
     }, [isServer, data?.items, filterModel]);
 
-    // columns 渲染 title 为可点击按钮
     const columns: GridColDef<AniHistoryInfo>[] = useMemo(() => {
         return baseColumns.map((col) =>
             col.field === 'title'
@@ -85,7 +90,7 @@ export default function HistoryDataGrid({ isServer = true }: Props) {
                     renderCell: (params: GridRenderCellParams<AniHistoryInfo, string>) => (
                         <button
                             type="button"
-                            ref={triggerButtonRef} // 保存触发按钮的 ref
+                            ref={triggerButtonRef}
                             onClick={() => {
                                 setSelectedAni(params.row);
                                 setOpen(true);
@@ -111,13 +116,17 @@ export default function HistoryDataGrid({ isServer = true }: Props) {
 
     const handleCloseDialog = () => {
         setOpen(false);
-        // 关闭 Dialog 后将焦点返回触发按钮
         triggerButtonRef.current?.focus();
+    };
+
+    const handleClearAndRefresh = async (id: number) => {
+        handleWatch(id);       // 执行清除逻辑
+        handleCloseDialog();   // 关闭 Dialog
+        await refresh();       // 重新加载数据
     };
 
     return (
         <>
-
             <DataGrid
                 rows={isServer ? data?.items ?? [] : (filteredRows as AniHistoryInfo[])}
                 columns={columns}
@@ -134,9 +143,25 @@ export default function HistoryDataGrid({ isServer = true }: Props) {
                 density="compact"
             />
 
-            <Dialog open={open} onClose={handleCloseDialog} fullWidth maxWidth="md">
+            <Dialog
+                open={open}
+                onClose={handleCloseDialog}
+                maxWidth={false}
+                slotProps={{
+                    paper: {
+                        sx: {
+                            width: 450,
+                            maxWidth: 900,
+                            minWidth: 450,
+                            height: 350,
+                            maxHeight: 700,
+                            minHeight: 350,
+                        },
+                    },
+                }}
+            >
                 <DialogTitle>
-                    {selectedAni?.title ?? '番剧详情'}
+                    番剧详情
                     <IconButton
                         aria-label="close"
                         onClick={handleCloseDialog}
@@ -146,7 +171,22 @@ export default function HistoryDataGrid({ isServer = true }: Props) {
                     </IconButton>
                 </DialogTitle>
                 <DialogContent dividers>
-
+                    <AniItem
+                        ani={{
+                            id: selectedAni?.id ?? 0,
+                            title: selectedAni?.title ?? '',
+                            update_count: selectedAni?.updateCount ?? '',
+                            detail_url: selectedAni?.detailUrl ?? '',
+                            image_url: selectedAni?.imageUrl ?? '',
+                            update_time: selectedAni?.updateTime ?? 0,
+                            update_info: selectedAni?.updateInfo ?? '',
+                            update_time_str: formatUnixMs2Date(selectedAni?.updateTime ?? 0) ?? '',
+                            platform: selectedAni?.platform ?? '',
+                        }}
+                        onClear={handleClearAndRefresh}
+                        isFavorite={favoriteAniItems.has(selectedAni?.title ?? '')}
+                        onToggleFavorite={handleFavor}
+                    />
                 </DialogContent>
             </Dialog>
         </>
