@@ -41,7 +41,7 @@ export default function HistoryDataGrid({ isServer = true }: Props) {
         paginationModel.page + 1,
         paginationModel.pageSize,
         isServer,
-        filterModel,
+        filterModel // 传给后端做服务端筛选
     );
 
     const { handleWatch } = useWatchedAni();
@@ -53,11 +53,12 @@ export default function HistoryDataGrid({ isServer = true }: Props) {
         }
     }, [error]);
 
+    // 本地模式下多列筛选
     const filteredRows = useMemo(() => {
         if (isServer) return data?.items ?? [];
         let rows = data?.items ?? [];
         filterModel.items.forEach(({ field, value, operator }) => {
-            if (!field || !value) return;
+            if (!field || !value) return; // 没值不筛选
             rows = rows.filter((row) => {
                 const cell = (row as unknown as Record<string, string | number | boolean>)[field];
                 switch (operator) {
@@ -125,6 +126,7 @@ export default function HistoryDataGrid({ isServer = true }: Props) {
 
     return (
         <>
+
             <DataGrid
                 rows={isServer ? data?.items ?? [] : (filteredRows as AniHistoryInfo[])}
                 columns={columns}
