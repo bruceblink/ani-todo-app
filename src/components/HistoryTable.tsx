@@ -14,8 +14,12 @@ import {
     IconButton,
     Menu,
     MenuItem,
+    Select,
+    FormControl,
+    InputLabel,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
+import FilterListIcon from '@mui/icons-material/FilterList';
 
 // 测试数据类型
 type AniHistoryInfo = {
@@ -40,14 +44,12 @@ const testData: AniHistoryInfo[] = Array.from({ length: 55 }, (_, i) => ({
 }));
 
 export default function NotionStyleTable() {
-    const pageSize = 10;
-
     const [pageIndex, setPageIndex] = useState(0);
+    const [pageSize, setPageSize] = useState(10);
     const [filters, setFilters] = useState<Record<string, string>>({});
     const [open, setOpen] = useState(false);
     const [selectedAni, setSelectedAni] = useState<AniHistoryInfo | null>(null);
 
-    // 控制每列筛选菜单
     const [anchorEls, setAnchorEls] = useState<Record<string, HTMLElement | null>>({});
 
     const columns = useMemo<ColumnDef<AniHistoryInfo>[]>(
@@ -149,13 +151,13 @@ export default function NotionStyleTable() {
                                 }}
                             >
                                 {flexRender(header.column.columnDef.header, header.getContext())}
-                                <Button
+                                <IconButton
                                     size="small"
                                     onClick={(e) => handleOpenMenu(header.column.id, e)}
-                                    style={{ marginLeft: 8 }}
+                                    style={{ marginLeft: 4 }}
                                 >
-                                    筛选
-                                </Button>
+                                    <FilterListIcon fontSize="small" />
+                                </IconButton>
                                 <Menu
                                     anchorEl={anchorEls[header.column.id]}
                                     open={Boolean(anchorEls[header.column.id])}
@@ -203,12 +205,12 @@ export default function NotionStyleTable() {
             </table>
 
             {/* 分页 */}
-            <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 12 }}>
                 <Button onClick={() => setPageIndex((old) => Math.max(old - 1, 0))} disabled={pageIndex === 0}>
                     上一页
                 </Button>
                 <span>
-          {pageIndex + 1} / {totalPages} 页
+          {pageIndex + 1} / {totalPages} 页 ({filteredData.length} 条)
         </span>
                 <Button
                     onClick={() => setPageIndex((old) => Math.min(old + 1, totalPages - 1))}
@@ -216,6 +218,23 @@ export default function NotionStyleTable() {
                 >
                     下一页
                 </Button>
+                <FormControl size="small" variant="standard">
+                    <InputLabel>每页条数</InputLabel>
+                    <Select
+                        value={pageSize}
+                        onChange={(e) => {
+                            setPageSize(Number(e.target.value));
+                            setPageIndex(0); // 切换 pageSize 时回到第一页
+                        }}
+                        style={{ minWidth: 80 }}
+                    >
+                        {[5, 10, 20, 50].map((size) => (
+                            <MenuItem key={size} value={size}>
+                                {size}
+                            </MenuItem>
+                        ))}
+                    </Select>
+                </FormControl>
             </div>
 
             {/* Dialog */}
