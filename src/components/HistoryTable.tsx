@@ -3,12 +3,24 @@ import {
     useReactTable,
     getCoreRowModel,
     getPaginationRowModel,
-    getFilteredRowModel,
     flexRender,
     type ColumnDef,
 } from '@tanstack/react-table';
-import { Dialog, DialogTitle, DialogContent, IconButton, Button, TextField } from '@mui/material';
+import {
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    IconButton,
+    Menu,
+    MenuItem,
+    TextField,
+    Select,
+    FormControl,
+    InputLabel,
+    Button,
+} from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
+import FilterListIcon from '@mui/icons-material/FilterList';
 
 // 测试数据类型
 type AniHistoryInfo = {
@@ -32,23 +44,40 @@ const testData: AniHistoryInfo[] = Array.from({ length: 55 }, (_, i) => ({
     platform: ['Bilibili', '腾讯', 'Mikanani'][i % 3],
 }));
 
-export default function TanstackDataGrid() {
-    const pageSize = 10;
-
-    const [filters, setFilters] = useState<Record<string, string>>({
-        title: '',
-        isWatched: '',
-        platform: '',
-    });
+export default function TanstackDataGridWithColumnFilter() {
     const [pageIndex, setPageIndex] = useState(0);
+    const [pageSize, setPageSize] = useState(10);
     const [open, setOpen] = useState(false);
     const [selectedAni, setSelectedAni] = useState<AniHistoryInfo | null>(null);
+
+    // 每列筛选状态
+    const [columnFilters, setColumnFilters] = useState<Record<string, string>>({});
+
+    // 当前打开筛选菜单列
+    const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+    const [currentColumnId, setCurrentColumnId] = useState<string | null>(null);
+
+    const handleOpenFilterMenu = (event: React.MouseEvent<HTMLElement>, columnId: string) => {
+        setAnchorEl(event.currentTarget);
+        setCurrentColumnId(columnId);
+    };
+    const handleCloseFilterMenu = () => {
+        setAnchorEl(null);
+        setCurrentColumnId(null);
+    };
 
     const columns = useMemo<ColumnDef<AniHistoryInfo>[]>(
         () => [
             {
                 accessorKey: 'title',
-                header: '动漫标题',
+                header: ({ column }) => (
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <span>动漫标题</span>
+                        <IconButton size="small" onClick={(e) => handleOpenFilterMenu(e, column.id)}>
+                            <FilterListIcon />
+                        </IconButton>
+                    </div>
+                ),
                 cell: (info) => (
                     <Button
                         variant="text"
@@ -57,47 +86,85 @@ export default function TanstackDataGrid() {
                             setOpen(true);
                         }}
                     >
-                        {String(info.getValue())} {/* 强制转换为 string */}
+                        {String(info.getValue())}
                     </Button>
                 ),
             },
             {
                 accessorKey: 'updateCount',
-                header: '集数',
+                header: ({ column }) => (
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <span>集数</span>
+                        <IconButton size="small" onClick={(e) => handleOpenFilterMenu(e, column.id)}>
+                            <FilterListIcon />
+                        </IconButton>
+                    </div>
+                ),
             },
             {
                 accessorKey: 'updateTime',
-                header: '更新日期',
+                header: ({ column }) => (
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <span>更新日期</span>
+                        <IconButton size="small" onClick={(e) => handleOpenFilterMenu(e, column.id)}>
+                            <FilterListIcon />
+                        </IconButton>
+                    </div>
+                ),
                 cell: (info) => new Date(info.getValue() as number).toLocaleDateString(),
             },
             {
                 accessorKey: 'isWatched',
-                header: '观看状态',
-                cell: (info) => (info.getValue() ? '已观看' : '未观看'),
+                header: ({ column }) => (
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <span>观看状态</span>
+                        <IconButton size="small" onClick={(e) => handleOpenFilterMenu(e, column.id)}>
+                            <FilterListIcon />
+                        </IconButton>
+                    </div>
+                ),
+                cell: (info) => ((info.getValue() as boolean) ? '已观看' : '未观看'),
             },
             {
                 accessorKey: 'watchedTime',
-                header: '观看时间',
+                header: ({ column }) => (
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <span>观看时间</span>
+                        <IconButton size="small" onClick={(e) => handleOpenFilterMenu(e, column.id)}>
+                            <FilterListIcon />
+                        </IconButton>
+                    </div>
+                ),
                 cell: (info) => new Date(info.getValue() as number).toLocaleString(),
             },
             {
                 accessorKey: 'platform',
-                header: '播出平台',
+                header: ({ column }) => (
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <span>播出平台</span>
+                        <IconButton size="small" onClick={(e) => handleOpenFilterMenu(e, column.id)}>
+                            <FilterListIcon />
+                        </IconButton>
+                    </div>
+                ),
             },
         ],
         []
     );
 
+    // 根据列筛选过滤数据
     const filteredData = useMemo(() => {
         let rows = testData;
-        Object.entries(filters).forEach(([key, value]) => {
+        Object.entries(columnFilters).forEach(([key, value]) => {
             if (!value) return;
             rows = rows.filter((row) =>
-                String(row[key as keyof AniHistoryInfo] ?? '').toLowerCase().includes(value.toLowerCase())
+                String(row[key as keyof AniHistoryInfo] ?? '')
+                    .toLowerCase()
+                    .includes(value.toLowerCase())
             );
         });
         return rows;
-    }, [filters]);
+    }, [columnFilters]);
 
     const table = useReactTable({
         data: filteredData,
@@ -105,54 +172,27 @@ export default function TanstackDataGrid() {
         state: { pagination: { pageIndex, pageSize } },
         getCoreRowModel: getCoreRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
-        getFilteredRowModel: getFilteredRowModel(),
     });
 
     return (
         <>
-            {/* 表格 */}
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                 {table.getHeaderGroups().map((headerGroup) => (
-                    <React.Fragment key={headerGroup.id}>
-                        <tr>
-                            {headerGroup.headers.map((header) => (
-                                <th
-                                    key={header.id}
-                                    style={{ borderBottom: '1px solid #ddd', textAlign: 'left', padding: '4px' }}
-                                >
-                                    {flexRender(header.column.columnDef.header, header.getContext())}
-                                </th>
-                            ))}
-                        </tr>
-                        {/* 表头下方筛选框 */}
-                        <tr>
-                            {headerGroup.headers.map((header) => {
-                                const field = header.column.id;
-                                if (!(field in filters)) return <th key={header.id} />;
-                                return (
-                                    <th key={header.id} style={{ padding: '2px 4px' }}>
-                                        <TextField
-                                            value={filters[field]}
-                                            onChange={(e) =>
-                                                setFilters((prev) => ({ ...prev, [field]: e.target.value }))
-                                            }
-                                            size="small"
-                                            variant="standard"
-                                            fullWidth
-                                        />
-                                    </th>
-                                );
-                            })}
-                        </tr>
-                    </React.Fragment>
+                    <tr key={headerGroup.id}>
+                        {headerGroup.headers.map((header) => (
+                            <th key={header.id} style={{ borderBottom: '1px solid #ddd', padding: 4 }}>
+                                {flexRender(header.column.columnDef.header, header.getContext())}
+                            </th>
+                        ))}
+                    </tr>
                 ))}
                 </thead>
                 <tbody>
                 {table.getRowModel().rows.map((row) => (
                     <tr key={row.id}>
                         {row.getVisibleCells().map((cell) => (
-                            <td key={cell.id} style={{ borderBottom: '1px solid #eee', padding: '4px' }}>
+                            <td key={cell.id} style={{ borderBottom: '1px solid #eee', padding: 4 }}>
                                 {flexRender(cell.column.columnDef.cell, cell.getContext())}
                             </td>
                         ))}
@@ -161,20 +201,55 @@ export default function TanstackDataGrid() {
                 </tbody>
             </table>
 
-            {/* 分页 */}
-            <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
+            {/* 分页控制 */}
+            <div style={{ marginTop: 8, display: 'flex', gap: 8, alignItems: 'center' }}>
                 <Button onClick={() => setPageIndex((old) => Math.max(old - 1, 0))} disabled={pageIndex === 0}>
                     上一页
                 </Button>
+                <span>
+                    Page {pageIndex + 1} of {Math.ceil(filteredData.length / pageSize)}
+                </span>
                 <Button
-                    onClick={() => setPageIndex((old) => old + 1)}
-                    disabled={(pageIndex + 1) * pageSize >= filteredData.length}
+                    onClick={() =>
+                        setPageIndex((old) => (old + 1 < Math.ceil(filteredData.length / pageSize) ? old + 1 : old))
+                    }
+                    disabled={pageIndex + 1 >= Math.ceil(filteredData.length / pageSize)}
                 >
                     下一页
                 </Button>
+                <FormControl size="small">
+                    <InputLabel>每页条数</InputLabel>
+                    <Select
+                        native
+                        value={pageSize}
+                        onChange={(e) => setPageSize(Number(e.target.value))}
+                        label="每页条数"
+                    >
+                        {[5, 10, 20, 50].map((size) => (
+                            <option key={size} value={size}>
+                                {size}
+                            </option>
+                        ))}
+                    </Select>
+                </FormControl>
             </div>
 
-            {/* Dialog */}
+            {/* 列筛选菜单 */}
+            <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleCloseFilterMenu}>
+                <MenuItem>
+                    <TextField
+                        label="Filter"
+                        size="small"
+                        value={currentColumnId ? columnFilters[currentColumnId] ?? '' : ''}
+                        onChange={(e) =>
+                            currentColumnId &&
+                            setColumnFilters((prev) => ({ ...prev, [currentColumnId]: e.target.value }))
+                        }
+                    />
+                </MenuItem>
+            </Menu>
+
+            {/* 点击标题 Dialog */}
             <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="md">
                 <DialogTitle>
                     {selectedAni?.title ?? '番剧详情'}
