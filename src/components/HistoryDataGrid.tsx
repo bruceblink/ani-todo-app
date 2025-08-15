@@ -1,9 +1,15 @@
-import { DataGrid, type GridPaginationModel, type GridFilterModel } from '@mui/x-data-grid';
-import { columns } from './data/gridData';
+import {
+    DataGrid,
+    type GridPaginationModel,
+    type GridFilterModel,
+
+} from '@mui/x-data-grid';
 import { useEffect, useMemo, useState } from 'react';
 import { useAniHistoryData } from '@/hooks/useAniHistoryData';
 import type { AniHistoryInfo } from '@/utils/api';
 import { toast } from 'react-hot-toast';
+import { TextField } from '@mui/material';
+import {columns} from "@/components/data/gridData.tsx";
 
 type Props = {
     isServer?: boolean; // 是否服务端分页
@@ -15,72 +21,76 @@ export default function HistoryDataGrid({ isServer = true }: Props) {
         page: 0,
     });
 
+    // 单列 filterModel，用于 MUI UI 显示
     const [filterModel, setFilterModel] = useState<GridFilterModel>({
-        items: [
-            { field: 'title', operator: 'contains', value: '' },
-            { field: 'isWatched', operator: 'equals', value: '' },
-            { field: 'platform', operator: 'contains', value: '' },
-        ],
+        items: [{ field: 'title', operator: 'contains', value: '' }],
     });
 
-    // hook 获取数据
+    // 多列本地筛选条件
+    const [localFilters, setLocalFilters] = useState<Record<string, string>>({
+        title: '',
+        isWatched: '',
+        platform: '',
+    });
+
     const { data, loading, error } = useAniHistoryData(
         paginationModel.page + 1,
         paginationModel.pageSize,
         isServer,
-        filterModel // 传给后端做服务端筛选
+        filterModel
     );
 
     useEffect(() => {
-        if (error) {
-            toast.error(`加载番剧历史出错：${error}`);
-        }
+        if (error) toast.error(`加载番剧历史出错：${error}`);
     }, [error]);
 
     // 本地模式下多列筛选
     const filteredRows = useMemo(() => {
         if (isServer) return data?.items ?? [];
-
         let rows = data?.items ?? [];
-        filterModel.items.forEach(({ field, value, operator }) => {
-            if (!field || !value) return; // 没值不筛选
+        Object.entries(localFilters).forEach(([field, value]) => {
+            if (!value) return;
             rows = rows.filter((row) => {
-                const cell = (row as unknown as Record<string, string | number | boolean>)[field];
-                switch (operator) {
-                    case 'contains':
-                        return String(cell ?? '').toLowerCase().includes(String(value).toLowerCase());
-                    case 'equals':
-                    case '=':
-                        return String(cell ?? '') === String(value);
-                    case '>':
-                        return Number(cell) > Number(value);
-                    case '<':
-                        return Number(cell) < Number(value);
-                    case 'isEmpty':
-                        return cell == null || cell === '';
-                    default:
-                        return true;
-                }
+                const cell = row[field as keyof AniHistoryInfo];
+                return String(cell ?? '').toLowerCase().includes(value.toLowerCase());
             });
         });
         return rows;
-    }, [isServer, data?.items, filterModel]);
+    }, [isServer, data?.items, localFilters]);
 
     return (
-        <DataGrid
-            rows={isServer ? data?.items ?? [] : (filteredRows as AniHistoryInfo[])}
-            columns={columns}
-            loading={loading}
-            pagination
-            paginationMode={isServer ? 'server' : 'client'}
-            rowCount={isServer ? data?.total ?? 0 : filteredRows.length}
-            paginationModel={paginationModel}
-            onPaginationModelChange={setPaginationModel}
-            filterModel={filterModel}
-            onFilterModelChange={setFilterModel}
-            pageSizeOptions={[10, 20, 50]}
-            disableColumnResize
-            density="compact"
-        />
+        <>
+            {/* 可自定义的多列筛选输入 */}
+            <div style={{ display: 'flex', gap: 16, marginBottom: 8 }}>
+                {['title', 'isWatched', 'platform'].map((field) => (
+                    <TextField
+                        key={field}
+                        label={field}
+                        size="small"
+                        value={localFilters[field]}
+                        onChange={(e) =>
+                            setLocalFilters((prev) => ({ ...prev, [field]: e.target.value }))
+                        }
+                    />
+                ))}
+            </div>
+
+            <DataGrid
+                rows={isServer ? data?.items ?? [] : (filteredRows as AniHistoryInfo[])}
+                columns={columns}
+                loading={loading}
+                pagination
+                paginationMode={isServer ? 'server' : 'client'}
+                //rowCount={isServer ? data?.total ?? 0 : filteredRows.length}
+                rowCount={isServer ? data?.total ?? 0 : undefined} // 只在服务端分页时传
+                paginationModel={paginationModel}
+                onPaginationModelChange={setPaginationModel}
+                filterModel={filterModel}
+                onFilterModelChange={setFilterModel} // MUI UI 保持单列
+                pageSizeOptions={[10, 20, 50]}
+                disableColumnResize
+                density="compact"
+            />
+        </>
     );
 }
