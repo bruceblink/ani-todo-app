@@ -4,7 +4,9 @@ import {
     getCoreRowModel,
     getPaginationRowModel,
     flexRender,
+    getSortedRowModel,
     type ColumnDef,
+    type SortingState,
 } from '@tanstack/react-table';
 import {
     Box,
@@ -30,8 +32,10 @@ import {
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import FilterListIcon from '@mui/icons-material/FilterList';
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 
-// 测试数据类型
+// 数据类型
 type AniHistoryInfo = {
     id: number;
     title: string;
@@ -57,120 +61,129 @@ export default function NotionStyleTable() {
     const [pageIndex, setPageIndex] = useState(0);
     const [pageSize, setPageSize] = useState(10);
     const [filters, setFilters] = useState<Record<string, string>>({});
+    const [sorting, setSorting] = useState<SortingState>([]);
     const [open, setOpen] = useState(false);
     const [selectedAni, setSelectedAni] = useState<AniHistoryInfo | null>(null);
 
     const [anchorEls, setAnchorEls] = useState<Record<string, HTMLElement | null>>({});
 
-    const columns = useMemo<ColumnDef<AniHistoryInfo>[]>(
-        () => [
-            {
-                accessorKey: 'title',
-                header: '动漫标题',
-                cell: (info) => (
-                    <Button
-                        variant="text"
-                        color="primary"
-                        onClick={() => {
-                            setSelectedAni(info.row.original);
-                            setOpen(true);
-                        }}
-                    >
-                        {String(info.getValue())}
-                    </Button>
-                ),
-            },
-            {
-                accessorKey: 'updateCount',
-                header: '集数',
-            },
-            {
-                accessorKey: 'updateTime',
-                header: '更新日期',
-                cell: (info) => new Date(info.getValue() as number).toLocaleDateString(),
-            },
-            {
-                accessorKey: 'isWatched',
-                header: '观看状态',
-                cell: (info) => ((info.getValue() as boolean) ? '已观看' : '未观看'),
-            },
-            {
-                accessorKey: 'watchedTime',
-                header: '观看时间',
-                cell: (info) => new Date(info.getValue() as number).toLocaleString(),
-            },
-            {
-                accessorKey: 'platform',
-                header: '播出平台',
-            },
-        ],
-        []
-    );
+    // 列定义
+    const columns = useMemo<ColumnDef<AniHistoryInfo>[]>(() => [
+        {
+            accessorKey: 'title',
+            header: '动漫标题',
+            cell: (info) => (
+                <Button
+                    variant="text"
+                    color="primary"
+                    onClick={() => {
+                        setSelectedAni(info.row.original);
+                        setOpen(true);
+                    }}
+                >
+                    {String(info.getValue())}
+                </Button>
+            ),
+        },
+        { accessorKey: 'updateCount', header: '集数' },
+        {
+            accessorKey: 'updateTime',
+            header: '更新日期',
+            cell: (info) => new Date(info.getValue() as number).toLocaleDateString(),
+        },
+        {
+            accessorKey: 'isWatched',
+            header: '观看状态',
+            cell: (info) => ((info.getValue() as boolean) ? '已观看' : '未观看'),
+        },
+        {
+            accessorKey: 'watchedTime',
+            header: '观看时间',
+            cell: (info) => new Date(info.getValue() as number).toLocaleString(),
+        },
+        { accessorKey: 'platform', header: '播出平台' },
+    ], []);
 
+    // 多条件筛选
     const filteredData = useMemo(() => {
         let rows = testData;
         Object.entries(filters).forEach(([key, value]) => {
             if (!value) return;
-            rows = rows.filter((row) =>
-                String(row[key as keyof AniHistoryInfo] ?? '')
-                    .toLowerCase()
-                    .includes(value.toLowerCase())
+            rows = rows.filter(row =>
+                String(row[key as keyof AniHistoryInfo]).toLowerCase().includes(value.toLowerCase())
             );
         });
         return rows;
     }, [filters]);
 
+    // 表格实例
     const table = useReactTable({
         data: filteredData,
         columns,
-        state: { pagination: { pageIndex, pageSize } },
+        state: { pagination: { pageIndex, pageSize }, sorting },
         getCoreRowModel: getCoreRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
+        getSortedRowModel: getSortedRowModel(),
+        onSortingChange: setSorting,
     });
 
     const totalPages = Math.ceil(filteredData.length / pageSize);
 
     const handleOpenMenu = (columnId: string, event: React.MouseEvent<HTMLElement>) => {
-        setAnchorEls((prev) => ({ ...prev, [columnId]: event.currentTarget }));
+        setAnchorEls(prev => ({ ...prev, [columnId]: event.currentTarget }));
     };
 
     const handleCloseMenu = (columnId: string) => {
-        setAnchorEls((prev) => ({ ...prev, [columnId]: null }));
+        setAnchorEls(prev => ({ ...prev, [columnId]: null }));
     };
 
     const uniqueValues = (key: keyof AniHistoryInfo) =>
-        Array.from(new Set(testData.map((d) => String(d[key]))));
+        Array.from(new Set(testData.map(d => String(d[key]))));
+
+    const toggleSort = (columnId: string) => {
+        const existing = sorting.find(s => s.id === columnId);
+        if (!existing) setSorting([{ id: columnId, desc: false }]);
+        else if (existing && !existing.desc) setSorting([{ id: columnId, desc: true }]);
+        else setSorting([]);
+    };
 
     return (
         <Box p={2}>
             <TableContainer component={Paper} sx={{ mb: 2 }}>
                 <Table>
                     <TableHead>
-                        {table.getHeaderGroups().map((headerGroup) => (
+                        {table.getHeaderGroups().map(headerGroup => (
                             <TableRow key={headerGroup.id}>
-                                {headerGroup.headers.map((header) => (
-                                    <TableCell
-                                        key={header.id}
-                                        sx={{ fontWeight: 'bold', position: 'relative' }}
-                                    >
+                                {headerGroup.headers.map(header => (
+                                    <TableCell key={header.id} sx={{ fontWeight: 'bold', position: 'relative' }}>
                                         <Stack direction="row" alignItems="center" spacing={1}>
                                             {flexRender(header.column.columnDef.header, header.getContext())}
-                                            <IconButton
-                                                size="small"
-                                                onClick={(e) => handleOpenMenu(header.column.id, e)}
-                                            >
-                                                <FilterListIcon fontSize="small" />
-                                            </IconButton>
+                                            <Stack direction="row" spacing={0.5}>
+                                                <IconButton
+                                                    size="small"
+                                                    onClick={() => toggleSort(header.column.id)}
+                                                >
+                                                    {sorting.find(s => s.id === header.column.id)?.desc
+                                                        ? <ArrowDownwardIcon fontSize="small" />
+                                                        : <ArrowUpwardIcon fontSize="small" />}
+                                                </IconButton>
+                                                <IconButton
+                                                    size="small"
+                                                    onClick={(e) => handleOpenMenu(header.column.id, e)}
+                                                >
+                                                    <FilterListIcon fontSize="small" />
+                                                </IconButton>
+                                            </Stack>
                                             <Menu
                                                 anchorEl={anchorEls[header.column.id]}
                                                 open={Boolean(anchorEls[header.column.id])}
                                                 onClose={() => handleCloseMenu(header.column.id)}
                                             >
-                                                {uniqueValues(header.column.id as keyof AniHistoryInfo).map((val) => (
+                                                {uniqueValues(header.column.id as keyof AniHistoryInfo).map(val => (
                                                     <MenuItem
                                                         key={val}
                                                         onClick={() => {
-                                                            setFilters((prev) => ({ ...prev, [header.column.id]: val }));
+                                                            setFilters(prev => ({ ...prev, [header.column.id]: val }));
                                                             handleCloseMenu(header.column.id);
                                                         }}
                                                     >
@@ -179,7 +192,11 @@ export default function NotionStyleTable() {
                                                 ))}
                                                 <MenuItem
                                                     onClick={() => {
-                                                        setFilters((prev) => ({ ...prev, [header.column.id]: '' }));
+                                                        setFilters(prev => {
+                                                            const newFilters = { ...prev };
+                                                            delete newFilters[header.column.id];
+                                                            return newFilters;
+                                                        });
                                                         handleCloseMenu(header.column.id);
                                                     }}
                                                 >
@@ -193,9 +210,9 @@ export default function NotionStyleTable() {
                         ))}
                     </TableHead>
                     <TableBody>
-                        {table.getRowModel().rows.map((row) => (
+                        {table.getRowModel().rows.map(row => (
                             <TableRow key={row.id} hover>
-                                {row.getVisibleCells().map((cell) => (
+                                {row.getVisibleCells().map(cell => (
                                     <TableCell key={cell.id}>
                                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                     </TableCell>
@@ -210,7 +227,7 @@ export default function NotionStyleTable() {
             <Stack direction="row" alignItems="center" spacing={2}>
                 <Button
                     variant="outlined"
-                    onClick={() => setPageIndex((old) => Math.max(old - 1, 0))}
+                    onClick={() => setPageIndex(old => Math.max(old - 1, 0))}
                     disabled={pageIndex === 0}
                 >
                     上一页
@@ -220,7 +237,7 @@ export default function NotionStyleTable() {
                 </Typography>
                 <Button
                     variant="outlined"
-                    onClick={() => setPageIndex((old) => Math.min(old + 1, totalPages - 1))}
+                    onClick={() => setPageIndex(old => Math.min(old + 1, totalPages - 1))}
                     disabled={pageIndex + 1 >= totalPages}
                 >
                     下一页
@@ -229,15 +246,13 @@ export default function NotionStyleTable() {
                     <InputLabel>每页条数</InputLabel>
                     <Select
                         value={pageSize}
-                        onChange={(e) => {
+                        onChange={e => {
                             setPageSize(Number(e.target.value));
                             setPageIndex(0);
                         }}
                     >
-                        {[5, 10, 20, 50].map((size) => (
-                            <MenuItem key={size} value={size}>
-                                {size}
-                            </MenuItem>
+                        {[5, 10, 20, 50].map(size => (
+                            <MenuItem key={size} value={size}>{size}</MenuItem>
                         ))}
                     </Select>
                 </FormControl>
