@@ -32,6 +32,7 @@ import {
     Typography,
     Stack,
     Divider,
+    TextField,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import FilterListIcon from '@mui/icons-material/FilterList';
@@ -64,12 +65,12 @@ export default function NotionStyleTable() {
     const [pageIndex, setPageIndex] = useState(0);
     const [pageSize, setPageSize] = useState(10);
     const [filters, setFilters] = useState<Record<string, Set<string>>>({});
+    const [filterSearch, setFilterSearch] = useState<Record<string, string>>({});
     const [sorting, setSorting] = useState<SortingState>([]);
     const [open, setOpen] = useState(false);
     const [selectedAni, setSelectedAni] = useState<AniHistoryInfo | null>(null);
     const [anchorEls, setAnchorEls] = useState<Record<string, HTMLElement | null>>({});
 
-    // 列定义
     const columns = useMemo<ColumnDef<AniHistoryInfo>[]>(() => [
         {
             accessorKey: 'title',
@@ -106,19 +107,15 @@ export default function NotionStyleTable() {
         { accessorKey: 'platform', header: '播出平台' },
     ], []);
 
-    // 多条件筛选
     const filteredData = useMemo(() => {
         let rows = testData;
         Object.entries(filters).forEach(([key, valueSet]) => {
             if (!valueSet || valueSet.size === 0) return;
-            rows = rows.filter(row =>
-                valueSet.has(String(row[key as keyof AniHistoryInfo]))
-            );
+            rows = rows.filter(row => valueSet.has(String(row[key as keyof AniHistoryInfo])));
         });
         return rows;
     }, [filters]);
 
-    // 表格实例
     const table = useReactTable({
         data: filteredData,
         columns,
@@ -137,6 +134,7 @@ export default function NotionStyleTable() {
 
     const handleCloseMenu = (columnId: string) => {
         setAnchorEls(prev => ({ ...prev, [columnId]: null }));
+        setFilterSearch(prev => ({ ...prev, [columnId]: '' }));
     };
 
     const uniqueValues = (key: keyof AniHistoryInfo) =>
@@ -168,15 +166,16 @@ export default function NotionStyleTable() {
         handleCloseMenu(columnId);
     };
 
-    // 新增：全选
-    const handleSelectAll = (columnId: string) => {
+    const handleToggleAllCheckbox = (columnId: string) => {
         const allValues = uniqueValues(columnId as keyof AniHistoryInfo);
-        setFilters(prev => ({ ...prev, [columnId]: new Set(allValues) }));
-    };
-
-    // 新增：全不选
-    const handleSelectNone = (columnId: string) => {
-        setFilters(prev => ({ ...prev, [columnId]: new Set() }));
+        const currentSet = filters[columnId] ?? new Set<string>();
+        if (currentSet.size === allValues.length) {
+            // 已全选 -> 取消全选
+            setFilters(prev => ({ ...prev, [columnId]: new Set() }));
+        } else {
+            // 全选
+            setFilters(prev => ({ ...prev, [columnId]: new Set(allValues) }));
+        }
     };
 
     const countSelected = (columnId: string) => filters[columnId]?.size ?? 0;
@@ -222,31 +221,64 @@ export default function NotionStyleTable() {
                                                 onClose={() => handleCloseMenu(header.column.id)}
                                                 slotProps={{
                                                     paper: {
-                                                        sx: { maxHeight: 300, minWidth: 160 }
+                                                        sx: { maxHeight: 350, minWidth: 200, p: 1 }
                                                     }
                                                 }}
                                             >
-                                                <MenuItem onClick={() => handleSelectAll(header.column.id)}>
-                                                    全选
-                                                </MenuItem>
-                                                <MenuItem onClick={() => handleSelectNone(header.column.id)}>
-                                                    全不选
-                                                </MenuItem>
-                                                <Divider />
-                                                {uniqueValues(header.column.id as keyof AniHistoryInfo).map(val => (
-                                                    <MenuItem key={val}>
-                                                        <FormControlLabel
-                                                            control={
-                                                                <Checkbox
-                                                                    checked={filters[header.column.id]?.has(val) ?? false}
-                                                                    onChange={() => handleToggleFilter(header.column.id, val)}
-                                                                />
+                                                {/* 搜索框 */}
+                                                <TextField
+                                                    size="small"
+                                                    placeholder="搜索..."
+                                                    fullWidth
+                                                    value={filterSearch[header.column.id] ?? ''}
+                                                    onChange={e => setFilterSearch(prev => ({
+                                                        ...prev,
+                                                        [header.column.id]: e.target.value
+                                                    }))}
+                                                    sx={{ mb: 1 }}
+                                                />
+
+                                                {/* 全选checkbox */}
+                                                <FormControlLabel
+                                                    label="全选"
+                                                    control={
+                                                        <Checkbox
+                                                            checked={
+                                                                countSelected(header.column.id) === uniqueValues(header.column.id as keyof AniHistoryInfo).length &&
+                                                                uniqueValues(header.column.id as keyof AniHistoryInfo).length > 0
                                                             }
-                                                            label={val}
+                                                            indeterminate={
+                                                                countSelected(header.column.id) > 0 &&
+                                                                countSelected(header.column.id) < uniqueValues(header.column.id as keyof AniHistoryInfo).length
+                                                            }
+                                                            onChange={() => handleToggleAllCheckbox(header.column.id)}
                                                         />
-                                                    </MenuItem>
-                                                ))}
-                                                <Divider />
+                                                    }
+                                                    sx={{ mb: 1 }}
+                                                />
+
+                                                <Divider sx={{ mb: 1 }} />
+
+                                                {/* 复选框列表 */}
+                                                <Box sx={{ maxHeight: 200, overflowY: 'auto' }}>
+                                                    {uniqueValues(header.column.id as keyof AniHistoryInfo)
+                                                        .filter(val => val.includes(filterSearch[header.column.id] ?? ''))
+                                                        .map(val => (
+                                                            <MenuItem key={val}>
+                                                                <FormControlLabel
+                                                                    control={
+                                                                        <Checkbox
+                                                                            checked={filters[header.column.id]?.has(val) ?? false}
+                                                                            onChange={() => handleToggleFilter(header.column.id, val)}
+                                                                        />
+                                                                    }
+                                                                    label={val}
+                                                                />
+                                                            </MenuItem>
+                                                        ))}
+                                                </Box>
+
+                                                <Divider sx={{ mt: 1 }} />
                                                 <MenuItem onClick={() => handleClearFilter(header.column.id)}>
                                                     清空
                                                 </MenuItem>
