@@ -9,7 +9,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useAniHistoryData } from '@/hooks/useAniHistoryData';
 import type { AniHistoryInfo } from '@/utils/api';
 import { toast } from 'react-hot-toast';
-import { Dialog, DialogTitle, DialogContent, IconButton, TextField } from '@mui/material';
+import { Dialog, DialogTitle, DialogContent, IconButton, TextField, Box } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { columns as baseColumns } from './data/gridData';
 
@@ -50,6 +50,7 @@ export default function HistoryDataGrid({ isServer = true }: Props) {
         if (error) toast.error(`加载番剧历史出错：${error}`);
     }, [error]);
 
+    // 本地多列筛选
     const filteredRows = useMemo(() => {
         if (isServer) return data?.items ?? [];
         let rows = data?.items ?? [];
@@ -63,6 +64,7 @@ export default function HistoryDataGrid({ isServer = true }: Props) {
         return rows;
     }, [isServer, data?.items, localFilters]);
 
+    // columns 渲染 title 为可点击按钮
     const columns: GridColDef<AniHistoryInfo>[] = useMemo(() => {
         return baseColumns.map((col) =>
             col.field === 'title'
@@ -104,8 +106,8 @@ export default function HistoryDataGrid({ isServer = true }: Props) {
     return (
         <>
             {/* 可自定义的多列筛选输入 */}
-            <div style={{ display: 'flex', gap: 16, marginBottom: 8 }}>
-                {['title', 'isWatched', 'platform'].map((field) => (
+            <Box display="flex" gap={2} mb={1}>
+                {Object.keys(localFilters).map((field) => (
                     <TextField
                         key={field}
                         label={field}
@@ -116,7 +118,7 @@ export default function HistoryDataGrid({ isServer = true }: Props) {
                         }
                     />
                 ))}
-            </div>
+            </Box>
 
             <DataGrid
                 rows={isServer ? data?.items ?? [] : (filteredRows as AniHistoryInfo[])}
@@ -124,8 +126,7 @@ export default function HistoryDataGrid({ isServer = true }: Props) {
                 loading={loading}
                 pagination
                 paginationMode={isServer ? 'server' : 'client'}
-                //rowCount={isServer ? data?.total ?? 0 : filteredRows.length}
-                rowCount={isServer ? data?.total ?? 0 : undefined} // 只在服务端分页时传
+                rowCount={isServer ? data?.total ?? 0 : undefined}
                 paginationModel={paginationModel}
                 onPaginationModelChange={setPaginationModel}
                 filterModel={filterModel}
