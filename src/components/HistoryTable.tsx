@@ -39,7 +39,6 @@ import FilterListIcon from '@mui/icons-material/FilterList';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 
-// 数据类型
 type AniHistoryInfo = {
     id: number;
     title: string;
@@ -50,7 +49,6 @@ type AniHistoryInfo = {
     platform: string;
 };
 
-// 测试数据
 const testData: AniHistoryInfo[] = Array.from({ length: 55 }, (_, i) => ({
     id: i + 1,
     title: `动漫 ${i + 1}`,
@@ -75,7 +73,7 @@ export default function NotionStyleTable() {
         {
             accessorKey: 'title',
             header: '动漫标题',
-            cell: (info) => (
+            cell: info => (
                 <Button
                     variant="text"
                     color="primary"
@@ -92,17 +90,17 @@ export default function NotionStyleTable() {
         {
             accessorKey: 'updateTime',
             header: '更新日期',
-            cell: (info) => new Date(info.getValue() as number).toLocaleDateString(),
+            cell: info => new Date(info.getValue() as number).toLocaleDateString(),
         },
         {
             accessorKey: 'isWatched',
             header: '观看状态',
-            cell: (info) => ((info.getValue() as boolean) ? '已观看' : '未观看'),
+            cell: info => (info.getValue() as boolean ? '已观看' : '未观看'),
         },
         {
             accessorKey: 'watchedTime',
             header: '观看时间',
-            cell: (info) => new Date(info.getValue() as number).toLocaleString(),
+            cell: info => new Date(info.getValue() as number).toLocaleString(),
         },
         { accessorKey: 'platform', header: '播出平台' },
     ], []);
@@ -157,23 +155,12 @@ export default function NotionStyleTable() {
         });
     };
 
-    const handleClearFilter = (columnId: string) => {
-        setFilters(prev => {
-            const newFilters = { ...prev };
-            delete newFilters[columnId];
-            return newFilters;
-        });
-        handleCloseMenu(columnId);
-    };
-
     const handleToggleAllCheckbox = (columnId: string) => {
         const allValues = uniqueValues(columnId as keyof AniHistoryInfo);
         const currentSet = filters[columnId] ?? new Set<string>();
         if (currentSet.size === allValues.length) {
-            // 已全选 -> 取消全选
             setFilters(prev => ({ ...prev, [columnId]: new Set() }));
         } else {
-            // 全选
             setFilters(prev => ({ ...prev, [columnId]: new Set(allValues) }));
         }
     };
@@ -204,7 +191,7 @@ export default function NotionStyleTable() {
                                                 </IconButton>
                                                 <IconButton
                                                     size="small"
-                                                    onClick={(e) => handleOpenMenu(header.column.id, e)}
+                                                    onClick={e => handleOpenMenu(header.column.id, e)}
                                                 >
                                                     <FilterListIcon fontSize="small" />
                                                     {countSelected(header.column.id) > 0 && (
@@ -220,12 +207,9 @@ export default function NotionStyleTable() {
                                                 open={Boolean(anchorEls[header.column.id])}
                                                 onClose={() => handleCloseMenu(header.column.id)}
                                                 slotProps={{
-                                                    paper: {
-                                                        sx: { maxHeight: 350, minWidth: 200, p: 1 }
-                                                    }
+                                                    paper: { sx: { width: 220, p: 1 } }
                                                 }}
                                             >
-                                                {/* 搜索框 */}
                                                 <TextField
                                                     size="small"
                                                     placeholder="搜索..."
@@ -238,33 +222,34 @@ export default function NotionStyleTable() {
                                                     sx={{ mb: 1 }}
                                                 />
 
-                                                {/* 全选checkbox */}
-                                                <FormControlLabel
-                                                    label="全选"
-                                                    control={
-                                                        <Checkbox
-                                                            checked={
-                                                                countSelected(header.column.id) === uniqueValues(header.column.id as keyof AniHistoryInfo).length &&
-                                                                uniqueValues(header.column.id as keyof AniHistoryInfo).length > 0
-                                                            }
-                                                            indeterminate={
-                                                                countSelected(header.column.id) > 0 &&
-                                                                countSelected(header.column.id) < uniqueValues(header.column.id as keyof AniHistoryInfo).length
-                                                            }
-                                                            onChange={() => handleToggleAllCheckbox(header.column.id)}
-                                                        />
-                                                    }
-                                                    sx={{ mb: 1 }}
-                                                />
+                                                {/* 全选复选框与单个值复选框对齐 */}
+                                                <Box>
+                                                    <FormControlLabel
+                                                        label="全选"
+                                                        control={
+                                                            <Checkbox
+                                                                checked={
+                                                                    countSelected(header.column.id) === uniqueValues(header.column.id as keyof AniHistoryInfo).length &&
+                                                                    uniqueValues(header.column.id as keyof AniHistoryInfo).length > 0
+                                                                }
+                                                                indeterminate={
+                                                                    countSelected(header.column.id) > 0 &&
+                                                                    countSelected(header.column.id) < uniqueValues(header.column.id as keyof AniHistoryInfo).length
+                                                                }
+                                                                onChange={() => handleToggleAllCheckbox(header.column.id)}
+                                                            />
+                                                        }
+                                                        sx={{ width: '100%', m: 0 }}
+                                                    />
+                                                </Box>
 
-                                                <Divider sx={{ mb: 1 }} />
+                                                <Divider sx={{ my: 1 }} />
 
-                                                {/* 复选框列表 */}
                                                 <Box sx={{ maxHeight: 200, overflowY: 'auto' }}>
                                                     {uniqueValues(header.column.id as keyof AniHistoryInfo)
                                                         .filter(val => val.includes(filterSearch[header.column.id] ?? ''))
                                                         .map(val => (
-                                                            <MenuItem key={val}>
+                                                            <MenuItem key={val} disableGutters>
                                                                 <FormControlLabel
                                                                     control={
                                                                         <Checkbox
@@ -273,15 +258,16 @@ export default function NotionStyleTable() {
                                                                         />
                                                                     }
                                                                     label={val}
+                                                                    sx={{ width: '100%', m: 0 }}
                                                                 />
                                                             </MenuItem>
                                                         ))}
                                                 </Box>
 
-                                                <Divider sx={{ mt: 1 }} />
-                                                <MenuItem onClick={() => handleClearFilter(header.column.id)}>
-                                                    清空
-                                                </MenuItem>
+                                                <Divider sx={{ my: 1 }} />
+                                                <Typography variant="caption" sx={{ px: 1 }}>
+                                                    已选 {countSelected(header.column.id)} 项
+                                                </Typography>
                                             </Menu>
                                         </Stack>
                                     </TableCell>
