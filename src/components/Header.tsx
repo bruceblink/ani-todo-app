@@ -126,7 +126,13 @@ export default function Header({ onSearchChange }: HeaderProps) {
                         alignItems: "center",
                     }}
                 >
-                    <AniSearch onSearch={handleSearch} />
+                   {/* <AniSearch onSearch={handleSearch} />*/}
+                    <AniSearch
+                        onSearch={handleSearch}
+                        debounceMs={300}           // 防抖 300ms（可设为 0 表示不防抖）
+                        persistKey="aniSearch.v1"  // 可选：localStorage key，用于显示上次搜索
+                        clearOnBlur={false}        // 保留搜索（默认）；若需失去焦点即清除，设为 true
+                    />
                 </div>
             </nav>
 
