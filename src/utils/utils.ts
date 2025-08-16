@@ -56,3 +56,71 @@ export function formatUnixMs2Timestamp(ts: number) {
         return dayjs(ts).format('YYYY-MM-DD HH:mm:ss')
     }
 }
+
+
+/**
+ * 多字段模糊搜索工具
+ *
+ * @param rows 待搜索的数据数组（元素可以是对象或原始类型）
+ * @param query 搜索关键词（可为空、null、undefined）
+ * @param fields 可选，需要搜索的字段（如 ['title','platform']），不传则搜索对象所有字段
+ */
+export function fuzzySearch<T>(
+    rows: readonly T[],
+    query?: string | null,
+    fields?: (keyof T)[]
+): T[] {
+    const raw = (query ?? '').toString();
+    const trimmed = raw.trim();
+    if (trimmed === '') return Array.from(rows);
+
+    const escaped = trimmed.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(escaped, 'i');
+
+    const out: T[] = [];
+
+    for (const row of rows) {
+        if (row == null) continue;
+
+        // 如果 row 是原始类型（string/number/boolean），直接匹配它本身
+        const t = typeof row;
+        if (t === 'string' || t === 'number' || t === 'boolean') {
+            if (regex.test(String(row))) out.push(row);
+            continue;
+        }
+
+        // 此时 row 被视作对象；用安全的 Record<string, unknown> 来索引字段，避免 any
+        const obj = row as unknown as Record<string, unknown>;
+
+        if (!fields || fields.length === 0) {
+            // 搜索对象所有自有可枚举字段
+            let matched = false;
+            for (const k in obj) {
+                if (!Object.prototype.hasOwnProperty.call(obj, k)) continue;
+                const val = obj[k];
+                if (val == null) continue;
+                if (regex.test(String(val))) {
+                    matched = true;
+                    break;
+                }
+            }
+            if (matched) out.push(row);
+        } else {
+            // 仅按指定字段搜索（f 是 keyof T）
+            let matched = false;
+            for (const f of fields) {
+                // 将 keyof 转为 string 安全索引
+                const key = String(f);
+                const val = obj[key];
+                if (val == null) continue;
+                if (regex.test(String(val))) {
+                    matched = true;
+                    break;
+                }
+            }
+            if (matched) out.push(row);
+        }
+    }
+
+    return out;
+}

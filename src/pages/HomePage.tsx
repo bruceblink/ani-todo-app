@@ -5,6 +5,7 @@ import RefreshButton from "@/components/RefreshButton.tsx";
 import { useAniData } from "@/hooks/useAniData.ts";
 import { useFavoriteAni } from "@/hooks/useFavoriteAni.ts";
 import type { Ani } from "@/utils/api.ts";
+import {fuzzySearch} from "@/utils/utils.ts";
 
 interface HomePageProps {
     searchQuery: string;
@@ -32,12 +33,7 @@ export default function HomePage({ searchQuery }: HomePageProps) {
 
     const today = Object.keys(data)[0];
     const aniList = data[today] as Ani[];
-    const lowerQuery = searchQuery.toLowerCase();
-    const filteredAniList = aniList.filter((row) =>
-        // 支持 title和platform
-        row.title.toLowerCase().includes(lowerQuery) ||
-        row.platform.toLowerCase().includes(lowerQuery)
-    ); // 根据搜索查询过滤动画列表
+    const filteredAniList = fuzzySearch(aniList, searchQuery, ['title', 'platform'])
     const favoriteList = filteredAniList.filter(ani => favoriteAniItems.has(ani.title)); // 过滤出收藏的动画并匹配搜索查询
 
     return (

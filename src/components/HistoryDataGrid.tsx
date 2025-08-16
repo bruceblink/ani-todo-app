@@ -10,7 +10,7 @@ import { useAniHistoryData } from '@/hooks/useAniHistoryData';
 import type { AniHistoryInfo } from '@/utils/api';
 import { toast } from 'react-hot-toast';
 import { columns as baseColumns } from './data/gridData';
-import {formatUnixMs2Date} from "@/utils/utils.ts";
+import {formatUnixMs2Date, fuzzySearch} from "@/utils/utils.ts";
 import {useWatchedAni} from "@/hooks/useWatchedAni.ts";
 import {useFavoriteAni} from "@/hooks/useFavoriteAni.ts";
 import AniItem from "@/components/AniItem.tsx";
@@ -95,13 +95,7 @@ export default function HistoryDataGrid({ isServer = true, searchQuery }: Props)
         });
 
         // 额外支持 searchQuery（搜索 title + platform）
-        if (searchQuery) {
-            const lowerQuery = searchQuery.toLowerCase();
-            rows = rows.filter((row) =>
-                row.title.toLowerCase().includes(lowerQuery) ||
-                row.platform.toLowerCase().includes(lowerQuery)
-            );
-        }
+        rows = fuzzySearch(rows, searchQuery, ['title', 'platform'])
 
         return rows;
     }, [isServer, data?.items, filterModel, searchQuery]);
