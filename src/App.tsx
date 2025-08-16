@@ -26,7 +26,7 @@ export default function App() {
                     <Routes>
                         <Route path="/" element={<HomePage searchQuery={searchValue} />} />
                         <Route path="/about" element={<AboutPage />} />
-                        <Route path="/favorites" element={<HistoryPage />} />
+                        <Route path="/favorites" element={<HistoryPage searchQuery={searchValue} />} />
                     </Routes>
                 </Box>
 

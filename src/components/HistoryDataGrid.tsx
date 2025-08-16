@@ -17,9 +17,10 @@ import AniItem from "@/components/AniItem.tsx";
 
 type Props = {
     isServer?: boolean; // 是否服务端分页
+    searchQuery: string;
 };
 
-export default function HistoryDataGrid({ isServer = true }: Props) {
+export default function HistoryDataGrid({ isServer = true, searchQuery }: Props) {
     const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({
         pageSize: 20,
         page: 0,
@@ -37,6 +38,20 @@ export default function HistoryDataGrid({ isServer = true }: Props) {
     const [selectedAni, setSelectedAni] = useState<AniHistoryInfo | null>(null);
     const triggerButtonRef = useRef<HTMLButtonElement | null>(null);
 
+    // 自动同步 searchQuery 到 filterModel（服务端模式下）
+    useEffect(() => {
+        if (isServer) {
+            setFilterModel((prev) => ({
+                ...prev,
+                items: prev.items.map((item) =>
+                    item.field === "title"
+                        ? { ...item, value: searchQuery }
+                        : item
+                ),
+            }));
+        }
+    }, [isServer, searchQuery]);
+
     const { data, loading, error, refresh } = useAniHistoryData(
         paginationModel.page + 1,
         paginationModel.pageSize,
@@ -53,7 +68,7 @@ export default function HistoryDataGrid({ isServer = true }: Props) {
         }
     }, [error]);
 
-    // 本地模式下多列筛选
+    // 本地模式下多列筛选 + searchQuery
     const filteredRows = useMemo(() => {
         if (isServer) return data?.items ?? [];
         let rows = data?.items ?? [];
@@ -78,8 +93,16 @@ export default function HistoryDataGrid({ isServer = true }: Props) {
                 }
             });
         });
+
+        // 额外支持 searchQuery（只搜索 title）
+        if (searchQuery) {
+            rows = rows.filter((row) =>
+                row.title.toLowerCase().includes(searchQuery.toLowerCase())
+            );
+        }
+
         return rows;
-    }, [isServer, data?.items, filterModel]);
+    }, [isServer, data?.items, filterModel, searchQuery]);
 
     const columns: GridColDef<AniHistoryInfo>[] = useMemo(() => {
         return baseColumns.map((col) =>
