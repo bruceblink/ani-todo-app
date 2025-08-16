@@ -1,4 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from "react";
+import { IconButton, InputBase, Paper } from "@mui/material";
+import SearchIcon from "@mui/icons-material/Search";
 
 interface SearchProps {
     onSearch: (value: string) => void;
@@ -10,63 +12,89 @@ export default function AniSearch({ onSearch }: SearchProps) {
     const [isComposing, setIsComposing] = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
 
-    // 展开时自动聚焦输入框
+    // 展开时自动聚焦输入框并把光标移到末尾
     useEffect(() => {
         if (expanded && inputRef.current) {
             inputRef.current.focus();
+            const len = inputRef.current.value.length;
+            inputRef.current.setSelectionRange(len, len);
         }
     }, [expanded]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setValue(e.target.value);
+        const v = e.target.value;
+        setValue(v);
         if (!isComposing) {
-            onSearch(e.target.value);
+            onSearch(v);
         }
     };
 
     const handleCompositionStart = () => setIsComposing(true);
+
     const handleCompositionEnd = (e: React.CompositionEvent<HTMLInputElement>) => {
         setIsComposing(false);
-        onSearch(e.currentTarget.value); // 中文确认后再触发一次
+        const v = (e.target as HTMLInputElement).value ?? "";
+        setValue(v);
+        onSearch(v);
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === "Enter" && !isComposing) {
+            e.preventDefault();
+            onSearch(value);
+        }
+    };
+
+    // 重点：失去焦点时清空输入并清除搜索条件
+    const handleBlur = () => {
+        // 清空外部搜索条件（给外层回调空字符串）
+        onSearch("");
+        // 清空内部显示值
+        setValue("");
+        // 收起输入框
+        setExpanded(false);
     };
 
     return (
-        <div className="search-wrap">
+        <div style={{ display: "flex", alignItems: "center" }}>
             {expanded ? (
-                <input
-                    className="search-input expanded"
-                    type="text"
-                    placeholder="输入动漫标题搜索..."
-                    ref={inputRef}
-                    value={value}
-                    onChange={handleChange}
-                    onCompositionStart={handleCompositionStart}
-                    onCompositionEnd={handleCompositionEnd}
-                    onBlur={() => setExpanded(false)}
-                />
-            ) : (
-                <button
-                    className="search-btn"
-                    type="button"
-                    aria-label="Open search"
-                    onClick={() => setExpanded(true)}
+                <Paper
+                    component="form"
+                    sx={{
+                        p: "2px 4px",
+                        display: "flex",
+                        alignItems: "center",
+                        width: 260,
+                        transition: "all 0.3s ease",
+                        borderRadius: "24px",
+                        boxShadow: 3,
+                    }}
+                    onSubmit={(e) => {
+                        e.preventDefault();
+                        if (!isComposing) onSearch(value);
+                    }}
                 >
-                    {/* 用 SVG 画放大镜 */}
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                    >
-                        <circle cx="11" cy="11" r="6" />
-                        <path d="M21 21l-4.35-4.35" />
-                    </svg>
-                </button>
+                    <InputBase
+                        sx={{ ml: 1, flex: 1 }}
+                        placeholder="输入动漫标题或播放平台搜索..."
+                        inputRef={inputRef}
+                        value={value}
+                        onChange={handleChange}
+                        onCompositionStart={handleCompositionStart}
+                        onCompositionEnd={handleCompositionEnd}
+                        onKeyDown={handleKeyDown}
+                        onBlur={handleBlur}
+                    />
+                </Paper>
+            ) : (
+                <IconButton
+                    color="primary"
+                    aria-label="search"
+                    onClick={() => setExpanded(true)}
+                    sx={{ borderRadius: "50%", boxShadow: 2 }}
+                >
+                    <SearchIcon />
+                </IconButton>
             )}
         </div>
     );
