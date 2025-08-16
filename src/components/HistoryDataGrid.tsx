@@ -28,9 +28,9 @@ export default function HistoryDataGrid({ isServer = true, searchQuery }: Props)
 
     const [filterModel, setFilterModel] = useState<GridFilterModel>({
         items: [
-            { field: 'title', operator: 'contains', value: '' },
-            { field: 'isWatched', operator: 'equals', value: '' },
-            { field: 'platform', operator: 'contains', value: '' },
+            { id: 'title', field: 'title', operator: 'contains', value: '' },
+            { id: 'isWatched', field: 'isWatched', operator: 'equals', value: '' },
+            { id: 'platform', field: 'platform', operator: 'contains', value: '' },
         ],
     });
 
