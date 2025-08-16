@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { IconButton, InputBase, Paper, Chip } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
+import {useDebouncedCallback} from "@/hooks/useDebounced.ts";
 
 /**
  * AniSearch props
@@ -15,25 +16,7 @@ interface SearchProps {
     clearOnBlur?: boolean;
 }
 
-function useDebouncedCallback<T extends (...args: any[]) => void>(cb: T, delay: number) {
-    const timer = useRef<number | null>(null);
-    const saved = useRef(cb);
-    useEffect(() => { saved.current = cb; }, [cb]);
 
-    return useCallback((...args: Parameters<T>) => {
-        if (delay <= 0) {
-            saved.current(...args);
-            return;
-        }
-        if (timer.current) {
-            window.clearTimeout(timer.current);
-        }
-        timer.current = window.setTimeout(() => {
-            saved.current(...args);
-            timer.current = null;
-        }, delay);
-    }, [delay]);
-}
 
 export default function AniSearch({
                                       onSearch,
@@ -57,29 +40,39 @@ export default function AniSearch({
         }
     });
 
-    // 保存 last 到 localStorage
-    const persistLast = (v: string) => {
-        try {
-            if (!persistKey) return;
-            if (v) localStorage.setItem(persistKey, v);
-            else localStorage.removeItem(persistKey);
-            setLast(v);
-        } catch {
-            // ignore
-        }
-    };
+    // 保存 last 到 localStorage（封装成 useCallback 以便稳定引用）
+    const persistLast = useCallback(
+        (v: string) => {
+            try {
+                if (!persistKey) return;
+                if (v) localStorage.setItem(persistKey, v);
+                else localStorage.removeItem(persistKey);
+                setLast(v);
+            } catch {
+                // ignore
+            }
+        },
+        [persistKey]
+    );
 
     // 把外部 onSearch 包成防抖回调（注意：composition 期间不触发）
-    const debouncedOnSearch = useDebouncedCallback((v: string) => {
-        onSearch(v);
-        persistLast(v);
-    }, debounceMs);
+    const debouncedOnSearch = useDebouncedCallback(
+        (v: string) => {
+            onSearch(v);
+            persistLast(v);
+        },
+        debounceMs
+    );
 
     useEffect(() => {
         if (expanded && inputRef.current) {
             inputRef.current.focus();
             const len = inputRef.current.value.length;
-            inputRef.current.setSelectionRange(len, len);
+            try {
+                inputRef.current.setSelectionRange(len, len);
+            } catch {
+                // 某些环境可能不支持 setSelectionRange，忽略
+            }
         }
     }, [expanded]);
 
