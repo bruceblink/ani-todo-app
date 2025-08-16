@@ -94,10 +94,12 @@ export default function HistoryDataGrid({ isServer = true, searchQuery }: Props)
             });
         });
 
-        // 额外支持 searchQuery（只搜索 title）
+        // 额外支持 searchQuery（搜索 title + platform）
         if (searchQuery) {
+            const lowerQuery = searchQuery.toLowerCase();
             rows = rows.filter((row) =>
-                row.title.toLowerCase().includes(searchQuery.toLowerCase())
+                row.title.toLowerCase().includes(lowerQuery) ||
+                row.platform.toLowerCase().includes(lowerQuery)
             );
         }
 
