@@ -1,6 +1,7 @@
 use std::sync::Arc;
 use cron::Schedule;
 use std::str::FromStr;
+use chrono::{DateTime, Local};
 
 #[derive(Clone)]
 pub struct Task {
@@ -27,4 +28,12 @@ impl Task {
     pub fn schedule(&self) -> Schedule {
         Schedule::from_str(&self.cron_expr).expect("Invalid cron expression")
     }
+}
+
+#[derive(Clone, Debug)]
+pub struct TaskResult {
+    pub name: String,
+    pub success: bool,
+    pub error: Option<String>,
+    pub timestamp: DateTime<Local>,
 }
