@@ -63,17 +63,24 @@ impl Scheduler {
         let mut success = false;
         let mut error: Option<String> = None;
 
-        for attempt in 0..=task.retry_times {
-            match (task.action)() {
-                Ok(_) => {
+        // task.retry_times 是 u8，所以这里显式用 u8 范围
+        for attempt in 0u8..=task.retry_times {
+            // 调用 TaskAction 的异步方法 run()
+            match task.action.run().await {
+                Ok(_resp) => {
+                    // 如果需要可以在这里处理 _resp（ApiResponse<AniItemResult>）
                     println!("任务 [{}] 执行成功", task.name);
                     success = true;
                     break;
                 }
                 Err(e) => {
-                    println!("任务 [{}] 执行失败: {}, 重试 {}/{}", task.name, e, attempt, task.retry_times);
+                    println!(
+                        "任务 [{}] 执行失败: {}, 重试 {}/{}",
+                        task.name, e, attempt, task.retry_times
+                    );
                     error = Some(e);
                     if attempt < task.retry_times {
+                        // 重试间隔
                         sleep(Duration::from_secs(5)).await;
                     }
                 }
@@ -99,40 +106,71 @@ impl Scheduler {
 
 #[cfg(test)]
 mod tests {
-    use crate::tasks::scheduler::Scheduler;
-    use crate::tasks::task::Task;
+    use super::*;
+    use crate::command::ApiResponse;
+    use crate::platforms::AniItemResult;
+    use crate::tasks::commands::{build_cmd_map, CmdFn};
+    // scheduler 模块的内容
+    use crate::tasks::task::{build_tasks_from_meta, TaskMeta};
+    use std::collections::HashMap;
     use tokio::sync::mpsc;
 
+    // --- Mock 命令：用于测试（替代真实的 fetch_agedm_ani_data） ---
+    async fn mock_success(url: String) -> Result<ApiResponse<AniItemResult>, String> {
+        println!("mock_success called with url={}", url);
+        // 假设你不能构造 ApiResponse 这里用 Err 也可；如果能构造则返回 Ok(...)
+        Err("mock returning Err to simplify test".to_string())
+    }
+
     #[tokio::test]
-    async fn test_scheduler() {
-        let tasks = vec![
-            Task::new("任务A", "5 * * * * * *", || {
-                println!("执行任务A");
-                Ok(())
-            }, 3),
-            Task::new("任务B", "10 * * * * * *", || {
-                println!("执行任务B");
-                Err("模拟失败".to_string())
-            }, 2),
+    async fn test_scheduler_with_meta_to_task() {
+        // 1. 构造 TaskMeta 列表（通常由解析配置得到）
+        let metas = vec![
+            TaskMeta {
+                name: "任务A".into(),
+                cmd: "fetch_agedm_ani_data".into(),
+                arg: "https://example.com/a".into(),
+                cron_expr: "0/10 * * * * * *".into(), // 每10s（视 cron crate 语法）
+                retry_times: 1,
+            },
+            TaskMeta {
+                name: "任务B".into(),
+                cmd: "unknown_cmd".into(), // 故意一个未注册的 cmd，测试 fallback
+                arg: "https://example.com/b".into(),
+                cron_expr: "0/15 * * * * * *".into(),
+                retry_times: 0,
+            },
         ];
 
+        // 2. 构建 cmd_map（用 mock）
+        let cmd_map: HashMap<String, CmdFn> = build_cmd_map();
+
+        // 如果你还有真实函数，可像上面那样插入
+
+        // 3. 从 meta -> task
+        let tasks = build_tasks_from_meta(&metas, &cmd_map);
+
+        // 4. 创建调度器并运行（复用你现有的 Scheduler）
         let scheduler = Scheduler::new(tasks);
         let (tx, mut rx) = mpsc::channel(100);
 
+        // 启动调度器
         let scheduler_clone = scheduler.clone();
         tokio::spawn(async move {
             scheduler_clone.run(tx).await;
         });
 
-        // 异步接收任务结果
+        // 接收并打印 TaskResult
         tokio::spawn(async move {
-            while let Some(result) = rx.recv().await {
-                println!("实时结果: {:?}", result);
+            while let Some(res) = rx.recv().await {
+                println!("收到 TaskResult: {:?}", res);
             }
         });
 
-        // 模拟 1 分钟后取消任务
-        tokio::time::sleep(std::time::Duration::from_secs(60)).await;
-        //scheduler.shutdown();
+        // 等待 25 秒观察若干次触发
+        sleep(Duration::from_secs(25)).await;
+
+        // 取消调度器
+        scheduler.shutdown();
     }
 }

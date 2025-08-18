@@ -95,6 +95,7 @@ name = "ani-todo-app"
 version = "0.4.2"
 dependencies = [
  "anyhow",
+ "async-trait",
  "base64 0.22.1",
  "chrono",
  "config",
