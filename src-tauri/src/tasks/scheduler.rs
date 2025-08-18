@@ -3,7 +3,7 @@ use chrono::Local;
 use log::{info, warn};
 use std::sync::{Arc, Mutex};
 use tokio::sync::{mpsc, Notify};
-use tokio::time::{sleep, Duration, timeout};
+use tokio::time::{sleep, Duration};
 use tokio::task::JoinHandle;
 
 #[derive(Clone)]
@@ -99,28 +99,6 @@ impl Scheduler {
             }
         }
     }
-
-    pub fn shutdown(&self) {
-        self.shutdown.notify_waiters();
-    }
-
-    /// 等待 run 结束并等待所有 spawn 子任务完成（带超时）
-    pub async fn shutdown_and_wait(&self, overall_timeout: Duration) {
-        self.shutdown();
-
-        let handles = {
-            let mut guard = self.task_handles.lock().unwrap();
-            std::mem::take(&mut *guard)
-        };
-
-        let fut = async move {
-            for h in handles {
-                let _ = h.await;
-            }
-        };
-
-        let _ = timeout(overall_timeout, fut).await;
-    }
 }
 
 
@@ -182,7 +160,5 @@ mod tests {
         // 等待 25 秒观察若干次触发
         sleep(Duration::from_secs(25)).await;
 
-        // 取消调度器
-        scheduler.shutdown();
     }
 }
