@@ -3,15 +3,17 @@ use std::collections::HashMap;
 
 #[derive(Debug, Deserialize)]
 pub struct DataSource {
-    name: String,
-    url: String,
-    cmd: String,
+    pub name: String,
+    pub url: String,
+    pub cmd: String,
+    pub cron_expr: String,
+    pub retry_times: u8,
 }
 
 // 不再需要 DataSourceCategory 结构体
 #[derive(Debug, Deserialize)]
 pub struct AppConfig {
-    datasource: HashMap<String, Vec<DataSource>>, // 直接映射到 Vec<DataSource>
+    pub datasource: HashMap<String, Vec<DataSource>>, // 直接映射到 Vec<DataSource>
 }
 
 // 读取配置文件

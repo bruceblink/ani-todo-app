@@ -4,26 +4,38 @@ datasource:
     - name: "哔哩哔哩国创"
       url: "https://api.bilibili.com/pgc/web/timeline?types=4&before=6&after=6"
       cmd: "fetch_bilibili_ani_data"
+      cron_expr: "0 30 8,9,10,11,12,16,17,18,19,20,21,22,23 * * * *"
+      retry_times: 0
 
     - name: "哔哩哔哩番剧"
       url: "https://api.bilibili.com/pgc/web/timeline?types=1&before=6&after=6"
       cmd: "fetch_bilibili_ani_data"
+      cron_expr: "0 30 8,9,10,11,12,16,17,18,19,20,21,22,23 * * * *"
+      retry_times: 0
 
     - name: "蜜柑计划"
       url: "https://mikanani.me"
       cmd: "fetch_mikanani_ani_data"
+      cron_expr: "0 30 8,9,10,11,12,16,17,18,19,20,21,22,23 * * * *"
+      retry_times: 0
 
     - name: "爱奇艺动漫"
       url: "https://mesh.if.iqiyi.com/portal/lw/v7/channel/cartoon"
       cmd: "fetch_iqiyi_ani_data"
+      cron_expr: "0 30 8,9,10,11,12,16,17,18,19,20,21,22,23 * * * *"
+      retry_times: 0
 
     - name: "腾讯动漫"
       url: "https://v.qq.com/channel/cartoon"
       cmd: "fetch_qq_ani_data"
+      cron_expr: "0 30 8,9,10,11,12,16,17,18,19,20,21,22,23 * * * *"
+      retry_times: 0
 
     - name: "优酷动漫"
       url: "https://www.youku.com/ku/webcomic"
       cmd: "fetch_youku_ani_data"
+      cron_expr: "0 30 8,9,10,11,12,16,17,18,19,20,21,22,23 * * * *"
+      retry_times: 0
 
   # 电视剧数据源
   drama:
