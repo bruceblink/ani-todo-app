@@ -17,18 +17,10 @@ use std::fmt;
 use std::sync:: Arc;
 use log::info;
 use tauri::async_runtime::block_on;
-use tauri::{App, Manager};
+use tauri::{AppHandle, Manager};
 use tauri_plugin_log::fern;
-use crate::command::service::{
-    cancel_collect_ani_item,
-    collect_ani_item,
-    query_ani_history_list,
-    query_favorite_ani_update_list,
-    query_today_update_ani_list,
-    query_watched_ani_item_list,
-    save_ani_item_data,
-    watch_ani_item};
-use crate::db::common::AppState;
+use crate::command::service::{cancel_collect_ani_item, collect_ani_item, query_ani_history_list, query_favorite_ani_update_list, query_today_update_ani_list, query_watched_ani_item_list, save_ani_item_data, watch_ani_item};
+use crate::db::common::{save_ani_item_data_db, AppState};
 use crate::tasks::commands::build_cmd_map;
 use crate::tasks::load_timer_tasks_config;
 use crate::tasks::task::{build_tasks_from_meta, TaskResult};
@@ -66,9 +58,9 @@ pub fn run() {
             // 同步执行数据库初始化
             let pool = block_on(init_and_migrate_db(&handle))?;
             // 注入全局状态
-            handle.manage(AppState { db: Arc::new(pool) });
+            handle.manage(Arc::new(AppState { db: Arc::new(pool) }));
             info!("数据库连接池已注册到全局状态");
-            start_timer_task(app);
+            start_asyn_timer_task(&handle);
             info!("执行异步获取动漫更新数据的任务");
             Ok(())
         })
@@ -98,8 +90,7 @@ pub fn run() {
         .expect("error while running tauri application");
 }
 
-
-fn start_timer_task(app:&mut App) {
+fn start_asyn_timer_task(handle: &AppHandle) {
     // 1) 构造/加载配置
     let task_metas = load_timer_tasks_config();
     // 2) 构建命令表（CmdFn 映射）
@@ -108,24 +99,38 @@ fn start_timer_task(app:&mut App) {
     let tasks = build_tasks_from_meta(&task_metas, &cmd_map);
     // 4) 创建 Scheduler（内部使用 Arc<Task> 等）
     let scheduler = Scheduler::new(tasks);
-    // 5) 把 Scheduler 放到 app state，供后续命令/事件访问
-    let scheduler_state = Arc::new(scheduler);
-    app.manage(scheduler_state.clone());
+    let scheduler_arc = Arc::new(scheduler);
+    // 5) 把 Scheduler 放到 app state（使用 handle，注意这里是 AppHandle）
+    handle.manage(scheduler_arc.clone());
 
     // 6) 创建 mpsc channel 用于接收 TaskResult
     let (tx, mut rx) = mpsc::channel::<TaskResult>(128);
-    // 7) 启动结果接收器：
-    tauri::async_runtime::spawn(async move {
-        while let Some(res) = rx.recv().await {
-            info!("获取动漫数据结果{:?}", res);
+
+    // 7) 从 handle 取出 Arc<AppState> （立即 clone 出 owned Arc）
+    let state_arc: Arc<AppState> = handle.state::<Arc<AppState>>().inner().clone();
+
+    // 8) 启动结果接收器（异步）
+    tauri::async_runtime::spawn({
+        let state_for_loop = state_arc.clone();
+        async move {
+            while let Some(res) = rx.recv().await {
+                if let Some(ani_item_result) = res.result {
+                    let db = state_for_loop.db.clone(); // Arc<SqlitePool>
+                    tauri::async_runtime::spawn(async move {
+                        if let Err(e) = save_ani_item_data_db(db, ani_item_result).await {
+                            eprintln!("保存失败：{}", e);
+                        }
+                    });
+                }
+            }
         }
     });
 
-    // 8) 启动调度器（在 tauri runtime 上）
-    let scheduler_to_run = scheduler_state.clone();
-    tauri::async_runtime::spawn(async move {
-        // 传入 sender，调度器会把 TaskResult 发到这个 channel
-        scheduler_to_run.run(tx).await;
+    // 9) 启动调度器（异步）
+    tauri::async_runtime::spawn({
+        let scheduler_run = scheduler_arc.clone();
+        async move {
+            scheduler_run.run(tx).await;
+        }
     });
-
 }

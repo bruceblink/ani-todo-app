@@ -1,9 +1,10 @@
 use std::collections::HashMap;
+use std::sync::Arc;
 use log::debug;
 use serde_json::json;
 use tauri::State;
 use crate::command::{ApiResponse, PageData};
-use crate::db::common::AppState;
+pub(crate) use crate::db::common::{save_ani_item_data_db, AppState};
 use crate::db::ge_db_pool;
 use crate::db::po::{AniColl, AniDto, AniIResult, AniWatch};
 use crate::db::sqlite::{
@@ -12,7 +13,6 @@ use crate::db::sqlite::{
     list_all_follow_ani_update_today,
     list_all_ani_info_watched_today,
     upsert_ani_collect,
-    upsert_ani_info,
     upsert_ani_watch_history,
     list_all_ani_history_data
 };
@@ -22,32 +22,18 @@ use crate::utils::date_utils::{get_today_slash, get_today_weekday, get_unix_time
 /// 保存动漫数据到数据库
 #[tauri::command]
 pub async fn save_ani_item_data(
-    state: State<'_, AppState>,
+    state: State<'_, Arc<AppState>>,
     ani_data: AniItemResult,
 ) -> Result<ApiResponse, String> {
-    let pool = ge_db_pool(&state.db);
-    let weekday = get_today_weekday().name_cn.to_string();
-
-    let items = match ani_data.get(&weekday) {
-        Some(v) if !v.is_empty() => v,
-        Some(_) => return Ok(ApiResponse::ok(json!({ "message": "没有可插入的数据" }))),
-        None => return Ok(ApiResponse::err("获取今日动漫数据失败")),
-    };
-
-    for item in items {
-        if let Err(e) = upsert_ani_info(&pool, item).await {
-            return Ok(ApiResponse::err(format!("插入失败：{}", e)));
-        }
-    }
-
-    debug!("所有今天更新的动漫：{:?} 已经写入数据库", items);
-    Ok(ApiResponse::ok(json!({ "message": "save success" })))
+    // state.inner() -> &Arc<AppState>; state.db 是 Arc<SqlitePool>
+    let db = state.db.clone();
+    save_ani_item_data_db(db, ani_data).await
 }
 
 /// 插入动漫观看历史数据到数据库
 #[tauri::command]
 pub async fn watch_ani_item(
-    state: State<'_, AppState>,
+    state: State<'_, Arc<AppState>>,
     ani_id: i64,
 ) -> Result<ApiResponse, String> {
     let pool = ge_db_pool(&state.db);
@@ -67,7 +53,7 @@ pub async fn watch_ani_item(
 /// 查询今天更新的动漫列表
 #[tauri::command]
 pub async fn query_today_update_ani_list(
-    state: State<'_, AppState>,
+    state: State<'_, Arc<AppState>>,
 ) -> Result<ApiResponse, String> {
     let pool = ge_db_pool(&state.db);
 
@@ -97,7 +83,7 @@ pub async fn query_today_update_ani_list(
 /// 查询今天已经观看的动漫列表
 #[tauri::command]
 pub async fn query_watched_ani_item_list(
-    state: State<'_, AppState>,
+    state: State<'_, Arc<AppState>>,
 ) -> Result<ApiResponse, String> {
     let pool = ge_db_pool(&state.db);
 
@@ -121,7 +107,7 @@ pub async fn query_watched_ani_item_list(
 /// 获取关注动漫今日更新列表
 #[tauri::command]
 pub async fn query_favorite_ani_update_list(
-    state: State<'_, AppState>,
+    state: State<'_, Arc<AppState>>,
 ) -> Result<ApiResponse, String> {
     let pool = ge_db_pool(&state.db);
 
@@ -146,7 +132,7 @@ pub async fn query_favorite_ani_update_list(
 /// 关注动漫
 #[tauri::command]
 pub async fn collect_ani_item(
-    state: State<'_, AppState>,
+    state: State<'_, Arc<AppState>>,
     ani_id: i64,
     ani_title: String,
 ) -> Result<ApiResponse, String> {
@@ -169,7 +155,7 @@ pub async fn collect_ani_item(
 /// 取消关注动漫
 #[tauri::command]
 pub async fn cancel_collect_ani_item(
-    state: State<'_, AppState>,
+    state: State<'_, Arc<AppState>>,
     ani_id: i64,
     ani_title: String,
 ) -> Result<ApiResponse, String> {
@@ -186,7 +172,7 @@ pub async fn cancel_collect_ani_item(
 /// 查询动漫历史更新信息列表
 #[tauri::command]
 pub async fn query_ani_history_list(
-    state: State<'_, AppState>,
+    state: State<'_, Arc<AppState>>,
     page: i64,
     page_size: i64,
 ) -> Result<ApiResponse, String> {
