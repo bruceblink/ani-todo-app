@@ -179,7 +179,7 @@ export default function AniSearch({
                 >
                     <InputBase
                         sx={{ ml: 1, flex: 1 }}
-                        placeholder={last ? `上次搜索: ${last}` : "输入动漫标题或播放平台搜索..."}
+                        placeholder={last ? `上次搜索: ${last}` : "输入动漫标题或播出平台搜索..."}
                         inputRef={inputRef}
                         value={value}
                         onChange={handleChange}
