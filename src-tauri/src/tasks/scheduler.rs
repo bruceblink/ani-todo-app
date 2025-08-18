@@ -1,22 +1,25 @@
 use crate::tasks::task::{Task, TaskResult};
-use chrono::{DateTime, Local};
-use log::info;
-use std::sync::Arc;
+use chrono::Local;
+use log::{info, warn};
+use std::sync::{Arc, Mutex};
 use tokio::sync::{mpsc, Notify};
-use tokio::time::{sleep, Duration};
+use tokio::time::{sleep, Duration, timeout};
+use tokio::task::JoinHandle;
 
 #[derive(Clone)]
 pub struct Scheduler {
     pub tasks: Vec<Arc<Task>>,
-    pub shutdown: Arc<Notify>, // 用于取消任务
+    shutdown: Arc<Notify>,
+    // 保存 spawn 的子任务句柄
+    task_handles: Arc<Mutex<Vec<JoinHandle<()>>>>,
 }
 
 impl Scheduler {
     pub fn new(tasks: Vec<Task>) -> Self {
-        let tasks = tasks.into_iter().map(Arc::new).collect();
         Self {
-            tasks,
+            tasks: tasks.into_iter().map(Arc::new).collect(),
             shutdown: Arc::new(Notify::new()),
+            task_handles: Arc::new(Mutex::new(vec![])),
         }
     }
 
@@ -24,13 +27,16 @@ impl Scheduler {
     pub async fn run(&self, sender: mpsc::Sender<TaskResult>) {
         // 1. 启动时立即执行
         for task in &self.tasks {
-            self.execute_task(task, &sender).await;
+            let t = task.clone();
+            let s = sender.clone();
+            let handle = tokio::spawn(async move {
+                Self::execute_task(t, s).await;
+            });
+            self.task_handles.lock().unwrap().push(handle);
         }
 
-        // 2. Cron 循环
         loop {
-            let mut next_runs: Vec<(DateTime<Local>, Arc<Task>)> = vec![];
-
+            let mut next_runs: Vec<(chrono::DateTime<Local>, Arc<Task>)> = vec![];
             for task in &self.tasks {
                 let schedule = task.schedule();
                 if let Some(next) = schedule.upcoming(Local).next() {
@@ -49,10 +55,15 @@ impl Scheduler {
 
                 tokio::select! {
                     _ = sleep(duration) => {
-                        self.execute_task(task, &sender).await;
+                        let t = task.clone();
+                        let s = sender.clone();
+                        let handle = tokio::spawn(async move {
+                            Self::execute_task(t, s).await;
+                        });
+                        self.task_handles.lock().unwrap().push(handle);
                     }
                     _ = self.shutdown.notified() => {
-                        println!("调度器已取消");
+                        warn!("调度器已收到停止通知");
                         break;
                     }
                 }
@@ -60,11 +71,10 @@ impl Scheduler {
         }
     }
 
-    async fn execute_task(&self, task: &Task, sender: &mpsc::Sender<TaskResult>) {
+    async fn execute_task(task: Arc<Task>, sender: mpsc::Sender<TaskResult>) {
 
-        // task.retry_times 是 u8，所以这里显式用 u8 范围
-        for attempt in 0u8..=task.retry_times {
-            // 调用 TaskAction 的异步方法 run()
+
+        for attempt in 0..=task.retry_times {
             match task.action.run().await {
                 Ok(resp) => {
                     // 如果需要可以在这里处理 _resp（ApiResponse<AniItemResult>）
@@ -92,6 +102,24 @@ impl Scheduler {
 
     pub fn shutdown(&self) {
         self.shutdown.notify_waiters();
+    }
+
+    /// 等待 run 结束并等待所有 spawn 子任务完成（带超时）
+    pub async fn shutdown_and_wait(&self, overall_timeout: Duration) {
+        self.shutdown();
+
+        let handles = {
+            let mut guard = self.task_handles.lock().unwrap();
+            std::mem::take(&mut *guard)
+        };
+
+        let fut = async move {
+            for h in handles {
+                let _ = h.await;
+            }
+        };
+
+        let _ = timeout(overall_timeout, fut).await;
     }
 }
 

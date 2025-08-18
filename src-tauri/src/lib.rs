@@ -15,9 +15,9 @@ use crate::platforms::{fetch_bilibili_ani_data, fetch_bilibili_image};
 use chrono::Local;
 use std::fmt;
 use std::sync:: Arc;
-use log::info;
+use log::{info, warn};
 use tauri::async_runtime::block_on;
-use tauri::{AppHandle, Manager};
+use tauri::{AppHandle, Manager, Window};
 use tauri_plugin_log::fern;
 use crate::command::service::{cancel_collect_ani_item, collect_ani_item, query_ani_history_list, query_favorite_ani_update_list, query_today_update_ani_list, query_watched_ani_item_list, save_ani_item_data, watch_ani_item};
 use crate::db::common::{save_ani_item_data_db, AppState};
@@ -118,7 +118,7 @@ fn start_asyn_timer_task(handle: &AppHandle) {
                     let db = state_for_loop.db.clone(); // Arc<SqlitePool>
                     tauri::async_runtime::spawn(async move {
                         if let Err(e) = save_ani_item_data_db(db, ani_item_result).await {
-                            eprintln!("保存失败：{}", e);
+                            warn!("保存失败：{}", e);
                         }
                     });
                 }
