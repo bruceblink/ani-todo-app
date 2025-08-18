@@ -42,3 +42,5 @@ datasource:
     - name: "腾讯视频"
       url: "https://v.qq.com/channel/drama"
       cmd: "tencent_parser"
+      cron_expr: "0 30 8,9,10,11,12,16,17,18,19,20,21,22,23 * * * *"
+      retry_times: 0
