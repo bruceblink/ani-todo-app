@@ -62,9 +62,9 @@ mod tests {
         assert_eq!(anime_sources[0].name, "哔哩哔哩国创");
         assert_eq!(
             anime_sources[0].url,
-            "https://api.bilibili.com/pgc/web/timeline?types=4"
+            "https://api.bilibili.com/pgc/web/timeline?types=4&before=6&after=6"
         );
-        assert_eq!(anime_sources[0].cmd, "bilibili_parser");
+        assert_eq!(anime_sources[0].cmd, "fetch_bilibili_ani_data");
 
         // 验证 drama 分类
         let drama_sources = configuration
