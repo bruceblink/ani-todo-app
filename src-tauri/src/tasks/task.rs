@@ -146,6 +146,7 @@ pub fn build_tasks_from_meta(metas: &[TaskMeta], cmd_map: &HashMap<String, CmdFn
 #[derive(Clone, Debug)]
 pub struct TaskResult {
     pub name: String,
+    pub result: Option<AniItemResult>,
     pub success: bool,
     pub error: Option<String>,
     pub timestamp: DateTime<Local>,

@@ -2,6 +2,7 @@ use tokio::time::{sleep, Duration};
 use tokio::sync::{Notify, mpsc};
 use std::sync::Arc;
 use chrono::{DateTime, Local};
+use log::info;
 use crate::tasks::task::{Task, TaskResult};
 
 #[derive(Clone)]
@@ -60,21 +61,30 @@ impl Scheduler {
     }
 
     async fn execute_task(&self, task: &Task, sender: &mpsc::Sender<TaskResult>) {
-        let mut success = false;
         let mut error: Option<String> = None;
 
         // task.retry_times 是 u8，所以这里显式用 u8 范围
         for attempt in 0u8..=task.retry_times {
             // 调用 TaskAction 的异步方法 run()
             match task.action.run().await {
-                Ok(_resp) => {
+                Ok(resp) => {
                     // 如果需要可以在这里处理 _resp（ApiResponse<AniItemResult>）
-                    println!("任务 [{}] 执行成功", task.name);
-                    success = true;
+                    info!("任务 [{}] 执行成功", task.name);
+                    let success = true;
+
+                    // 发送任务结果到通道
+                    let result = TaskResult {
+                        name: task.name.clone(),
+                        result: Some(resp.data.unwrap_or_default()),
+                        success,
+                        error,
+                        timestamp: Local::now(),
+                    };
+                    let _ = sender.send(result).await;
                     break;
                 }
                 Err(e) => {
-                    println!(
+                    info!(
                         "任务 [{}] 执行失败: {}, 重试 {}/{}",
                         task.name, e, attempt, task.retry_times
                     );
@@ -86,15 +96,6 @@ impl Scheduler {
                 }
             }
         }
-
-        // 发送任务结果到通道
-        let result = TaskResult {
-            name: task.name.clone(),
-            success,
-            error,
-            timestamp: Local::now(),
-        };
-        let _ = sender.send(result).await;
     }
 
     pub fn shutdown(&self) {

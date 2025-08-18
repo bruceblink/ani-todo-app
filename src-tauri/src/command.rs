@@ -2,7 +2,7 @@ pub mod service;
 
 use serde::Serialize;
 
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Debug, Clone)]
 pub struct ApiResponse<T = serde_json::Value> {
     pub status: String,
     #[serde(skip_serializing_if = "Option::is_none")]
