@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import AniList from "@/components/AniList.tsx";
 import AniSummary from "@/components/AniSummary.tsx"; // 新增的统计组件
-import RefreshButton from "@/components/RefreshButton.tsx";
 import { useAniData } from "@/hooks/useAniData.ts";
 import { useFavoriteAni } from "@/hooks/useFavoriteAni.ts";
 import type { Ani } from "@/utils/api.ts";
@@ -12,7 +11,7 @@ interface HomePageProps {
 }
 
 export default function HomePage({ searchQuery }: HomePageProps) {
-    const { data, loading, error, refresh } = useAniData();
+    const { data, loading, error} = useAniData();
     const { favoriteAniItems, isLoaded } = useFavoriteAni();
 
     const [showFavorite, setShowFavorite] = useState(false);
@@ -51,7 +50,7 @@ export default function HomePage({ searchQuery }: HomePageProps) {
                 onFilterChange={handleFilterChange}
                 showFavorite={showFavorite}
             />
-            <RefreshButton loading={loading} onClick={refresh} />
+            {/*<RefreshButton loading={loading} onClick={refresh} />*/}
             <div className="App" style={{
                 padding: '0 24px',
                 boxSizing: 'border-box'
