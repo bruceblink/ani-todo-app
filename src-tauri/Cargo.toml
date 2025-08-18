@@ -39,6 +39,7 @@ scraper = "0.23.1"
 anyhow = "1"
 config = "0.15"
 thiserror = "2.0.12"
+cron = "0.15"
 
 [dev-dependencies]  # 仅用于测试
 tempfile = "3"

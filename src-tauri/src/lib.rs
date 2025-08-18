@@ -3,6 +3,7 @@ pub mod db;
 pub mod platforms;
 pub mod utils;
 pub mod command;
+mod tasks;
 
 use crate::db::sqlite::{init_and_migrate_db};
 use crate::platforms::agedm::{fetch_agedm_ani_data, fetch_agedm_image};
