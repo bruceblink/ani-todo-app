@@ -21,12 +21,6 @@ pub struct TaskMeta {
     pub retry_times: u8,
 }
 
-impl TaskMeta {
-    pub fn schedule(&self) -> Schedule {
-        Schedule::from_str(&self.cron_expr).expect("Invalid cron expression")
-    }
-}
-
 /// -----------------
 /// 异步任务 trait
 /// -----------------

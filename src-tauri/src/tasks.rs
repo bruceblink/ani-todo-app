@@ -1,7 +1,6 @@
 use crate::configuration::load_configuration;
 use crate::tasks::task::TaskMeta;
 
-mod cron_task;
 pub mod task;
 pub(crate) mod scheduler;
 pub mod commands;
