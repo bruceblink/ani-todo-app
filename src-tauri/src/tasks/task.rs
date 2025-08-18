@@ -1,13 +1,12 @@
-use std::sync::Arc;
-use std::str::FromStr;
-use chrono::{DateTime, Local};
+use crate::command::ApiResponse;
+use crate::platforms::AniItemResult;
+use async_trait::async_trait;
+use cron::Schedule;
 use std::collections::HashMap;
 use std::future::Future;
 use std::pin::Pin;
-use async_trait::async_trait;
-use cron::Schedule;
-use crate::command::ApiResponse;
-use crate::platforms::AniItemResult;
+use std::str::FromStr;
+use std::sync::Arc;
 
 /// -----------------
 /// 配置层 TaskMeta
@@ -33,7 +32,7 @@ pub trait TaskAction: Send + Sync {
 impl<F, Fut> TaskAction for F
 where
     F: Fn() -> Fut + Send + Sync + 'static,
-    Fut: std::future::Future<Output = Result<ApiResponse<AniItemResult>, String>> + Send,
+    Fut: Future<Output = Result<ApiResponse<AniItemResult>, String>> + Send,
 {
     async fn run(&self) -> Result<ApiResponse<AniItemResult>, String> {
         self().await
@@ -145,9 +144,5 @@ pub fn build_tasks_from_meta(metas: &[TaskMeta], cmd_map: &HashMap<String, CmdFn
 
 #[derive(Clone, Debug)]
 pub struct TaskResult {
-    pub name: String,
     pub result: Option<AniItemResult>,
-    pub success: bool,
-    pub error: Option<String>,
-    pub timestamp: DateTime<Local>,
 }

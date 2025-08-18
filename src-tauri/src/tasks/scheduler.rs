@@ -1,9 +1,9 @@
-use tokio::time::{sleep, Duration};
-use tokio::sync::{Notify, mpsc};
-use std::sync::Arc;
+use crate::tasks::task::{Task, TaskResult};
 use chrono::{DateTime, Local};
 use log::info;
-use crate::tasks::task::{Task, TaskResult};
+use std::sync::Arc;
+use tokio::sync::{mpsc, Notify};
+use tokio::time::{sleep, Duration};
 
 #[derive(Clone)]
 pub struct Scheduler {
@@ -61,7 +61,6 @@ impl Scheduler {
     }
 
     async fn execute_task(&self, task: &Task, sender: &mpsc::Sender<TaskResult>) {
-        let mut error: Option<String> = None;
 
         // task.retry_times 是 u8，所以这里显式用 u8 范围
         for attempt in 0u8..=task.retry_times {
@@ -70,15 +69,9 @@ impl Scheduler {
                 Ok(resp) => {
                     // 如果需要可以在这里处理 _resp（ApiResponse<AniItemResult>）
                     info!("任务 [{}] 执行成功", task.name);
-                    let success = true;
-
                     // 发送任务结果到通道
                     let result = TaskResult {
-                        name: task.name.clone(),
                         result: Some(resp.data.unwrap_or_default()),
-                        success,
-                        error,
-                        timestamp: Local::now(),
                     };
                     let _ = sender.send(result).await;
                     break;
@@ -88,7 +81,6 @@ impl Scheduler {
                         "任务 [{}] 执行失败: {}, 重试 {}/{}",
                         task.name, e, attempt, task.retry_times
                     );
-                    error = Some(e);
                     if attempt < task.retry_times {
                         // 重试间隔
                         sleep(Duration::from_secs(5)).await;
@@ -108,20 +100,11 @@ impl Scheduler {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::command::ApiResponse;
-    use crate::platforms::AniItemResult;
     use crate::tasks::commands::{build_cmd_map, CmdFn};
     // scheduler 模块的内容
     use crate::tasks::task::{build_tasks_from_meta, TaskMeta};
     use std::collections::HashMap;
     use tokio::sync::mpsc;
-
-    // --- Mock 命令：用于测试（替代真实的 fetch_agedm_ani_data） ---
-    async fn mock_success(url: String) -> Result<ApiResponse<AniItemResult>, String> {
-        println!("mock_success called with url={}", url);
-        // 假设你不能构造 ApiResponse 这里用 Err 也可；如果能构造则返回 Ok(...)
-        Err("mock returning Err to simplify test".to_string())
-    }
 
     #[tokio::test]
     async fn test_scheduler_with_meta_to_task() {
