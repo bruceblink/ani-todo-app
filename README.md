@@ -12,7 +12,8 @@
 **技术栈：React + TypeScript + Vite + pnpm + Tauri(Rust)**
 
 ## 功能特点
-- 🔄 自动/手动更新：自动抓取各大视频平台的动漫最新更新信息
+- 🔄 自动更新：自动抓取各大视频平台的动漫最新更新信息
+- ⚙️ 新增配置文件支持cron表达式自定义更新频率
 - 📺 多平台支持：目前支~~持蜜柑计划(自己手动开启设置)~~、腾讯视频、哔哩哔哩、爱奇艺和优酷, AGE动漫等 后续将支持更多视频平台
 - 🎯 关注更新：可以关注特定动漫，获取最新更新信息
 - 💾 数据本地存储：所有信息保存在本地sqlite数据库中，方便查询和管理
@@ -39,9 +40,19 @@
     ```bash
       cargo tauri build
     ```
+4. 配置文件路径(Windows系统)
 
+    ```text
+      C:\Users\{username}\AppData\Roaming\{ani-todo-app}\config.yaml
+      格式为{AppData}\Roaming\{app_name}\config.yaml
+    ```
+    
+5. 日志文件
+    ```text
+      应用安装目录的logs文件夹下面
+    ```
+    
 ## 项目文件说明
-
 ```txt
 ani-todo-app/
 ├── README.md                     项目说明文档
