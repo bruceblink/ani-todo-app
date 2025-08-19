@@ -1,3 +1,4 @@
+use std::path::PathBuf;
 use crate::configuration::load_configuration;
 use crate::tasks::task::TaskMeta;
 
@@ -6,8 +7,8 @@ pub(crate) mod scheduler;
 pub mod commands;
 
 ///从配置文件加载定时作业的配置数据
-pub fn load_timer_tasks_config() -> Vec<TaskMeta>{
-    let configuration = load_configuration().expect("Failed to read configuration.");
+pub fn load_timer_tasks_config(config_path: PathBuf) -> Vec<TaskMeta>{
+    let configuration = load_configuration(config_path).expect("Failed to read configuration.");
     let anime_sources = configuration
         .datasource
         .get("anime")
@@ -34,7 +35,8 @@ mod tests {
 
     #[test]
     fn test_get_task_metas() {
-        let task_metas = load_timer_tasks_config();
+        let tmp = PathBuf::from("tmp");
+        let task_metas = load_timer_tasks_config(tmp);
         assert_eq!(task_metas.len(), 6);
         assert_eq!(task_metas[0].name, "哔哩哔哩国创");
         assert_eq!(task_metas[0].cmd, "fetch_bilibili_ani_data");

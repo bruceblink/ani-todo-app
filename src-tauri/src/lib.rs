@@ -13,7 +13,8 @@ use crate::platforms::tencent::{fetch_qq_ani_data, fetch_qq_image};
 use crate::platforms::youku::{fetch_youku_ani_data, fetch_youku_image};
 use crate::platforms::{fetch_bilibili_ani_data, fetch_bilibili_image};
 use chrono::Local;
-use std::fmt;
+use std::{fmt};
+use std::path::PathBuf;
 use std::sync:: Arc;
 use log::{info, warn};
 use tauri::async_runtime::block_on;
@@ -26,6 +27,7 @@ use crate::tasks::load_timer_tasks_config;
 use crate::tasks::task::{build_tasks_from_meta, TaskResult};
 use crate::tasks::scheduler::Scheduler;
 use tokio::sync::mpsc;
+use crate::configuration::init_config;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -54,13 +56,15 @@ pub fn run() {
                 )?;
                 info!("日志组件已经初始化完成");
             }
+            // 初始化配置
+            let config_path = init_config(app).expect("配置文件初始化失败!");
             let handle = app.handle();
             // 同步执行数据库初始化
             let pool = block_on(init_and_migrate_db(&handle))?;
             // 注入全局状态
             handle.manage(Arc::new(AppState { db: Arc::new(pool) }));
             info!("数据库连接池已注册到全局状态");
-            start_asyn_timer_task(&handle);
+            start_async_timer_task(&handle, config_path);
             info!("执行异步获取动漫更新数据的任务");
             Ok(())
         })
@@ -90,9 +94,9 @@ pub fn run() {
         .expect("error while running tauri application");
 }
 
-fn start_asyn_timer_task(handle: &AppHandle) {
+fn start_async_timer_task(handle: &AppHandle, config_path: PathBuf) {
     // 1) 构造/加载配置
-    let task_metas = load_timer_tasks_config();
+    let task_metas = load_timer_tasks_config(config_path);
     // 2) 构建命令表（CmdFn 映射）
     let cmd_map = build_cmd_map();
     // 3) 从 metas -> 运行时 Tasks
