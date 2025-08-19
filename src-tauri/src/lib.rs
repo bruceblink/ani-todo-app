@@ -13,13 +13,13 @@ use crate::platforms::tencent::{fetch_qq_ani_data, fetch_qq_image};
 use crate::platforms::youku::{fetch_youku_ani_data, fetch_youku_image};
 use crate::platforms::{fetch_bilibili_ani_data, fetch_bilibili_image};
 use chrono::Local;
-use std::{fmt};
+use std::{fmt, fs};
 use std::path::PathBuf;
 use std::sync:: Arc;
-use log::{info, warn};
+use log::{info, warn, LevelFilter};
 use tauri::async_runtime::block_on;
-use tauri::{AppHandle, Manager};
-use tauri_plugin_log::fern;
+use tauri::{App, AppHandle, Manager};
+use tauri_plugin_log::{fern, Target, TargetKind};
 use crate::command::service::{cancel_collect_ani_item, collect_ani_item, query_ani_history_list, query_favorite_ani_update_list, query_today_update_ani_list, query_watched_ani_item_list, save_ani_item_data, watch_ani_item};
 use crate::db::common::{save_ani_item_data_db, AppState};
 use crate::tasks::commands::build_cmd_map;
@@ -33,29 +33,7 @@ use crate::configuration::init_config;
 pub fn run() {
     tauri::Builder::default()
         .setup(|app| {
-
-            if cfg!(debug_assertions) {
-                // 自定义日志格式（使用本地时区）
-                let format = move |out: fern::FormatCallback,
-                                   message: &fmt::Arguments,
-                                   record: &log::Record| {
-                    let now = Local::now(); // 获取本地时间
-                    out.finish(format_args!(
-                        "[{}][{}][{}] {}",
-                        now.format("%Y-%m-%d %H:%M:%S%.3f"), // 格式化为本地时间
-                        record.level(),
-                        record.target(),
-                        message
-                    ))
-                };
-                app.handle().plugin(
-                    tauri_plugin_log::Builder::default()
-                        .level(log::LevelFilter::Info)
-                        .format(format) // 应用自定义格式
-                        .build(),
-                )?;
-                info!("日志组件已经初始化完成");
-            }
+            init_logger(app)?;
             // 初始化配置
             let config_path = init_config(app).expect("配置文件初始化失败!");
             let handle = app.handle();
@@ -93,6 +71,48 @@ pub fn run() {
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
+
+
+/// 初始化日志组件
+fn init_logger(app: &mut App) -> anyhow::Result<()> {
+
+    // 日志存放在应用的安装目录
+    let log_dir = app.path().resource_dir().unwrap_or_default().join("logs");
+    if !log_dir.exists() {
+        fs::create_dir_all(log_dir.clone())?
+    }
+    let app_name = app.handle().package_info().name.clone();
+    // 设置日志文件路径
+    let log_file_path = log_dir.join(app_name).to_str().unwrap().to_string();
+
+    // 自定义日志格式（使用本地时区）
+    let format = move |out: fern::FormatCallback,
+                       message: &fmt::Arguments,
+                       record: &log::Record| {
+        let now = Local::now(); // 获取本地时间
+        out.finish(format_args!(
+            "[{}][{}][{}] {}",
+            now.format("%Y-%m-%d %H:%M:%S%.3f"), // 格式化为本地时间
+            record.level(),
+            record.target(),
+            message
+        ))
+    };
+    app.handle().plugin(
+        tauri_plugin_log::Builder::default()
+            .level(LevelFilter::Info)
+            .format(format) // 应用自定义格式
+            .targets([
+                Target::new(TargetKind::Stdout),
+                Target::new(TargetKind::LogDir { file_name: Some(log_file_path) }),
+                Target::new(TargetKind::Webview),
+            ])
+            .build(),
+    )?;
+    info!("日志组件已经初始化完成");
+    Ok(())
+}
+
 
 fn start_async_timer_task(handle: &AppHandle, config_path: PathBuf) {
     // 1) 构造/加载配置
