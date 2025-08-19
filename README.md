@@ -9,7 +9,8 @@
 **历史**页面截图如下：
 ![snapshot](/picture/snapshotv0.4.1-1.png)
 
-**技术栈：React + TypeScript + Vite + pnpm + Tauri(Rust)**
+## 技术栈
+**React + TypeScript + Vite + pnpm + Tauri(Rust)**
 
 ## 功能特点
 - 🔄 自动更新：自动抓取各大视频平台的动漫最新更新信息
