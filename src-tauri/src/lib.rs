@@ -14,19 +14,14 @@ use crate::platforms::youku::{fetch_youku_ani_data, fetch_youku_image};
 use crate::platforms::{fetch_bilibili_ani_data, fetch_bilibili_image};
 use chrono::Local;
 use std::{fmt, fs};
-use std::path::PathBuf;
 use std::sync:: Arc;
-use log::{info, warn, LevelFilter};
+use log::{info, LevelFilter};
 use tauri::async_runtime::block_on;
-use tauri::{App, AppHandle, Manager};
+use tauri::{App, Manager};
 use tauri_plugin_log::{fern, Target, TargetKind};
 use crate::command::service::{cancel_collect_ani_item, collect_ani_item, query_ani_history_list, query_favorite_ani_update_list, query_today_update_ani_list, query_watched_ani_item_list, save_ani_item_data, watch_ani_item};
-use crate::db::common::{save_ani_item_data_db, AppState};
-use crate::tasks::commands::build_cmd_map;
-use crate::tasks::load_timer_tasks_config;
-use crate::tasks::task::{build_tasks_from_meta, TaskResult};
-use crate::tasks::scheduler::Scheduler;
-use tokio::sync::mpsc;
+use crate::db::common::{AppState};
+use crate::tasks::{start_async_timer_task};
 use crate::configuration::init_config;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -111,50 +106,4 @@ fn init_logger(app: &mut App) -> anyhow::Result<()> {
     )?;
     info!("日志组件已经初始化完成");
     Ok(())
-}
-
-
-fn start_async_timer_task(handle: &AppHandle, config_path: PathBuf) {
-    // 1) 构造/加载配置
-    let task_metas = load_timer_tasks_config(config_path);
-    // 2) 构建命令表（CmdFn 映射）
-    let cmd_map = build_cmd_map();
-    // 3) 从 metas -> 运行时 Tasks
-    let tasks = build_tasks_from_meta(&task_metas, &cmd_map);
-    // 4) 创建 Scheduler（内部使用 Arc<Task> 等）
-    let scheduler = Scheduler::new(tasks);
-    let scheduler_arc = Arc::new(scheduler);
-    // 5) 把 Scheduler 放到 app state（使用 handle，注意这里是 AppHandle）
-    handle.manage(scheduler_arc.clone());
-
-    // 6) 创建 mpsc channel 用于接收 TaskResult
-    let (tx, mut rx) = mpsc::channel::<TaskResult>(128);
-
-    // 7) 从 handle 取出 Arc<AppState> （立即 clone 出 owned Arc）
-    let state_arc: Arc<AppState> = handle.state::<Arc<AppState>>().inner().clone();
-
-    // 8) 启动结果接收器（异步）
-    tauri::async_runtime::spawn({
-        let state_for_loop = state_arc.clone();
-        async move {
-            while let Some(res) = rx.recv().await {
-                if let Some(ani_item_result) = res.result {
-                    let db = state_for_loop.db.clone(); // Arc<SqlitePool>
-                    tauri::async_runtime::spawn(async move {
-                        if let Err(e) = save_ani_item_data_db(db, ani_item_result).await {
-                            warn!("保存失败：{}", e);
-                        }
-                    });
-                }
-            }
-        }
-    });
-
-    // 9) 启动调度器（异步）
-    tauri::async_runtime::spawn({
-        let scheduler_run = scheduler_arc.clone();
-        async move {
-            scheduler_run.run(tx).await;
-        }
-    });
 }
