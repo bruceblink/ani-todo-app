@@ -129,7 +129,7 @@ fn init_logger(app: &mut App) -> anyhow::Result<()> {
 /// 初始化系统托盘
 fn init_system_tray(app: &mut App) -> anyhow::Result<()>{
     // 定义托盘菜单
-    let show_i = MenuItem::with_id(app, "show", "显示窗口", true, None::<&str>)?;
+    let show_i = MenuItem::with_id(app, "show", "主界面", true, None::<&str>)?;
     let quit_i = MenuItem::with_id(app, "quit", "退出", true, None::<&str>)?;
     let menu = Menu::with_items(app, &[&show_i, &quit_i])?;
 
