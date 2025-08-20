@@ -15,10 +15,12 @@ use crate::platforms::{fetch_bilibili_ani_data, fetch_bilibili_image};
 use chrono::Local;
 use std::{fmt, fs};
 use std::sync:: Arc;
-use log::{info, LevelFilter};
+use log::{info, warn, LevelFilter};
 use sqlx::SqlitePool;
 use tauri::async_runtime::block_on;
 use tauri::{App, Manager};
+use tauri::menu::{Menu, MenuItem};
+use tauri::tray::TrayIconBuilder;
 use tauri_plugin_log::{fern, Target, TargetKind};
 use crate::command::service::{cancel_collect_ani_item, collect_ani_item, query_ani_history_list, query_favorite_ani_update_list, query_today_update_ani_list, query_watched_ani_item_list, save_ani_item_data, watch_ani_item};
 use crate::tasks::{start_async_timer_task};
@@ -34,7 +36,10 @@ pub struct AppState {
 pub fn run() {
     tauri::Builder::default()
         .setup(|app| {
+            // 日志组件初始化
             init_logger(app)?;
+            //托盘初始化
+            init_system_tray(app)?;
             // 初始化配置
             let config_path = init_config(app).expect("配置文件初始化失败!");
             let handle = app.handle();
@@ -69,6 +74,13 @@ pub fn run() {
             cancel_collect_ani_item,
             query_ani_history_list,
         ])
+        .on_window_event(|window, event| {
+            if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+                // 阻止窗口关闭
+                window.hide().unwrap();
+                api.prevent_close();
+            }
+        })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
@@ -111,5 +123,36 @@ fn init_logger(app: &mut App) -> anyhow::Result<()> {
             .build(),
     )?;
     info!("日志组件已经初始化完成");
+    Ok(())
+}
+
+/// 初始化系统托盘
+fn init_system_tray(app: &mut App) -> anyhow::Result<()>{
+    let show_i = MenuItem::with_id(app, "show", "显示窗口", true, None::<&str>)?;
+    let quit_i = MenuItem::with_id(app, "quit", "退出", true, None::<&str>)?;
+    let menu = Menu::with_items(app, &[&show_i, &quit_i])?;
+
+    let tray = TrayIconBuilder::new()
+        //.title(app.package_info().name.clone())
+        .menu(&menu)
+        .show_menu_on_left_click(true)
+        .icon(app.default_window_icon().unwrap().clone())
+        .build(app)?;
+    tray.on_menu_event(|app, event| match event.id.as_ref() {
+
+        "quit" => {
+            app.exit(0);
+        }
+        "show" => {
+            if let Some(window) = app.get_webview_window("main") {
+                let _ = window.unminimize();
+                let _ = window.show();
+                let _ = window.set_focus();
+            }
+        }
+        _ => {
+            warn!("menu item {:?} not handled", event.id);
+        }
+    });
     Ok(())
 }
