@@ -48,21 +48,24 @@ impl Scheduler {
                 break;
             }
 
-            if let Some((next_time, task)) = next_runs.iter().min_by_key(|(time, _)| *time) {
-                let duration = (*next_time - Local::now())
+            next_runs.sort_by_key(|(time, _)| *time); // 按时间升序排序
+            // 遍历所有已排序的任务
+            for (next_time, task) in next_runs {
+                let duration = (next_time - Local::now())
                     .to_std()
-                    .unwrap_or(Duration::from_secs(0));
+                    .unwrap_or(Duration::from_secs(0)); // 计算任务等待时间
 
                 tokio::select! {
                     _ = sleep(duration) => {
+                        // 执行任务
                         let t = task.clone();
                         let s = sender.clone();
-                        let handle = tokio::spawn(async move {
+                        tokio::spawn(async move {
                             Self::execute_task(t, s).await;
                         });
-                        self.task_handles.lock().unwrap().push(handle);
                     }
                     _ = self.shutdown.notified() => {
+                        // 收到停止通知，退出调度
                         warn!("调度器已收到停止通知");
                         break;
                     }
