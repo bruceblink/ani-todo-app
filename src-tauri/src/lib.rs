@@ -20,7 +20,7 @@ use sqlx::SqlitePool;
 use tauri::async_runtime::block_on;
 use tauri::{App, Manager};
 use tauri::menu::{Menu, MenuItem};
-use tauri::tray::TrayIconBuilder;
+use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
 use tauri_plugin_log::{fern, Target, TargetKind};
 use crate::command::service::{cancel_collect_ani_item, collect_ani_item, query_ani_history_list, query_favorite_ani_update_list, query_today_update_ani_list, query_watched_ani_item_list, save_ani_item_data, watch_ani_item};
 use crate::tasks::{start_async_timer_task};
@@ -128,6 +128,7 @@ fn init_logger(app: &mut App) -> anyhow::Result<()> {
 
 /// 初始化系统托盘
 fn init_system_tray(app: &mut App) -> anyhow::Result<()>{
+    // 定义托盘菜单
     let show_i = MenuItem::with_id(app, "show", "显示窗口", true, None::<&str>)?;
     let quit_i = MenuItem::with_id(app, "quit", "退出", true, None::<&str>)?;
     let menu = Menu::with_items(app, &[&show_i, &quit_i])?;
@@ -138,6 +139,7 @@ fn init_system_tray(app: &mut App) -> anyhow::Result<()>{
         .show_menu_on_left_click(true)
         .icon(app.default_window_icon().unwrap().clone())
         .build(app)?;
+    // 定义托盘菜单事件
     tray.on_menu_event(|app, event| match event.id.as_ref() {
 
         "quit" => {
@@ -152,6 +154,30 @@ fn init_system_tray(app: &mut App) -> anyhow::Result<()>{
         }
         _ => {
             warn!("menu item {:?} not handled", event.id);
+        }
+    });
+    // 定义托盘的图标事件
+    tray.on_tray_icon_event(|tray, event| match event {
+
+        TrayIconEvent::Click {
+            button: MouseButton::Left,
+            button_state: MouseButtonState::Up,
+            ..
+        } => {
+            // 当点击托盘图标时，将展示并聚焦于主窗口
+            let app = tray.app_handle();
+
+            if let Some(window) = app.get_webview_window("main") {
+                let _ = window.unminimize();
+                let _ = window.show();
+                let _ = window.set_focus();
+            }
+
+        }
+        _ => {
+            let app = tray.app_handle();
+            let tooltip_text = app.package_info().name.clone(); // 获取应用名称并转换为 String
+            let _ = tray.set_tooltip(Some(tooltip_text)); // 传入 Some(String)
         }
     });
     Ok(())
