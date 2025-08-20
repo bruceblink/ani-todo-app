@@ -5,7 +5,8 @@ use std::sync::Arc;
 use log::warn;
 use tauri::{AppHandle, Manager};
 use tokio::sync::mpsc;
-use crate::command::service::{save_ani_item_data_db, AppState};
+use crate::AppState;
+use crate::command::service::{save_ani_item_data_db};
 use crate::tasks::commands::build_cmd_map;
 use crate::tasks::scheduler::Scheduler;
 

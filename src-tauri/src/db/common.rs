@@ -4,6 +4,13 @@ use sqlx::{
     sqlite::{SqliteArguments, SqliteRow},
     FromRow, Sqlite, SqlitePool,
 };
+use std::sync::Arc;
+use serde_json::json;
+use crate::command::ApiResponse;
+use crate::db::ge_db_pool;
+use crate::db::sqlite::upsert_ani_info;
+use crate::platforms::AniItemResult;
+use crate::utils::date_utils::get_today_weekday;
 
 /// 通用查询：接收一个已经 bind 好参数的 `QueryAs`，执行并返回 Vec<T>
 pub async fn run_query<'q, T>(
@@ -18,18 +25,6 @@ pub async fn run_query<'q, T>(
             "query error: {:?}" ,e)
         })?;
     Ok(rows)
-}
-
-use std::sync::Arc;
-use serde_json::json;
-use crate::command::ApiResponse;
-use crate::db::ge_db_pool;
-use crate::db::sqlite::upsert_ani_info;
-use crate::platforms::AniItemResult;
-use crate::utils::date_utils::get_today_weekday;
-
-pub struct AppState {
-    pub db: Arc<SqlitePool>,
 }
 
 // 内部通用函数：接受 Arc<SqlitePool>，可被后台任务/命令/测试调用

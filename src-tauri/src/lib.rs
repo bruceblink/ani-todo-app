@@ -16,13 +16,19 @@ use chrono::Local;
 use std::{fmt, fs};
 use std::sync:: Arc;
 use log::{info, LevelFilter};
+use sqlx::SqlitePool;
 use tauri::async_runtime::block_on;
 use tauri::{App, Manager};
 use tauri_plugin_log::{fern, Target, TargetKind};
 use crate::command::service::{cancel_collect_ani_item, collect_ani_item, query_ani_history_list, query_favorite_ani_update_list, query_today_update_ani_list, query_watched_ani_item_list, save_ani_item_data, watch_ani_item};
-use crate::db::common::{AppState};
 use crate::tasks::{start_async_timer_task};
 use crate::configuration::init_config;
+
+/// tauri 的全局App状态
+pub struct AppState {
+    pub db: Arc<SqlitePool>,
+}
+
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
