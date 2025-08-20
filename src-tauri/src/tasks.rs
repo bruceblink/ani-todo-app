@@ -47,7 +47,7 @@ pub fn start_async_timer_task(handle: &AppHandle, config_path: PathBuf) {
     // 3) 从 metas -> 运行时 Tasks
     let tasks = build_tasks_from_meta(&task_metas, &cmd_map);
     // 4) 创建 Scheduler（内部使用 Arc<Task> 等）
-    let scheduler = Scheduler::new(tasks);
+    let scheduler = Scheduler::new(tasks, None);
     let scheduler_arc = Arc::new(scheduler);
     // 5) 把 Scheduler 放到 app state（使用 handle，注意这里是 AppHandle）
     handle.manage(scheduler_arc.clone());
@@ -67,7 +67,7 @@ pub fn start_async_timer_task(handle: &AppHandle, config_path: PathBuf) {
                     let db = state_for_loop.db.clone(); // Arc<SqlitePool>
                     tauri::async_runtime::spawn(async move {
                         if let Err(e) = save_ani_item_data_db(db, ani_item_result).await {
-                            warn!("保存失败：{}", e);
+                            warn!("task {} 保存失败：{}",res.name, e);
                         }
                     });
                 }

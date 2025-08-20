@@ -41,6 +41,7 @@ config = "0.15"
 thiserror = "2.0.12"
 cron = "0.15"
 async-trait = "0.1.88"
+num_cpus = "1.17.0"
 
 [dev-dependencies]  # 仅用于测试
 tempfile = "3"

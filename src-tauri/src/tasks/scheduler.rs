@@ -2,7 +2,7 @@ use crate::tasks::task::{Task, TaskResult};
 use chrono::Local;
 use log::{info, warn};
 use std::sync::{Arc, Mutex};
-use tokio::sync::{mpsc, Notify};
+use tokio::sync::{mpsc, Notify, Semaphore};
 use tokio::time::{sleep, Duration};
 use tokio::task::JoinHandle;
 
@@ -10,22 +10,29 @@ use tokio::task::JoinHandle;
 pub struct Scheduler {
     pub tasks: Vec<Arc<Task>>,
     shutdown: Arc<Notify>,
-    // 保存 spawn 的子任务句柄
     task_handles: Arc<Mutex<Vec<JoinHandle<()>>>>,
+    semaphore: Arc<Semaphore>,  // 控制并发的信号量
 }
 
 impl Scheduler {
-    pub fn new(tasks: Vec<Task>) -> Self {
+    pub fn new(tasks: Vec<Task>, max_concurrent_tasks: Option<usize>) -> Self {
+        // 获取系统的 CPU 核心数
+        let default_max_concurrent_tasks = num_cpus::get();
+
+        // 使用传入的值，或者默认值
+        let max_concurrent_tasks = max_concurrent_tasks.unwrap_or(default_max_concurrent_tasks);
+
         Self {
             tasks: tasks.into_iter().map(Arc::new).collect(),
             shutdown: Arc::new(Notify::new()),
             task_handles: Arc::new(Mutex::new(vec![])),
+            semaphore: Arc::new(Semaphore::new(max_concurrent_tasks)),  // 限制并发任务数
         }
     }
 
     /// 运行任务调度器，将 TaskResult 通过 mpsc::Sender 发出
     pub async fn run(&self, sender: mpsc::Sender<TaskResult>) {
-        // 1. 启动时立即执行
+        // 启动时立即执行任务
         for task in &self.tasks {
             let t = task.clone();
             let s = sender.clone();
@@ -57,10 +64,13 @@ impl Scheduler {
 
                 tokio::select! {
                     _ = sleep(duration) => {
+                        // 获取信号量许可
+                        let permit = self.semaphore.clone().acquire_owned().await.unwrap();
                         // 执行任务
                         let t = task.clone();
                         let s = sender.clone();
                         tokio::spawn(async move {
+                            let _permit = permit; // 确保在任务执行期间保持许可有效
                             Self::execute_task(t, s).await;
                         });
                     }
@@ -75,15 +85,12 @@ impl Scheduler {
     }
 
     async fn execute_task(task: Arc<Task>, sender: mpsc::Sender<TaskResult>) {
-
-
         for attempt in 0..=task.retry_times {
             match task.action.run().await {
                 Ok(resp) => {
-                    // 如果需要可以在这里处理 _resp（ApiResponse<AniItemResult>）
                     info!("任务 [{}] 执行成功", task.name);
-                    // 发送任务结果到通道
                     let result = TaskResult {
+                        name: task.name.clone(),
                         result: Some(resp.data.unwrap_or_default()),
                     };
                     let _ = sender.send(result).await;
@@ -92,10 +99,9 @@ impl Scheduler {
                 Err(e) => {
                     info!(
                         "任务 [{}] 执行失败: {}, 重试 {}/{}",
-                        task.name, e, attempt, task.retry_times
+                        task.name, e, attempt + 1, task.retry_times
                     );
                     if attempt < task.retry_times {
-                        // 重试间隔
                         sleep(Duration::from_secs(5)).await;
                     }
                 }
@@ -104,64 +110,50 @@ impl Scheduler {
     }
 }
 
-
-
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::tasks::commands::{build_cmd_map, CmdFn};
-    // scheduler 模块的内容
     use crate::tasks::task::{build_tasks_from_meta, TaskMeta};
     use std::collections::HashMap;
     use tokio::sync::mpsc;
 
     #[tokio::test]
     async fn test_scheduler_with_meta_to_task() {
-        // 1. 构造 TaskMeta 列表（通常由解析配置得到）
         let metas = vec![
             TaskMeta {
                 name: "任务A".into(),
                 cmd: "fetch_agedm_ani_data".into(),
                 arg: "https://example.com/a".into(),
-                cron_expr: "0/10 * * * * * *".into(), // 每10s（视 cron crate 语法）
+                cron_expr: "0/10 * * * * * *".into(), // 每10s
                 retry_times: 1,
             },
             TaskMeta {
                 name: "任务B".into(),
-                cmd: "unknown_cmd".into(), // 故意一个未注册的 cmd，测试 fallback
+                cmd: "unknown_cmd".into(),
                 arg: "https://example.com/b".into(),
                 cron_expr: "0/15 * * * * * *".into(),
                 retry_times: 0,
             },
         ];
 
-        // 2. 构建 cmd_map（用 mock）
         let cmd_map: HashMap<String, CmdFn> = build_cmd_map();
-
-        // 如果你还有真实函数，可像上面那样插入
-
-        // 3. 从 meta -> task
         let tasks = build_tasks_from_meta(&metas, &cmd_map);
-
-        // 4. 创建调度器并运行（复用你现有的 Scheduler）
-        let scheduler = Scheduler::new(tasks);
+        let scheduler = Scheduler::new(tasks, Some(2)); // 限制最大并发任务数为 2
         let (tx, mut rx) = mpsc::channel(100);
 
-        // 启动调度器
         let scheduler_clone = scheduler.clone();
         tokio::spawn(async move {
             scheduler_clone.run(tx).await;
         });
 
-        // 接收并打印 TaskResult
         tokio::spawn(async move {
             while let Some(res) = rx.recv().await {
-                println!("收到 TaskResult: {:?}", res);
+                println!("收到 TaskResult: {:?}", res.name);
             }
         });
 
         // 等待 25 秒观察若干次触发
         sleep(Duration::from_secs(25)).await;
-
     }
 }
