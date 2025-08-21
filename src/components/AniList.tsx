@@ -35,7 +35,7 @@ export default function AniList({ list }: Props) {
                         <AniItem
                             ani={ani}
                             onClear={handleWatch}
-                            isFavorite={favoriteAniItems.has(ani.title)}
+                            isFavorite={favoriteAniItems.has(ani.id)}
                             onToggleFavorite={handleFavor}
                         />
                     </div>

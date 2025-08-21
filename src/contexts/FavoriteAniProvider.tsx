@@ -16,7 +16,7 @@ export function FavoriteAniProvider({ children }: { children: ReactNode }) {
     const fetchFavoriteUpdateAniList = async () => {
         try {
             const res = await api.queryFavoriteUpdateAniList()
-            const data = new Set(res.map(aniCollect => aniCollect.title));
+            const data = new Set(res.map(aniCollect => aniCollect.id));
             setFavoriteAniItems(data)
         } catch (e) {
             console.error('加载已清除/关注 ID 列表失败', e)
