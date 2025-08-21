@@ -57,7 +57,7 @@ export default function AniFilter({followingCount, showFavorite, onFilterChange 
                                 right: '-8px',
                                 padding: '2px 6px',
                                 borderRadius: '9999px',
-                                backgroundColor: '#ffb300',
+                                backgroundColor: '#ff0000',
                                 color: 'white',
                                 fontSize: '0.7rem',
                                 fontWeight: 'bold',
