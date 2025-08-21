@@ -28,28 +28,22 @@ export function FavoriteAniProvider({ children }: { children: ReactNode }) {
     const handleToggleFavorite = async (id: number, aniTitle: string, isFavorite: boolean | number) => {
         try {
             if (typeof isFavorite !== 'boolean') {
-                //await api.updateCollectedAni(id, aniTitle); 由于数据库使用了触发器，这里的操作不需要了
-                // 只需要更新关注列表的状态即可
-            }else {
-                if (!isFavorite) { // 如果没有关注则关注
+                // 触发器的情况，不做操作
+            } else {
+                if (!isFavorite) {
                     await api.collectAni(id, aniTitle);
-                }else { // 反之取消关注
+                } else {
                     await api.cancelCollectAni(id, aniTitle);
                 }
             }
-            setFavoriteAniItems(prev => {
-                const next = new Set(prev)
-                if (next.has(aniTitle)) {
-                    next.delete(aniTitle)
-                } else {
-                    next.add(aniTitle)
-                }
-                return next
-            });
+
         } catch (e) {
-            console.error(`切换关注 ${aniTitle} 失败`, e)
+            console.error(`切换关注 ${aniTitle} 失败，回滚 UI`, e);
+
+        } finally {
+            await fetchFavoriteUpdateAniList();
         }
-    }
+    };
 
     return (
         <FavoriteAniContext.Provider value={{
