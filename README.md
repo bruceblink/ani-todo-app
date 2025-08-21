@@ -3,11 +3,11 @@
 ## 项目简介
 这是一个使用 **Tauri** 框架构建的跨平台桌面应用，旨在帮助用户追踪和管理他们的动漫观看列表。该应用支持自动和手动更新各大视频平台的动漫最新信息，并提供了一个简洁易用的界面来查看和管理这些信息。
 桌面端应用**主页**截图如下：
-![snapshot](/picture/snapshotv0.3.0-1.png)
+![snapshot](/picture/snapshotv0.4.3.png)
 **关注**页面截图如下：
-![snapshot](/picture/snapshotv0.3.0-2.png)
+![snapshot](/picture/snapshotv0.4.4-1.png)
 **历史**页面截图如下：
-![snapshot](/picture/snapshotv0.4.1-1.png)
+![snapshot](/picture/snapshotv0.4.3-2.png)
 
 ## 技术栈
 **React + TypeScript + Vite + pnpm + Tauri(Rust)**
