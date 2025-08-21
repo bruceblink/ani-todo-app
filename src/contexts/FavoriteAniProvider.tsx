@@ -39,10 +39,13 @@ export function FavoriteAniProvider({ children }: { children: ReactNode }) {
             }
             setFavoriteAniItems(prev => {
                 const next = new Set(prev)
-                if (next.has(aniTitle)) next.delete(aniTitle)
-                else next.add(aniTitle)
+                if (next.has(aniTitle)) {
+                    next.delete(aniTitle)
+                } else {
+                    next.add(aniTitle)
+                }
                 return next
-            })
+            });
         } catch (e) {
             console.error(`切换关注 ${aniTitle} 失败`, e)
         }

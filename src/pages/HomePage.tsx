@@ -46,7 +46,6 @@ export default function HomePage({ searchQuery }: HomePageProps) {
             <AniSummary
                 weekday={today}
                 total={aniList.length}
-                followingCount={favoriteList.length}
                 onFilterChange={handleFilterChange}
                 showFavorite={showFavorite}
             />
