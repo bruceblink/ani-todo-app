@@ -137,8 +137,8 @@ export default function HistoryDataGrid({ isServer = true, searchQuery }: Props)
         triggerButtonRef.current?.focus();
     };
 
-    const handleClearAndRefresh = async (id: number) => {
-        handleWatch(id);       // 执行清除逻辑
+    const handleClearAndRefresh = async (id: number, title: string) => {
+        handleWatch(id, title);       // 执行清除逻辑
         handleCloseDialog();   // 关闭 Dialog
         await refresh();       // 重新加载数据
     };
