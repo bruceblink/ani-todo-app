@@ -15,7 +15,7 @@ import {
 
 interface Props {
     ani: Ani;
-    onClear: (id: number) => void;
+    onClear: (id: number, title: string) => void;
     isFavorite: boolean;
     onToggleFavorite: (
         id: number,
@@ -47,7 +47,7 @@ export default function AniItem({
     };
 
     const handleConfirm = () => {
-        onClear(ani.id);
+        onClear(ani.id, ani.title);
         if (isFavorite) {
             onToggleFavorite(ani.id, ani.title, 0);
         }

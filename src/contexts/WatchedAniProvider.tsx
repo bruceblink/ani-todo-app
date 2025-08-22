@@ -1,11 +1,13 @@
 import { useState, useEffect, type ReactNode } from 'react'
 import { WatchedAniContext } from '@/hooks/useWatchedAni.ts';
 import {api} from "@/utils/api";
+import {useFavoriteAni} from "@/hooks/useFavoriteAni.ts";
 
 
 
 export function WatchedAniProvider({ children }: { children: ReactNode }) {
     const [watchedAniIds, setWatchedAniIds] = useState<Set<number>>(new Set())
+    const { favoriteAniItems, handleFavor } = useFavoriteAni();
 
     useEffect(() => {
         void fetchWatchedAniIds()
@@ -21,21 +23,30 @@ export function WatchedAniProvider({ children }: { children: ReactNode }) {
         }
     }
 
-    const handleWatch = async (id: number) => {
+    const handleWatch = async (id: number, title: string) => {
         try {
-            await api.clearAni(id);
+            await api.clearAni(id); // 向后端发送“已观看”请求
             setWatchedAniIds(prev => {
                 const updated = new Set(prev)
                 updated.add(id)
                 return updated
-            })
+            });
+
+            if (favoriteAniItems.has(id)) {
+                // handleFavor 会自动处理后端 API 调用和本地状态同步
+                handleFavor(id, title, 0);
+            }
+
         } catch (err) {
             console.error(`清除番剧 ${id} 失败:`, err)
         }
     }
 
     return (
-        <WatchedAniContext.Provider value={{ watchedAniIds: watchedAniIds, handleWatch: handleWatch }}>
+        <WatchedAniContext.Provider value={{
+            watchedAniIds: watchedAniIds,
+            handleWatch: handleWatch,
+           }}>
             {children}
         </WatchedAniContext.Provider>
     )
