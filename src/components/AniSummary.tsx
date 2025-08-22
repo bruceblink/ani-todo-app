@@ -1,6 +1,5 @@
 import AniFilter from "@/components/AniFilter.tsx";
 import AniStat from "@/components/AniStat.tsx";
-import {useFavoriteAni} from "@/hooks/useFavoriteAni.ts";
 
 interface Props {
     weekday: string;
@@ -10,9 +9,6 @@ interface Props {
 }
 
 export default function AniSummary({ weekday, total, showFavorite, onFilterChange }: Props) {
-
-    // —— 收藏番剧相关操作 ——
-    const { favoriteAniItems } = useFavoriteAni();
 
     return (
         <div className="ani-summary" style={{
@@ -31,7 +27,6 @@ export default function AniSummary({ weekday, total, showFavorite, onFilterChang
             <AniStat weekday={weekday} total={total}/>
 
             <AniFilter
-                followingCount={favoriteAniItems.size}
                 showFavorite={showFavorite}
                 onFilterChange={onFilterChange}
             />

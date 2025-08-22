@@ -1,12 +1,15 @@
+import {useFavoriteAni} from "@/hooks/useFavoriteAni.ts";
 
 interface Props {
-    followingCount: number;
     showFavorite: boolean;
     onFilterChange: (filter: 'all' | 'favorites') => void;
 }
 
-export default function AniFilter({followingCount, showFavorite, onFilterChange }: Props) {
-    const favoritesCount = followingCount > 0 ? followingCount : 0;
+export default function AniFilter({ showFavorite, onFilterChange }: Props) {
+    // —— 收藏番剧相关操作 ——
+    const { favoriteAniItems } = useFavoriteAni();
+
+    const favoritesCount = favoriteAniItems.size;
 
     return (
             <>
