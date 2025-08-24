@@ -6,6 +6,7 @@ use thiserror::Error;
 /// 常用日期格式枚举
 pub enum DateFormat {
     Iso,       // "%Y-%m-%d"
+    Number,    // "%Y%m%d"
     Slash,     // "%Y/%m/%d"
     Underline, // "%Y_%m_%d"
     Chinese,   // "%Y年%m月%d日"
@@ -15,6 +16,7 @@ pub enum DateFormat {
 fn get_format_str(fmt: DateFormat) -> &'static str {
     match fmt {
         DateFormat::Iso => "%Y-%m-%d",
+        DateFormat::Number => "%Y%m%d",
         DateFormat::Slash => "%Y/%m/%d",
         DateFormat::Underline => "%Y_%m_%d",
         DateFormat::Chinese => "%Y年%m月%d日",

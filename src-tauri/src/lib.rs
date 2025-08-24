@@ -25,6 +25,7 @@ use tauri_plugin_log::{fern, Target, TargetKind};
 use crate::command::service::{cancel_collect_ani_item, collect_ani_item, query_ani_history_list, query_favorite_ani_update_list, query_today_update_ani_list, query_watched_ani_item_list, save_ani_item_data, watch_ani_item};
 use crate::tasks::{start_async_timer_task};
 use crate::configuration::init_config;
+use crate::utils::date_utils::{format_now, DateFormat};
 
 /// tauri 的全局App状态
 pub struct AppState {
@@ -94,9 +95,9 @@ fn init_logger(app: &mut App) -> anyhow::Result<()> {
     if !log_dir.exists() {
         fs::create_dir_all(log_dir.clone())?
     }
-    let app_name = app.handle().package_info().name.clone();
+    let log_file_name = format!("{}-{}", app.handle().package_info().name.clone(), format_now(DateFormat::Number));
     // 设置日志文件路径
-    let log_file_path = log_dir.join(app_name).to_str().unwrap().to_string();
+    let log_file_path = log_dir.join(log_file_name).to_str().unwrap().to_string();
 
     // 自定义日志格式（使用本地时区）
     let format = move |out: fern::FormatCallback,
