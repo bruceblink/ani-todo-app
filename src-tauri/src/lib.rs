@@ -5,7 +5,7 @@ pub mod utils;
 pub mod command;
 mod tasks;
 
-use crate::db::sqlite::{init_and_migrate_db};
+use crate::db::sqlite::init_and_migrate_db;
 use crate::platforms::agedm::{fetch_agedm_ani_data, fetch_agedm_image};
 use crate::platforms::iqiyi::{fetch_iqiyi_ani_data, fetch_iqiyi_image};
 use crate::platforms::mikanani::{fetch_mikanani_ani_data, fetch_mikanani_image};
@@ -21,7 +21,9 @@ use tauri::async_runtime::block_on;
 use tauri::{App, Manager};
 use tauri::menu::{Menu, MenuItem};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
+use tauri_plugin_dialog::{DialogExt, MessageDialogKind};
 use tauri_plugin_log::{fern, Target, TargetKind};
+use tauri_plugin_single_instance::init;
 use crate::command::service::{cancel_collect_ani_item, collect_ani_item, query_ani_history_list, query_favorite_ani_update_list, query_today_update_ani_list, query_watched_ani_item_list, save_ani_item_data, watch_ani_item};
 use crate::tasks::{start_async_timer_task};
 use crate::configuration::init_config;
@@ -53,6 +55,18 @@ pub fn run() {
             info!("执行异步获取动漫更新数据的任务");
             Ok(())
         })
+        .plugin(init(|app, _args, _cwd| {
+            if let Some(window) = app.get_webview_window("main") {
+                window.show().unwrap();
+                window.set_focus().unwrap();
+            } else {
+                app.dialog()
+                    .message("程序正在运行中...")
+                    .kind(MessageDialogKind::Error)
+                    .title("Warning")
+                    .blocking_show();
+            }
+        }))
         .invoke_handler(tauri::generate_handler![
             fetch_bilibili_image,
             fetch_bilibili_ani_data,
@@ -86,39 +100,42 @@ pub fn run() {
         .expect("error while running tauri application");
 }
 
-
 /// 初始化日志组件
 fn init_logger(app: &mut App) -> anyhow::Result<()> {
-
     // 日志存放在应用的安装目录
     let log_dir = app.path().resource_dir().unwrap_or_default().join("logs");
     if !log_dir.exists() {
         fs::create_dir_all(log_dir.clone())?
     }
-    let log_file_name = format!("{}-{}", app.handle().package_info().name.clone(), format_now(DateFormat::Number));
+    let log_file_name = format!(
+        "{}-{}",
+        app.handle().package_info().name.clone(),
+        format_now(DateFormat::Number)
+    );
     // 设置日志文件路径
     let log_file_path = log_dir.join(log_file_name).to_str().unwrap().to_string();
 
     // 自定义日志格式（使用本地时区）
-    let format = move |out: fern::FormatCallback,
-                       message: &fmt::Arguments,
-                       record: &log::Record| {
-        let now = Local::now(); // 获取本地时间
-        out.finish(format_args!(
-            "[{}][{}][{}] {}",
-            now.format("%Y-%m-%d %H:%M:%S%.3f"), // 格式化为本地时间
-            record.level(),
-            record.target(),
-            message
-        ))
-    };
+    let format =
+        move |out: fern::FormatCallback, message: &fmt::Arguments, record: &log::Record| {
+            let now = Local::now(); // 获取本地时间
+            out.finish(format_args!(
+                "[{}][{}][{}] {}",
+                now.format("%Y-%m-%d %H:%M:%S%.3f"), // 格式化为本地时间
+                record.level(),
+                record.target(),
+                message
+            ))
+        };
     app.handle().plugin(
         tauri_plugin_log::Builder::default()
             .level(LevelFilter::Info)
             .format(format) // 应用自定义格式
             .targets([
                 Target::new(TargetKind::Stdout),
-                Target::new(TargetKind::LogDir { file_name: Some(log_file_path) }),
+                Target::new(TargetKind::LogDir {
+                    file_name: Some(log_file_path),
+                }),
                 Target::new(TargetKind::Webview),
             ])
             .build(),
@@ -128,7 +145,7 @@ fn init_logger(app: &mut App) -> anyhow::Result<()> {
 }
 
 /// 初始化系统托盘
-fn init_system_tray(app: &mut App) -> anyhow::Result<()>{
+fn init_system_tray(app: &mut App) -> anyhow::Result<()> {
     // 定义托盘菜单
     let show_i = MenuItem::with_id(app, "show", "主界面", true, None::<&str>)?;
     let quit_i = MenuItem::with_id(app, "quit", "退出", true, None::<&str>)?;
@@ -142,7 +159,6 @@ fn init_system_tray(app: &mut App) -> anyhow::Result<()>{
         .build(app)?;
     // 定义托盘菜单事件
     tray.on_menu_event(|app, event| match event.id.as_ref() {
-
         "quit" => {
             app.exit(0);
         }
@@ -159,7 +175,6 @@ fn init_system_tray(app: &mut App) -> anyhow::Result<()>{
     });
     // 定义托盘的图标事件
     tray.on_tray_icon_event(|tray, event| match event {
-
         TrayIconEvent::Click {
             button: MouseButton::Left,
             button_state: MouseButtonState::Up,
@@ -173,7 +188,6 @@ fn init_system_tray(app: &mut App) -> anyhow::Result<()>{
                 let _ = window.show();
                 let _ = window.set_focus();
             }
-
         }
         _ => {
             let app = tray.app_handle();

@@ -19,7 +19,7 @@ tauri-build = { version = "2", features = [] }
 
 [dependencies]
 log = "0.4"
-tauri = { version = "2.6", features = [ "tray-icon" ] }
+tauri = { version = "2.6", features = ["tray-icon", "unstable"] }
 tauri-plugin-log = "2"
 # 如需异步运行时支持
 tokio = { version = "1", features = ["full"] }
@@ -42,6 +42,8 @@ thiserror = "2.0.12"
 cron = "0.15"
 async-trait = "0.1.88"
 num_cpus = "1.17.0"
+tauri-plugin-single-instance = "2"
+tauri-plugin-dialog = "2"
 
 [dev-dependencies]  # 仅用于测试
 tempfile = "3"
