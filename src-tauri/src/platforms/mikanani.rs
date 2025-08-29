@@ -1,11 +1,11 @@
+use crate::command::ApiResponse;
 use crate::platforms::{AniItem, AniItemResult};
-use crate::utils::date_utils::{get_today_weekday, get_today_slash};
+use crate::utils::date_utils::{get_today_slash, get_today_weekday};
 use base64::{engine::general_purpose, Engine as _};
 use log::{debug, info};
 use reqwest::Url;
 use scraper::{Html, Selector};
 use std::collections::HashMap;
-use crate::command::ApiResponse;
 
 #[tauri::command]
 pub async fn fetch_mikanani_image(url: String) -> Result<String, String> {
@@ -31,7 +31,7 @@ pub async fn fetch_mikanani_image(url: String) -> Result<String, String> {
 
     // 转 base64，并拼成 Data URL
     let b64 = general_purpose::STANDARD.encode(&bytes);
-    Ok(format!("data:{};base64,{}", ct, b64))
+    Ok(format!("data:{ct};base64,{b64}"))
 }
 
 #[tauri::command]
@@ -46,10 +46,7 @@ pub async fn fetch_mikanani_ani_data(url: String) -> Result<ApiResponse<AniItemR
         .map_err(|e| e.to_string())?;
 
     // 2. 解析成 HTML 文本
-    let body = response
-        .text()
-        .await
-        .map_err(|e| e.to_string())?;
+    let body = response.text().await.map_err(|e| e.to_string())?;
     debug!(
         "解析从 Mikanani 获取到的 HTML，前 200 字符：\n{}",
         &body[..200.min(body.len())]

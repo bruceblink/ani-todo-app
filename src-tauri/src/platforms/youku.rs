@@ -1,5 +1,6 @@
+use crate::command::ApiResponse;
 use crate::platforms::{AniItem, AniItemResult};
-use crate::utils::date_utils::{get_today_weekday, get_today_slash};
+use crate::utils::date_utils::{get_today_slash, get_today_weekday};
 use crate::utils::extract_number;
 use crate::utils::http_client::http_client;
 use anyhow::{anyhow, Context, Result};
@@ -9,7 +10,6 @@ use reqwest::header;
 use scraper::{Html, Selector};
 use serde_json::Value;
 use std::collections::HashMap;
-use crate::command::ApiResponse;
 
 /// 全局 HTTP 客户端复用
 fn client() -> Result<reqwest::Client> {
@@ -33,7 +33,7 @@ async fn fetch_image_base64(url: &str, referer: &str) -> Result<String> {
         .unwrap_or("application/octet-stream");
 
     let b64 = general_purpose::STANDARD.encode(&bytes);
-    Ok(format!("data:{};base64,{}", content_type, b64))
+    Ok(format!("data:{content_type};base64,{b64}"))
 }
 
 #[tauri::command]
@@ -64,7 +64,7 @@ pub async fn fetch_youku_ani_data(url: String) -> Result<ApiResponse<AniItemResu
         Ok(d) => d,
         Err(e) => {
             // 业务层面解析失败，返回 ApiResponse::err
-            return Ok(ApiResponse::err(format!("解析初始数据失败：{}", e)));
+            return Ok(ApiResponse::err(format!("解析初始数据失败：{e}")));
         }
     };
 
@@ -83,7 +83,7 @@ pub async fn fetch_youku_ani_data(url: String) -> Result<ApiResponse<AniItemResu
         Ok(list) => list,
         Err(e) => {
             // 业务层面处理失败，同样返回 ApiResponse::err
-            return Ok(ApiResponse::err(format!("处理模块列表失败：{}", e)));
+            return Ok(ApiResponse::err(format!("处理模块列表失败：{e}")));
         }
     };
 
@@ -99,10 +99,11 @@ pub async fn fetch_youku_ani_data(url: String) -> Result<ApiResponse<AniItemResu
 fn extract_initial_data(html: &str) -> Result<Value> {
     let doc = Html::parse_document(html);
     // 不能使用 context，因为 SelectorErrorKind 不满足 StdError
-    let script_sel = Selector::parse("script")
-        .map_err(|e| anyhow!("解析 <script> 选择器失败: {}", e))?;
+    let script_sel =
+        Selector::parse("script").map_err(|e| anyhow!("解析 <script> 选择器失败: {}", e))?;
 
-    let content = doc.select(&script_sel)
+    let content = doc
+        .select(&script_sel)
         .filter_map(|s| s.text().next())
         .find(|t| t.contains("__INITIAL_DATA__"))
         .context("未找到 __INITIAL_DATA__ 脚本块")?;
@@ -122,7 +123,8 @@ fn process_module_list(modules: &[Value]) -> Result<Vec<AniItem>> {
     let mut found = Vec::new();
     let mut seen = HashMap::new();
 
-    for comp in modules.iter()
+    for comp in modules
+        .iter()
         .filter_map(|m| m.get("components").and_then(Value::as_array))
         .flat_map(|arr| arr.iter())
         .filter(|comp| comp.get("title").and_then(Value::as_str) == Some("每日更新"))
@@ -153,20 +155,33 @@ fn process_module_list(modules: &[Value]) -> Result<Vec<AniItem>> {
 
 /// 构建 AniItem
 fn build_aniitem(map: &serde_json::Map<String, Value>) -> AniItem {
-    let title = map.get("title").and_then(Value::as_str).unwrap_or_default().trim().to_string();
-    let update_info = map.get("lbTexts").map(|v| match v {
-        Value::String(s) => s.trim().to_string(),
-        Value::Array(arr) => arr
-            .iter()
-            .filter_map(Value::as_str)
-            .map(str::trim)
-            .collect::<Vec<_>>()
-            .join(" "),
-        _ => String::new(),
-    }).unwrap_or_default();
+    let title = map
+        .get("title")
+        .and_then(Value::as_str)
+        .unwrap_or_default()
+        .trim()
+        .to_string();
+    let update_info = map
+        .get("lbTexts")
+        .map(|v| match v {
+            Value::String(s) => s.trim().to_string(),
+            Value::Array(arr) => arr
+                .iter()
+                .filter_map(Value::as_str)
+                .map(str::trim)
+                .collect::<Vec<_>>()
+                .join(" "),
+            _ => String::new(),
+        })
+        .unwrap_or_default();
 
-    let update_count = map.get("updateCount").and_then(|v| v.as_str().and_then(|s| s.parse::<u32>().ok())
-        .or_else(|| v.as_u64().map(|n| n as u32)))
+    let update_count = map
+        .get("updateCount")
+        .and_then(|v| {
+            v.as_str()
+                .and_then(|s| s.parse::<u32>().ok())
+                .or_else(|| v.as_u64().map(|n| n as u32))
+        })
         .map(|n| n.to_string())
         .unwrap_or_else(|| extract_number(&update_info).unwrap_or(1).to_string());
 
@@ -175,7 +190,12 @@ fn build_aniitem(map: &serde_json::Map<String, Value>) -> AniItem {
         title,
         update_count,
         update_info,
-        image_url: map.get("img").and_then(Value::as_str).unwrap_or_default().trim().to_string(),
+        image_url: map
+            .get("img")
+            .and_then(Value::as_str)
+            .unwrap_or_default()
+            .trim()
+            .to_string(),
         detail_url: "https://www.youku.com/ku/webcomic".into(),
         update_time: get_today_slash(),
     }

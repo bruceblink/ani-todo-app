@@ -1,10 +1,16 @@
+pub mod command;
 pub mod configuration;
 pub mod db;
 pub mod platforms;
-pub mod utils;
-pub mod command;
 mod tasks;
+pub mod utils;
 
+use crate::command::service::{
+    cancel_collect_ani_item, collect_ani_item, query_ani_history_list,
+    query_favorite_ani_update_list, query_today_update_ani_list, query_watched_ani_item_list,
+    save_ani_item_data, watch_ani_item,
+};
+use crate::configuration::init_config;
 use crate::db::sqlite::init_and_migrate_db;
 use crate::platforms::agedm::{fetch_agedm_ani_data, fetch_agedm_image};
 use crate::platforms::iqiyi::{fetch_iqiyi_ani_data, fetch_iqiyi_image};
@@ -12,28 +18,25 @@ use crate::platforms::mikanani::{fetch_mikanani_ani_data, fetch_mikanani_image};
 use crate::platforms::tencent::{fetch_qq_ani_data, fetch_qq_image};
 use crate::platforms::youku::{fetch_youku_ani_data, fetch_youku_image};
 use crate::platforms::{fetch_bilibili_ani_data, fetch_bilibili_image};
+use crate::tasks::start_async_timer_task;
+use crate::utils::date_utils::{format_now, DateFormat};
 use chrono::Local;
-use std::{fmt, fs};
-use std::sync:: Arc;
 use log::{info, warn, LevelFilter};
 use sqlx::SqlitePool;
+use std::sync::Arc;
+use std::{fmt, fs};
 use tauri::async_runtime::block_on;
-use tauri::{App, Manager};
 use tauri::menu::{Menu, MenuItem};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
+use tauri::{App, Manager};
 use tauri_plugin_dialog::{DialogExt, MessageDialogKind};
 use tauri_plugin_log::{fern, Target, TargetKind};
 use tauri_plugin_single_instance::init;
-use crate::command::service::{cancel_collect_ani_item, collect_ani_item, query_ani_history_list, query_favorite_ani_update_list, query_today_update_ani_list, query_watched_ani_item_list, save_ani_item_data, watch_ani_item};
-use crate::tasks::{start_async_timer_task};
-use crate::configuration::init_config;
-use crate::utils::date_utils::{format_now, DateFormat};
 
 /// tauri 的全局App状态
 pub struct AppState {
     pub db: Arc<SqlitePool>,
 }
-
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -47,11 +50,11 @@ pub fn run() {
             let config_path = init_config(app).expect("配置文件初始化失败!");
             let handle = app.handle();
             // 同步执行数据库初始化
-            let pool = block_on(init_and_migrate_db(&handle))?;
+            let pool = block_on(init_and_migrate_db(handle))?;
             // 注入全局状态
             handle.manage(Arc::new(AppState { db: Arc::new(pool) }));
             info!("数据库连接池已注册到全局状态");
-            start_async_timer_task(&handle, config_path);
+            start_async_timer_task(handle, config_path);
             info!("执行异步获取动漫更新数据的任务");
             Ok(())
         })

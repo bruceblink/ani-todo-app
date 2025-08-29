@@ -1,12 +1,12 @@
+use crate::command::ApiResponse;
 use crate::platforms::{AniItem, AniItemResult};
-use crate::utils::date_utils::{get_today_weekday, get_today_slash};
+use crate::utils::date_utils::{get_today_slash, get_today_weekday};
 use crate::utils::{clean_text, extract_number};
 use base64::{engine::general_purpose, Engine as _};
 use chrono::{Datelike, Local};
 use log::{error, info};
 use serde_json::Value;
 use std::collections::HashMap;
-use crate::command::ApiResponse;
 
 #[tauri::command]
 pub async fn fetch_iqiyi_image(url: String) -> Result<String, String> {
@@ -32,7 +32,7 @@ pub async fn fetch_iqiyi_image(url: String) -> Result<String, String> {
 
     // 转 base64，并拼成 Data URL
     let b64 = general_purpose::STANDARD.encode(&bytes);
-    Ok(format!("data:{};base64,{}", ct, b64))
+    Ok(format!("data:{ct};base64,{b64}"))
 }
 
 #[tauri::command]
@@ -47,10 +47,7 @@ pub async fn fetch_iqiyi_ani_data(url: String) -> Result<ApiResponse<AniItemResu
         .map_err(|e| e.to_string())?;
 
     // 2. 反序列化成 serde_json::Value
-    let json_value: Value = response
-        .json()
-        .await
-        .map_err(|e| e.to_string())?;
+    let json_value: Value = response.json().await.map_err(|e| e.to_string())?;
 
     // 3. 处理解析成 AniItemResult
     let result: AniItemResult = process_json_value(&json_value);
@@ -62,14 +59,14 @@ pub async fn fetch_iqiyi_ani_data(url: String) -> Result<ApiResponse<AniItemResu
 fn process_json_value(json_value: &Value) -> AniItemResult {
     // 验证响应格式
     if json_value.get("code") != Some(&Value::from(0)) {
-        error!("接口返回错误状态: {}", json_value);
+        error!("接口返回错误状态: {json_value}");
         return HashMap::new();
     }
 
     let items = match json_value.get("items").and_then(|v| v.as_array()) {
         Some(arr) if !arr.is_empty() => arr,
         _ => {
-            error!("缺少有效的items数组: {}", json_value);
+            error!("缺少有效的items数组: {json_value}");
             return HashMap::new();
         }
     };
@@ -111,7 +108,7 @@ fn process_json_value(json_value: &Value) -> AniItemResult {
             result.insert(weekday_str, vec![]);
         }
         None => {
-            error!("未找到今日追番数据，当前星期索引: {}", current_weekday);
+            error!("未找到今日追番数据，当前星期索引: {current_weekday}");
         }
     }
 

@@ -1,5 +1,6 @@
+use crate::command::ApiResponse;
 use crate::platforms::{AniItem, AniItemResult};
-use crate::utils::date_utils::{get_today_weekday, get_today_slash};
+use crate::utils::date_utils::{get_today_slash, get_today_weekday};
 use crate::utils::extract_number;
 use crate::utils::http_client::http_client;
 use base64::engine::general_purpose;
@@ -10,7 +11,6 @@ use scraper::{Html, Selector};
 use serde_json::Value;
 use std::collections::HashMap;
 use std::error::Error;
-use crate::command::ApiResponse;
 
 #[tauri::command]
 pub async fn fetch_qq_image(url: String) -> Result<String, String> {
@@ -36,7 +36,7 @@ pub async fn fetch_qq_image(url: String) -> Result<String, String> {
 
     // 转 base64，并拼成 Data URL
     let b64 = general_purpose::STANDARD.encode(&bytes);
-    Ok(format!("data:{};base64,{}", ct, b64))
+    Ok(format!("data:{ct};base64,{b64}"))
 }
 
 /// 获取腾讯视频动漫频道今日更新数据
@@ -49,10 +49,7 @@ pub async fn fetch_qq_ani_data(url: String) -> Result<ApiResponse<AniItemResult>
         .send()
         .await
         .map_err(|e| e.to_string())?;
-    let text = resp
-        .text()
-        .await
-        .map_err(|e| e.to_string())?;
+    let text = resp.text().await.map_err(|e| e.to_string())?;
     debug!(
         "解析从 腾讯视频 获取到的 HTML，前 200 字符：\n{}",
         &text[..200.min(text.len())]
@@ -92,7 +89,7 @@ pub async fn fetch_qq_ani_data(url: String) -> Result<ApiResponse<AniItemResult>
 
     // 4. 构建结果并记录日志
     let mut comics: Vec<AniItem> = Vec::new();
-    for item in today_videos.iter().filter_map(|v| build_aniitem(v)) {
+    for item in today_videos.iter().filter_map(build_aniitem) {
         info!("识别到更新：{}, {}", item.title, item.update_info);
         comics.push(item);
     }
@@ -180,7 +177,7 @@ fn build_aniitem(item: &Value) -> Option<AniItem> {
         .unwrap_or("");
     let update_count = extract_number(update_count)?.to_string();
 
-    let update_count_info = format!("更新至{}集", update_count);
+    let update_count_info = format!("更新至{update_count}集");
     let update_info = item
         .get("topicLabel")
         .and_then(Value::as_str)
@@ -188,7 +185,7 @@ fn build_aniitem(item: &Value) -> Option<AniItem> {
         .trim()
         .to_string();
 
-    let update_info = format!("{} {}", update_count_info, update_info);
+    let update_info = format!("{update_count_info} {update_info}");
 
     let image_url = item
         .get("coverPic")
@@ -215,5 +212,5 @@ fn build_aniitem(item: &Value) -> Option<AniItem> {
 
 /// 生成腾讯视频播放链接
 fn get_qq_video_url(cid: &str) -> String {
-    format!("https://v.qq.com/x/cover/{}.html", cid)
+    format!("https://v.qq.com/x/cover/{cid}.html")
 }

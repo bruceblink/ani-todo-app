@@ -3,15 +3,15 @@ use chrono::Local;
 use log::{info, warn};
 use std::sync::{Arc, Mutex};
 use tokio::sync::{mpsc, Notify, Semaphore};
-use tokio::time::{sleep, Duration};
 use tokio::task::JoinHandle;
+use tokio::time::{sleep, Duration};
 
 #[derive(Clone)]
 pub struct Scheduler {
     pub tasks: Vec<Arc<Task>>,
     shutdown: Arc<Notify>,
     task_handles: Arc<Mutex<Vec<JoinHandle<()>>>>,
-    semaphore: Arc<Semaphore>,  // 控制并发的信号量
+    semaphore: Arc<Semaphore>, // 控制并发的信号量
 }
 
 impl Scheduler {
@@ -26,7 +26,7 @@ impl Scheduler {
             tasks: tasks.into_iter().map(Arc::new).collect(),
             shutdown: Arc::new(Notify::new()),
             task_handles: Arc::new(Mutex::new(vec![])),
-            semaphore: Arc::new(Semaphore::new(max_concurrent_tasks)),  // 限制并发任务数
+            semaphore: Arc::new(Semaphore::new(max_concurrent_tasks)), // 限制并发任务数
         }
     }
 
@@ -56,7 +56,7 @@ impl Scheduler {
             }
 
             next_runs.sort_by_key(|(time, _)| *time); // 按时间升序排序
-            // 遍历所有已排序的任务
+                                                      // 遍历所有已排序的任务
             for (next_time, task) in next_runs {
                 let duration = (next_time - Local::now())
                     .to_std()
@@ -99,7 +99,10 @@ impl Scheduler {
                 Err(e) => {
                     info!(
                         "任务 [{}] 执行失败: {}, 重试 {}/{}",
-                        task.name, e, attempt + 1, task.retry_times
+                        task.name,
+                        e,
+                        attempt + 1,
+                        task.retry_times
                     );
                     if attempt < task.retry_times {
                         sleep(Duration::from_secs(5)).await;

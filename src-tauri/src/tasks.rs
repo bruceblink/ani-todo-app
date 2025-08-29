@@ -1,21 +1,21 @@
-use std::path::PathBuf;
+use crate::command::service::save_ani_item_data_db;
 use crate::configuration::load_configuration;
-use crate::tasks::task::{build_tasks_from_meta, TaskMeta, TaskResult};
-use std::sync::Arc;
-use log::warn;
-use tauri::{AppHandle, Manager};
-use tokio::sync::mpsc;
-use crate::AppState;
-use crate::command::service::{save_ani_item_data_db};
 use crate::tasks::commands::build_cmd_map;
 use crate::tasks::scheduler::Scheduler;
+use crate::tasks::task::{build_tasks_from_meta, TaskMeta, TaskResult};
+use crate::AppState;
+use log::warn;
+use std::path::PathBuf;
+use std::sync::Arc;
+use tauri::{AppHandle, Manager};
+use tokio::sync::mpsc;
 
-pub mod task;
-pub(crate) mod scheduler;
 pub mod commands;
+pub(crate) mod scheduler;
+pub mod task;
 
 ///从配置文件加载定时作业的配置数据
-pub fn load_timer_tasks_config(config_path: PathBuf) -> Vec<TaskMeta>{
+pub fn load_timer_tasks_config(config_path: PathBuf) -> Vec<TaskMeta> {
     let configuration = load_configuration(config_path).expect("Failed to read configuration.");
     let anime_sources = configuration
         .datasource
@@ -24,19 +24,16 @@ pub fn load_timer_tasks_config(config_path: PathBuf) -> Vec<TaskMeta>{
 
     let mut tasks: Vec<TaskMeta> = Vec::new();
     for datasource in anime_sources {
-        tasks.push(
-            TaskMeta {
-              name: datasource.name.clone(),
-              cron_expr: datasource.cron_expr.clone(),
-              cmd: datasource.cmd.clone(),
-              arg: datasource.url.clone(),
-              retry_times: datasource.retry_times,
-            }
-        );
+        tasks.push(TaskMeta {
+            name: datasource.name.clone(),
+            cron_expr: datasource.cron_expr.clone(),
+            cmd: datasource.cmd.clone(),
+            arg: datasource.url.clone(),
+            retry_times: datasource.retry_times,
+        });
     }
     tasks
 }
-
 
 /// 启动异步定时任务
 pub fn start_async_timer_task(handle: &AppHandle, config_path: PathBuf) {
@@ -67,7 +64,7 @@ pub fn start_async_timer_task(handle: &AppHandle, config_path: PathBuf) {
                     let db = state_for_loop.db.clone(); // Arc<SqlitePool>
                     tauri::async_runtime::spawn(async move {
                         if let Err(e) = save_ani_item_data_db(db, ani_item_result).await {
-                            warn!("task {} 保存失败：{}",res.name, e);
+                            warn!("task {} 保存失败：{}", res.name, e);
                         }
                     });
                 }
@@ -95,7 +92,13 @@ mod tests {
         assert_eq!(task_metas.len(), 6);
         assert_eq!(task_metas[0].name, "哔哩哔哩国创");
         assert_eq!(task_metas[0].cmd, "fetch_bilibili_ani_data");
-        assert_eq!(task_metas[0].cron_expr, "0 30 8,9,10,11,12,16,17,18,19,20,21,22,23 * * * *");
-        assert_eq!(task_metas[0].arg, "https://api.bilibili.com/pgc/web/timeline?types=4&before=6&after=6");
+        assert_eq!(
+            task_metas[0].cron_expr,
+            "0 30 8,9,10,11,12,16,17,18,19,20,21,22,23 * * * *"
+        );
+        assert_eq!(
+            task_metas[0].arg,
+            "https://api.bilibili.com/pgc/web/timeline?types=4&before=6&after=6"
+        );
     }
 }

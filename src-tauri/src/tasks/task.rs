@@ -71,9 +71,12 @@ impl Task {
 
 /// CmdFn 类型（和你之前约定一致）
 pub type CmdFn = Arc<
-    dyn Fn(String) -> Pin<Box<dyn Future<Output = Result<ApiResponse<AniItemResult>, String>> + Send>>
-    + Send
-    + Sync,
+    dyn Fn(
+            String,
+        )
+            -> Pin<Box<dyn Future<Output = Result<ApiResponse<AniItemResult>, String>> + Send>>
+        + Send
+        + Sync,
 >;
 
 /// 将 TaskMeta 列表和命令表合并，生成运行时 Task 列表
@@ -129,9 +132,7 @@ pub fn build_tasks_from_meta(metas: &[TaskMeta], cmd_map: &HashMap<String, CmdFn
                 move || {
                     let missing_cmd = missing_cmd.clone();
                     let name = name.clone();
-                    async move {
-                        Err(format!("cmd '{}' not found for task '{}'", missing_cmd, name))
-                    }
+                    async move { Err(format!("cmd '{missing_cmd}' not found for task '{name}'")) }
                 },
             );
 

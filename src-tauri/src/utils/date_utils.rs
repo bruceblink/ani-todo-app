@@ -37,17 +37,18 @@ pub fn timestamp_to_date_string(t: i64, fmt: DateFormat) -> String {
 
 /// 将时间戳(毫秒)格式化为字符串 自定义形式
 pub fn format_timestamp_millis2(ts: i64, fmt: &str) -> String {
-    Local.timestamp_millis_opt(ts)
+    Local
+        .timestamp_millis_opt(ts)
         .single()
         .unwrap_or_else(|| Local.timestamp_millis_opt(0).unwrap())
         .format(fmt)
         .to_string()
 }
 
-
 /// 将时间戳(毫秒)格式化为字符串 : "2025/07/18"形式
 pub fn format_timestamp_millis(ts: i64) -> String {
-    Local.timestamp_millis_opt(ts)
+    Local
+        .timestamp_millis_opt(ts)
         .single()
         .unwrap_or_else(|| Local.timestamp_millis_opt(0).unwrap())
         .format("%Y/%m/%d")
@@ -93,7 +94,6 @@ pub fn unix_seconds_to_timestamp(t: i64) -> DateTime<Local> {
     Local.timestamp_opt(t, 0).unwrap()
 }
 
-
 /// 星期信息结构
 pub struct WeekdayInfo {
     pub name_cn: &'static str,
@@ -107,7 +107,13 @@ pub fn get_today_weekday() -> WeekdayInfo {
 
     // 按照 Monday=0 排列的中文星期名称数组
     const WEEKDAY_CN: [&str; 7] = [
-        "星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日",
+        "星期一",
+        "星期二",
+        "星期三",
+        "星期四",
+        "星期五",
+        "星期六",
+        "星期日",
     ];
 
     let num_from_mon = today.number_from_monday() - 1;

@@ -1,11 +1,11 @@
+use crate::command::ApiResponse;
 use crate::platforms::{AniItem, AniItemResult};
-use crate::utils::date_utils::{get_today_weekday, get_today_slash};
+use crate::utils::date_utils::{get_today_slash, get_today_weekday};
 use crate::utils::{clean_text, extract_number};
 use base64::{engine::general_purpose, Engine as _};
 use log::{error, info};
 use serde_json::Value;
 use std::collections::HashMap;
-use crate::command::ApiResponse;
 
 #[tauri::command]
 pub async fn fetch_bilibili_image(url: String) -> Result<String, String> {
@@ -31,7 +31,7 @@ pub async fn fetch_bilibili_image(url: String) -> Result<String, String> {
 
     // 转 base64，并拼成 Data URL
     let b64 = general_purpose::STANDARD.encode(&bytes);
-    Ok(format!("data:{};base64,{}", ct, b64))
+    Ok(format!("data:{ct};base64,{b64}"))
 }
 
 #[tauri::command]
@@ -44,10 +44,7 @@ pub async fn fetch_bilibili_ani_data(url: String) -> Result<ApiResponse<AniItemR
         .await
         .map_err(|e| e.to_string())?;
 
-    let json_value: Value = response
-        .json()
-        .await
-        .map_err(|e| e.to_string())?;
+    let json_value: Value = response.json().await.map_err(|e| e.to_string())?;
 
     let result: AniItemResult = process_json_value(&json_value);
     Ok(ApiResponse::ok(result))
@@ -57,8 +54,8 @@ pub async fn fetch_bilibili_ani_data(url: String) -> Result<ApiResponse<AniItemR
 fn process_json_value(json_value: &Value) -> AniItemResult {
     // 1. 验证响应状态和数据结构
     let code = json_value.get("code").and_then(Value::as_i64).unwrap_or(-1);
-    if code != 0 || !json_value.get("result").map_or(false, Value::is_array) {
-        error!("接口返回数据异常：{}", json_value);
+    if code != 0 || !json_value.get("result").is_some_and(Value::is_array) {
+        error!("接口返回数据异常：{json_value}");
         return HashMap::new();
     }
     info!("成功获取哔哩哔哩追番表数据");
@@ -67,7 +64,7 @@ fn process_json_value(json_value: &Value) -> AniItemResult {
     let days = match json_value["result"].as_array() {
         Some(arr) => arr,
         None => {
-            error!("result 字段不是数组: {}", json_value);
+            error!("result 字段不是数组: {json_value}");
             return HashMap::new();
         }
     };
@@ -130,7 +127,7 @@ fn parse_item(ep: &Value) -> AniItem {
         .unwrap_or_default();
 
     // update_info
-    let update_info = format!("更新至{}", pub_index);
+    let update_info = format!("更新至{pub_index}");
 
     // image_url: 优先 square_cover，否则 cover
     let image_url = ep
@@ -145,7 +142,7 @@ fn parse_item(ep: &Value) -> AniItem {
         .get("episode_id")
         .and_then(Value::as_i64)
         .unwrap_or_default();
-    let detail_url = format!("https://www.bilibili.com/bangumi/play/ep{}", episode_id);
+    let detail_url = format!("https://www.bilibili.com/bangumi/play/ep{episode_id}");
 
     // title 清理
     let raw_title = ep.get("title").and_then(Value::as_str).unwrap_or("");
@@ -159,6 +156,6 @@ fn parse_item(ep: &Value) -> AniItem {
         update_info,
         image_url,
         detail_url,
-        update_time: get_today_slash(), 
+        update_time: get_today_slash(),
     }
 }

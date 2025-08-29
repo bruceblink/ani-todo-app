@@ -1,7 +1,7 @@
+use crate::utils::date_utils::format_timestamp_millis;
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 use std::collections::HashMap;
-use crate::utils::date_utils::format_timestamp_millis;
 
 #[derive(Debug, Clone, FromRow, Deserialize, Serialize)]
 pub struct Ani {
@@ -44,7 +44,7 @@ pub struct AniDto {
     pub image_url: String,
     pub detail_url: String,
     pub update_time: i64,
-    pub update_time_str: String,  // 👈 额外加字段
+    pub update_time_str: String, // 👈 额外加字段
     pub platform: String,
 }
 
@@ -64,7 +64,6 @@ impl From<Ani> for AniDto {
     }
 }
 
-
 #[derive(Debug, Clone, FromRow, PartialEq, Deserialize, Serialize)]
 pub struct AniColl {
     pub user_id: String,
@@ -81,7 +80,7 @@ pub struct AniWatch {
     pub watched_time: i64,
 }
 
-#[derive(Serialize, Debug, Clone ,FromRow)]
+#[derive(Serialize, Debug, Clone, FromRow)]
 #[serde(rename_all = "camelCase")]
 pub struct AniHistoryInfo {
     id: i64,

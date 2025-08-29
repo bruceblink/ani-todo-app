@@ -1,7 +1,8 @@
+use crate::db::common::run_query;
+use crate::db::po::AniColl;
+use crate::db::po::AniCollect;
 use crate::db::po::AniHistoryInfo;
 use crate::db::po::{AniWatch, AniWatchHistory};
-use crate::db::po::AniColl;
-use crate::db::common::run_query;
 use crate::db::Ani;
 use anyhow::{Context, Error, Result};
 use log::info;
@@ -13,7 +14,6 @@ use sqlx::{
 use std::fs;
 use std::str::FromStr;
 use tauri::{path::BaseDirectory, AppHandle, Manager};
-use crate::db::po::AniCollect;
 
 pub static MIGRATOR: Migrator = sqlx::migrate!(); // 自动读取 src-tauri/migrations 目录下的所有sql脚本
 /// 获取tauri应用 的应用数据目录
@@ -27,7 +27,7 @@ pub fn get_app_data_dir(app: &AppHandle) -> std::path::PathBuf {
 pub fn get_or_set_db_path(app_data_dir: std::path::PathBuf) -> Result<String> {
     // 构建数据库路径
     let db_path = app_data_dir.join("app_data.db");
-    info!("数据库文件存放路径为{:?}", db_path);
+    info!("数据库文件存放路径为{db_path:?}");
     // 转换为字符串
     db_path
         .to_str()
@@ -49,7 +49,10 @@ pub async fn init_and_migrate_db(app: &AppHandle) -> Result<Pool<Sqlite>> {
         .context("创建数据库连接池失败")?;
 
     // 运行迁移
-    MIGRATOR.run(&pool).await.context("数据库迁移或初始化失败!")?;
+    MIGRATOR
+        .run(&pool)
+        .await
+        .context("数据库迁移或初始化失败!")?;
 
     info!("数据库初始化成功");
     Ok(pool)
@@ -62,7 +65,7 @@ pub async fn init_and_migrate_db(app: &AppHandle) -> Result<Pool<Sqlite>> {
 /// 返回一个 Pool<Sqlite> 类型的Result
 pub async fn creat_database_connection_pool(db_path: String) -> Result<Pool<Sqlite>, Error> {
     // 创建连接选项
-    let connect_options = SqliteConnectOptions::from_str(&format!("file:{}?mode=rwc", db_path))?
+    let connect_options = SqliteConnectOptions::from_str(&format!("file:{db_path}?mode=rwc"))?
         .create_if_missing(true)
         .journal_mode(sqlx::sqlite::SqliteJournalMode::Wal)
         .synchronous(sqlx::sqlite::SqliteSynchronous::Normal)
@@ -73,26 +76,22 @@ pub async fn creat_database_connection_pool(db_path: String) -> Result<Pool<Sqli
         .max_connections(5)
         .connect_with(connect_options)
         .await
-        .with_context(|| format!("无法连接数据库: {}", db_path));
+        .with_context(|| format!("无法连接数据库: {db_path}"));
     info!("获取数据库连接池成功");
     pool
 }
-
 
 #[allow(dead_code)]
 /// 测试初始化数据库结构
 async fn test_init_db_schema(pool: &SqlitePool) -> Result<()> {
     // 读取 migrations 目录下的所有 SQL 脚本
-    MIGRATOR.run(pool)
-        .await
-        .context("数据库迁移失败")
-
+    MIGRATOR.run(pool).await.context("数据库迁移失败")
 }
 
 // 初始化逻辑
 pub async fn setup_app_db(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     let app_handle = app.handle();
-    init_and_migrate_db(&app_handle)
+    init_and_migrate_db(app_handle)
         .await
         .expect("database init or migrate failed!");
     Ok(())
@@ -105,7 +104,7 @@ use crate::utils::date_utils::parse_date_to_millis;
 pub async fn upsert_ani_info(pool: &SqlitePool, item: &AniItem) -> Result<()> {
     let update_time = parse_date_to_millis(&item.update_time, true)?;
     let _ = sqlx::query(
-                r#"
+        r#"
                     INSERT INTO ani_info (
                         title,
                         update_count,
@@ -120,20 +119,17 @@ pub async fn upsert_ani_info(pool: &SqlitePool, item: &AniItem) -> Result<()> {
                         image_url = excluded.image_url,
                         detail_url = excluded.detail_url
                 "#,
-            )
-        .bind(&item.title)
-        .bind(&item.update_count)
-        .bind(&item.update_info)
-        .bind(&item.image_url)
-        .bind(&item.detail_url)
-        .bind(update_time)
-        .bind(&item.platform)
-        .execute(pool)
-        .await
-        .map_err(|e| {
-            anyhow::anyhow!("插入或更新 ani_info {:?} 失败: {}",item,e)
-            }
-        )?;
+    )
+    .bind(&item.title)
+    .bind(&item.update_count)
+    .bind(&item.update_info)
+    .bind(&item.image_url)
+    .bind(&item.detail_url)
+    .bind(update_time)
+    .bind(&item.platform)
+    .execute(pool)
+    .await
+    .map_err(|e| anyhow::anyhow!("插入或更新 ani_info {:?} 失败: {}", item, e))?;
 
     Ok(())
 }
@@ -152,18 +148,17 @@ pub async fn get_ani_info_by_id(pool: &SqlitePool, id: i64) -> Result<Ani> {
                 FROM ani_info
                 WHERE
                   id = ?
-            ;"#
-         )
-        .bind(id)
-        .fetch_optional(pool)
-        .await?
-        .context(format!("查询番剧 ID={} 不存在", id))?;
+            ;"#,
+    )
+    .bind(id)
+    .fetch_optional(pool)
+    .await?
+    .context(format!("查询番剧 ID={id} 不存在"))?;
     Ok(rec)
 }
 
-
 /// 查询所有动漫信息
-pub async fn list_all_ani_info<>(pool: &SqlitePool) -> Result<Vec<Ani>> {
+pub async fn list_all_ani_info(pool: &SqlitePool) -> Result<Vec<Ani>> {
     // 构造带绑定参数的 QueryAs
     let query = sqlx::query_as::<_, Ani>(
         r#"
@@ -176,16 +171,18 @@ pub async fn list_all_ani_info<>(pool: &SqlitePool) -> Result<Vec<Ani>> {
                     update_time,
                     platform
                 FROM ani_info
-                "#
-              );
+                "#,
+    );
     // 调用通用的 run_query
     let list = run_query(pool, query).await?;
     Ok(list)
 }
 
-
 /// 查询所有今天观看过的动漫信息
-pub async fn list_all_ani_info_watched_today<>(pool: &SqlitePool, update_time:i64) -> Result<Vec<AniWatchHistory>> {
+pub async fn list_all_ani_info_watched_today(
+    pool: &SqlitePool,
+    update_time: i64,
+) -> Result<Vec<AniWatchHistory>> {
     // 构造带绑定参数的 QueryAs
     let query = sqlx::query_as::<_, AniWatchHistory>(
         r#"SELECT id,
@@ -199,19 +196,22 @@ pub async fn list_all_ani_info_watched_today<>(pool: &SqlitePool, update_time:i6
                 ORDER BY
                     watched_time DESC
            ;"#,
-         ).bind(update_time)
-          .bind(""); // 用户ID，暂时留空
-    // 调用通用的 run_query
+    )
+    .bind(update_time)
+    .bind(""); // 用户ID，暂时留空
+               // 调用通用的 run_query
     let list = run_query(pool, query).await?;
     Ok(list)
 }
 
-
 /// 根据更新时间查询所有记录，按更新时间降序
-pub async fn list_all_ani_info_by_update_time<>(pool: &SqlitePool, update_time:i64) -> Result<Vec<Ani>> {
+pub async fn list_all_ani_info_by_update_time(
+    pool: &SqlitePool,
+    update_time: i64,
+) -> Result<Vec<Ani>> {
     // 构造带绑定参数的 QueryAs
     let query = sqlx::query_as::<_, Ani>(
-                r#"
+        r#"
                 SELECT id,
                     title,
                     update_count,
@@ -224,8 +224,9 @@ pub async fn list_all_ani_info_by_update_time<>(pool: &SqlitePool, update_time:i
                 WHERE
                    update_time >= ?
                 ORDER BY update_time DESC
-                "#
-               ).bind(update_time);
+                "#,
+    )
+    .bind(update_time);
     // 调用通用的 run_query
     let list = run_query(pool, query).await?;
     Ok(list)
@@ -243,35 +244,33 @@ pub async fn update_ani_info(pool: &SqlitePool, item: &Ani) -> Result<u64> {
                         update_time = ?,
                         platform = ?
                   WHERE id = ?
-            "#)
-            .bind(&item.title)
-            .bind(&item.update_count)
-            .bind(&item.update_info)
-            .bind(&item.image_url)
-            .bind(&item.detail_url)
-            .bind(item.update_time)
-            .bind(&item.platform)
-            .bind(&item.id)
-            .execute(pool)
-            .await
-            .context(format!("更新番剧 ID={} 失败", item.id))?;
+            "#,
+    )
+    .bind(&item.title)
+    .bind(&item.update_count)
+    .bind(&item.update_info)
+    .bind(&item.image_url)
+    .bind(&item.detail_url)
+    .bind(item.update_time)
+    .bind(&item.platform)
+    .bind(item.id)
+    .execute(pool)
+    .await
+    .context(format!("更新番剧 ID={} 失败", item.id))?;
 
     Ok(res.rows_affected())
 }
 
 /// 删除指定 id
 pub async fn delete_ani_info(pool: &SqlitePool, id: i64) -> Result<u64> {
-    let res = sqlx::query(
-        "DELETE FROM ani_info WHERE id = ?"
-       )
+    let res = sqlx::query("DELETE FROM ani_info WHERE id = ?")
         .bind(id)
         .execute(pool)
         .await
-        .context(format!("删除番剧 ID={} 失败", id))?;
+        .context(format!("删除番剧 ID={id} 失败"))?;
 
     Ok(res.rows_affected())
 }
-
 
 /// 动漫关注插入新记录
 pub async fn upsert_ani_collect(pool: &SqlitePool, item: &AniColl) -> Result<i64> {
@@ -289,15 +288,15 @@ pub async fn upsert_ani_collect(pool: &SqlitePool, item: &AniColl) -> Result<i64
                 DO UPDATE SET
                     collect_time = excluded.collect_time
              "#,
-         )
-        .bind(&item.user_id)
-        .bind(&item.ani_item_id)
-        .bind(&item.ani_title)
-        .bind(update_time)
-        .bind(&item.is_watched)
-        .execute(pool)
-        .await
-        .context(format!("插入或者更新 ani_collect ={:?} 失败", item))?;
+    )
+    .bind(&item.user_id)
+    .bind(item.ani_item_id)
+    .bind(&item.ani_title)
+    .bind(update_time)
+    .bind(item.is_watched)
+    .execute(pool)
+    .await
+    .context(format!("插入或者更新 ani_collect ={item:?} 失败"))?;
 
     Ok(res.last_insert_rowid())
 }
@@ -309,18 +308,21 @@ pub async fn delete_ani_collect(pool: &SqlitePool, ani_id: i64, ani_title: Strin
                       WHERE
                             ani_item_id = ? OR
                             ani_title = ?
-                  ;"#)
-        .bind(&ani_id)
-        .bind(&ani_title)
-        .execute(pool)
-        .await
-        .context(format!("删除番剧收藏 ani_id={} ani_title ={}失败", ani_id, ani_title))?;
+                  ;"#,
+    )
+    .bind(ani_id)
+    .bind(&ani_title)
+    .execute(pool)
+    .await
+    .context(format!(
+        "删除番剧收藏 ani_id={ani_id} ani_title ={ani_title}失败"
+    ))?;
 
     Ok(res.rows_affected())
 }
 
 /// 查询所有关注的动漫列表
-pub async fn list_all_ani_collect<>(pool: &SqlitePool) -> Result<Vec<AniCollect>> {
+pub async fn list_all_ani_collect(pool: &SqlitePool) -> Result<Vec<AniCollect>> {
     // 构造带绑定参数的 QueryAs
     let query = sqlx::query_as::<_, AniCollect>(
         r#"
@@ -331,7 +333,7 @@ pub async fn list_all_ani_collect<>(pool: &SqlitePool) -> Result<Vec<AniCollect>
                     collect_time,
                     is_watched
                 FROM ani_collect
-                "#
+                "#,
     );
     // 调用通用的 run_query
     let list = run_query(pool, query).await?;
@@ -339,9 +341,10 @@ pub async fn list_all_ani_collect<>(pool: &SqlitePool) -> Result<Vec<AniCollect>
 }
 
 /// 查询所有今日更新的动漫
-pub async fn list_all_ani_update_today<>(pool: &SqlitePool, today_ts: i64) -> Result<Vec<Ani>> {
+pub async fn list_all_ani_update_today(pool: &SqlitePool, today_ts: i64) -> Result<Vec<Ani>> {
     // 构造带绑定参数的 QueryAs
-    let sql = sqlx::query_as::<_, Ani>(r#"
+    let sql = sqlx::query_as::<_, Ani>(
+        r#"
                 SELECT ai.id,
                        ai.title,
                        ai.update_count,
@@ -353,14 +356,12 @@ pub async fn list_all_ani_update_today<>(pool: &SqlitePool, today_ts: i64) -> Re
                 FROM ani_info ai
                 WHERE ai.update_time >= ?
            ;"#,
-        )
-        .bind(&today_ts);
+    )
+    .bind(today_ts);
     // 调用通用的 run_query
     let list = run_query(pool, sql).await?;
     Ok(list)
 }
-
-
 
 pub async fn upsert_ani_watch_history(pool: &SqlitePool, item: &AniWatch) -> Result<()> {
     let _ = sqlx::query(
@@ -373,24 +374,21 @@ pub async fn upsert_ani_watch_history(pool: &SqlitePool, item: &AniWatch) -> Res
                 ON CONFLICT(user_id, ani_item_id) DO UPDATE SET
                     watched_time = excluded.watched_time
             "#,
-        )
-        .bind(&item.user_id)
-        .bind(&item.ani_item_id)
-        .bind(&item.watched_time)
-        .execute(pool)
-        .await
-        .map_err(|e| {
-            anyhow::anyhow!(
-            "插入或更新 ani_watch_history {:?} 失败: {}",
-            item,
-            e
-        )
-        })?;
+    )
+    .bind(&item.user_id)
+    .bind(item.ani_item_id)
+    .bind(item.watched_time)
+    .execute(pool)
+    .await
+    .map_err(|e| anyhow::anyhow!("插入或更新 ani_watch_history {:?} 失败: {}", item, e))?;
     Ok(())
 }
 
 /// 查询所有关注的动漫今日的更新
-pub async fn list_all_follow_ani_update_today<>(pool: &SqlitePool, today_ts: i64) -> Result<Vec<Ani>> {
+pub async fn list_all_follow_ani_update_today(
+    pool: &SqlitePool,
+    today_ts: i64,
+) -> Result<Vec<Ani>> {
     // 构造带绑定参数的 QueryAs
     let sql = sqlx::query_as::<_, Ani>(
         r#"
@@ -412,15 +410,19 @@ pub async fn list_all_follow_ani_update_today<>(pool: &SqlitePool, today_ts: i64
                 ai.update_time = ?
               AND awh.ani_item_id IS NULL;
            ;"#,
-         )
-        .bind(today_ts);
+    )
+    .bind(today_ts);
     // 调用通用的 run_query
     let list = run_query(pool, sql).await?;
     Ok(list)
 }
 
 /// 查询所有动漫的历史数据
-pub async fn list_all_ani_history_data<>(pool: &SqlitePool, page: i64, page_size: i64) -> Result<Vec<AniHistoryInfo>> {
+pub async fn list_all_ani_history_data(
+    pool: &SqlitePool,
+    page: i64,
+    page_size: i64,
+) -> Result<Vec<AniHistoryInfo>> {
     // 构造带绑定参数的 QueryAs
     let sql = sqlx::query_as::<_, AniHistoryInfo>(
         r#"
@@ -443,9 +445,9 @@ pub async fn list_all_ani_history_data<>(pool: &SqlitePool, page: i64, page_size
                 ORDER BY ai.update_time DESC
                 LIMIT ? OFFSET ?
            ;"#,
-        )
-        .bind(page_size)
-        .bind((page - 1) * page_size);
+    )
+    .bind(page_size)
+    .bind((page - 1) * page_size);
     // 调用通用的 run_query
     let list = run_query(pool, sql).await?;
     Ok(list)
@@ -454,18 +456,16 @@ pub async fn list_all_ani_history_data<>(pool: &SqlitePool, page: i64, page_size
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::utils::date_utils::parse_date_to_millis;
-    use crate::db::Ani;
-    use crate::db::sqlite::{upsert_ani_info};
+    use crate::db::sqlite::upsert_ani_info;
     use crate::db::sqlite::{creat_database_connection_pool, test_init_db_schema};
+    use crate::db::Ani;
     use crate::platforms::AniItem;
+    use crate::utils::date_utils::parse_date_to_millis;
+    use anyhow::Context;
     use sqlx::{Pool, Sqlite, SqlitePool};
     use std::fs::File;
     use std::io::{Seek, SeekFrom, Write};
-    use anyhow::Context;
     use tempfile::NamedTempFile;
-
-
 
     #[test]
     fn test_with_temp_file() -> std::io::Result<()> {
@@ -502,9 +502,11 @@ mod tests {
     }
 
     // 初始化测试数据
-    async fn init_test_table_data(pool: &Pool<Sqlite>) -> anyhow::Result<()>{
+    async fn init_test_table_data(pool: &Pool<Sqlite>) -> anyhow::Result<()> {
         // 初始化数据库表结构
-        test_init_db_schema(pool).await.context("初始化测试表失败")?;
+        test_init_db_schema(pool)
+            .await
+            .context("初始化测试表失败")?;
 
         let ani_info1 = AniItem{
             title: "名侦探柯南".to_string(),
@@ -545,7 +547,6 @@ mod tests {
             platform: "mikanani".to_string(),
         };
 
-
         let ani_info5 = AniItem{
             title: "琉璃的宝石".to_string(),
             update_count: "".to_string(), // 空字符串表示未更新
@@ -556,13 +557,22 @@ mod tests {
             platform: "mikanani".to_string(),
         };
 
-
         // 执行sql
-        let _ = upsert_ani_info(pool, &ani_info1).await.context("插入数据失败");
-        let _ = upsert_ani_info(pool, &ani_info2).await.context("插入数据失败");
-        let _ = upsert_ani_info(pool, &ani_info3).await.context("插入数据失败");
-        let _ = upsert_ani_info(pool, &ani_info4).await.context("插入数据失败");
-        let _ = upsert_ani_info(pool, &ani_info5).await.context("插入数据失败");
+        let _ = upsert_ani_info(pool, &ani_info1)
+            .await
+            .context("插入数据失败");
+        let _ = upsert_ani_info(pool, &ani_info2)
+            .await
+            .context("插入数据失败");
+        let _ = upsert_ani_info(pool, &ani_info3)
+            .await
+            .context("插入数据失败");
+        let _ = upsert_ani_info(pool, &ani_info4)
+            .await
+            .context("插入数据失败");
+        let _ = upsert_ani_info(pool, &ani_info5)
+            .await
+            .context("插入数据失败");
         Ok(())
     }
 
@@ -580,7 +590,9 @@ mod tests {
             update_time: "2025/07/13".to_string(), // 2025/07/13 的时间戳
             platform: "mikanani".to_string(),
         };
-        upsert_ani_info(&pool, &ani_item1).await.expect("插入数据失败");
+        upsert_ani_info(&pool, &ani_item1)
+            .await
+            .expect("插入数据失败");
         let ani_item2 = AniItem {
             title: "琉璃的宝石".to_string(),
             update_count: "18".to_string(),
@@ -591,7 +603,9 @@ mod tests {
             platform: "mikanani".to_string(),
         };
         // 插入第一条记录
-        upsert_ani_info(&pool, &ani_item2).await.expect("插入数据失败");
+        upsert_ani_info(&pool, &ani_item2)
+            .await
+            .expect("插入数据失败");
         // 测试违反唯一约束更新更新数据
         let ani_items = sqlx::query_as::<_, Ani>(
             r#" SELECT id,
@@ -605,7 +619,7 @@ mod tests {
                            platform
                     FROM ani_info WHERE 
                           title = ? 
-             "#
+             "#,
         )
         .bind("琉璃的宝石")
         .fetch_all(&pool)
@@ -615,11 +629,14 @@ mod tests {
         assert_eq!(ani_items.len(), 2);
         let ani_item = &ani_items[1];
         assert_eq!(ani_item.update_count, "18");
-        assert_eq!(ani_item.update_time, parse_date_to_millis("2025/07/13", true).unwrap());
+        assert_eq!(
+            ani_item.update_time,
+            parse_date_to_millis("2025/07/13", true).unwrap()
+        );
     }
 
     #[tokio::test]
-    async fn test_db_select_by_id(){
+    async fn test_db_select_by_id() {
         // 获取数据库连接池
         let pool = SqlitePool::connect("sqlite::memory:").await.unwrap();
         let _ = init_test_table_data(&pool).await;
@@ -634,12 +651,13 @@ mod tests {
                 assert_eq!(ani.platform, "mikanani");
                 assert_eq!(ani.image_url, "https://mikanani.me/images/Bangumi/201310/91d95f43.jpg?width=400&height=400&format=webp");
                 assert_eq!(ani.detail_url, "https://mikanani.me/Home/Bangumi/227");
-                assert_eq!(ani.update_time, parse_date_to_millis("2025/07/13", true).unwrap());
-            },
+                assert_eq!(
+                    ani.update_time,
+                    parse_date_to_millis("2025/07/13", true).unwrap()
+                );
+            }
             Err(e) => eprintln!("出错: {}", e),
         }
-
-
     }
 
     #[tokio::test]
@@ -649,7 +667,9 @@ mod tests {
         let _ = init_test_table_data(&pool).await;
         let update_time = parse_date_to_millis("2025/07/13", true).unwrap();
         // 这里要求查询字段与结构体AniItem中 定义的字段个数和名称要一致
-        let ani_items = list_all_ani_info_by_update_time(&pool, update_time).await.unwrap();
+        let ani_items = list_all_ani_info_by_update_time(&pool, update_time)
+            .await
+            .unwrap();
         assert_eq!(ani_items.len(), 5);
         assert_eq!(ani_items[0].title, "琉璃的宝石");
     }
@@ -676,7 +696,10 @@ mod tests {
 
         assert_eq!(new_ani_item.title, "名侦探柯南-剧场版");
         assert_eq!(new_ani_item.update_count, "2100");
-        assert_eq!(new_ani_item.update_time, parse_date_to_millis("2025/07/14", true).unwrap());
+        assert_eq!(
+            new_ani_item.update_time,
+            parse_date_to_millis("2025/07/14", true).unwrap()
+        );
         assert_eq!(new_ani_item.platform, "tencent".to_string());
     }
 
@@ -690,7 +713,7 @@ mod tests {
 
         // 查询一个不存在的用户
         let ani_item = get_ani_info_by_id(&pool, 1).await;
-        
+
         // 断言：确实查不到，返回的是 Err
         assert!(ani_item.is_err(), "查询了不存在的番剧 ID，但却没有报错");
 
@@ -712,10 +735,12 @@ mod tests {
             collect_time: "2025/07/21".to_string(), // 2025/07/21 的时间戳
             is_watched: false,
         };
-        let _ =  upsert_ani_collect(&pool, &ani_collect).await.map_err(|e| e.to_string());
+        let _ = upsert_ani_collect(&pool, &ani_collect)
+            .await
+            .map_err(|e| e.to_string());
         // 测试取消关注
         // 开启事务
-/*        let mut tx = pool.begin().await.map_err(|e| e.to_string()).unwrap();
+        /*        let mut tx = pool.begin().await.map_err(|e| e.to_string()).unwrap();
         let _ = sqlx::query("UPDATE ani_info SET is_favorite = ? WHERE id = ?")
             .bind(false)
             .bind(1)
@@ -741,5 +766,4 @@ mod tests {
         assert_eq!(ani_collect.ani_item_id, 1);
         assert_eq!(ani_collect.collect_time, collect_time);
     }
-
 }

@@ -1,24 +1,22 @@
-use std::collections::HashMap;
-use std::sync::Arc;
-use log::debug;
-use serde_json::json;
-use tauri::State;
-use crate::AppState;
 use crate::command::{ApiResponse, PageData};
-pub use crate::db::common::{save_ani_item_data_db};
+pub use crate::db::common::save_ani_item_data_db;
 use crate::db::ge_db_pool;
 use crate::db::po::{AniColl, AniDto, AniIResult, AniWatch};
 use crate::db::sqlite::{
-    delete_ani_collect,
-    list_all_ani_update_today,
-    list_all_follow_ani_update_today,
-    list_all_ani_info_watched_today,
-    upsert_ani_collect,
+    delete_ani_collect, list_all_ani_history_data, list_all_ani_info_watched_today,
+    list_all_ani_update_today, list_all_follow_ani_update_today, upsert_ani_collect,
     upsert_ani_watch_history,
-    list_all_ani_history_data
 };
 use crate::platforms::AniItemResult;
-use crate::utils::date_utils::{get_today_slash, get_today_weekday, get_unix_timestamp_millis_now, parse_date_to_millis};
+use crate::utils::date_utils::{
+    get_today_slash, get_today_weekday, get_unix_timestamp_millis_now, parse_date_to_millis,
+};
+use crate::AppState;
+use log::debug;
+use serde_json::json;
+use std::collections::HashMap;
+use std::sync::Arc;
+use tauri::State;
 
 /// 保存动漫数据到数据库
 #[tauri::command]
@@ -44,10 +42,10 @@ pub async fn watch_ani_item(
         watched_time: get_unix_timestamp_millis_now(),
     };
 
-    if let Err(e) = upsert_ani_watch_history(&pool, &record).await {
-        return Ok(ApiResponse::err(format!("写入观看记录失败：{}", e)));
+    if let Err(e) = upsert_ani_watch_history(pool, &record).await {
+        return Ok(ApiResponse::err(format!("写入观看记录失败：{e}")));
     }
-    debug!("观看历史已写入：id={}", ani_id);
+    debug!("观看历史已写入：id={ani_id}");
     Ok(ApiResponse::ok(json!({ "message": "watch success" })))
 }
 
@@ -62,13 +60,13 @@ pub async fn query_today_update_ani_list(
     let today = get_today_slash();
     let ts = match parse_date_to_millis(&today, true) {
         Ok(v) => v,
-        Err(e) => return Ok(ApiResponse::err(format!("时间解析失败：{}", e))),
+        Err(e) => return Ok(ApiResponse::err(format!("时间解析失败：{e}"))),
     };
 
     // 2. 查询数据
-    let raw = match list_all_ani_update_today(&pool, ts).await {
+    let raw = match list_all_ani_update_today(pool, ts).await {
         Ok(v) => v,
-        Err(e) => return Ok(ApiResponse::err(format!("查询失败：{}", e))),
+        Err(e) => return Ok(ApiResponse::err(format!("查询失败：{e}"))),
     };
 
     // 3. 转 DTO 并组织结果
@@ -77,7 +75,7 @@ pub async fn query_today_update_ani_list(
     let weekday = get_today_weekday().name_cn.to_string();
     map.insert(weekday.clone(), dtos.clone());
 
-    debug!("今日更新动漫（{}）：{:?}", weekday, dtos);
+    debug!("今日更新动漫（{weekday}）：{dtos:?}");
     Ok(ApiResponse::ok(json!(map)))
 }
 
@@ -92,16 +90,16 @@ pub async fn query_watched_ani_item_list(
     let today = get_today_slash();
     let ts = match parse_date_to_millis(&today, true) {
         Ok(v) => v,
-        Err(e) => return Ok(ApiResponse::err(format!("时间解析失败：{}", e))),
+        Err(e) => return Ok(ApiResponse::err(format!("时间解析失败：{e}"))),
     };
 
     // 2. 查询数据
-    let list = match list_all_ani_info_watched_today(&pool, ts).await {
+    let list = match list_all_ani_info_watched_today(pool, ts).await {
         Ok(v) => v,
-        Err(e) => return Ok(ApiResponse::err(format!("查询失败：{}", e))),
+        Err(e) => return Ok(ApiResponse::err(format!("查询失败：{e}"))),
     };
 
-    debug!("今日观看历史：{:?}", list);
+    debug!("今日观看历史：{list:?}");
     Ok(ApiResponse::ok(json!(list)))
 }
 
@@ -116,19 +114,18 @@ pub async fn query_favorite_ani_update_list(
     let today = get_today_slash();
     let ts = match parse_date_to_millis(&today, true) {
         Ok(v) => v,
-        Err(e) => return Ok(ApiResponse::err(format!("时间解析失败：{}", e))),
+        Err(e) => return Ok(ApiResponse::err(format!("时间解析失败：{e}"))),
     };
 
     // 2. 查询数据
-    let list = match list_all_follow_ani_update_today(&pool, ts).await {
+    let list = match list_all_follow_ani_update_today(pool, ts).await {
         Ok(v) => v,
-        Err(e) => return Ok(ApiResponse::err(format!("查询失败：{}", e))),
+        Err(e) => return Ok(ApiResponse::err(format!("查询失败：{e}"))),
     };
 
-    debug!("关注动漫今日更新：{:?}", list);
+    debug!("关注动漫今日更新：{list:?}");
     Ok(ApiResponse::ok(json!(list)))
 }
-
 
 /// 关注动漫
 #[tauri::command]
@@ -146,10 +143,10 @@ pub async fn collect_ani_item(
         is_watched: false,
     };
 
-    if let Err(e) = upsert_ani_collect(&pool, &record).await {
-        return Ok(ApiResponse::err(format!("插入或更新失败：{}", e)));
+    if let Err(e) = upsert_ani_collect(pool, &record).await {
+        return Ok(ApiResponse::err(format!("插入或更新失败：{e}")));
     }
-    debug!("已收藏动漫：《{}》", ani_title);
+    debug!("已收藏动漫：《{ani_title}》");
     Ok(ApiResponse::ok(json!({ "message": "collect success" })))
 }
 
@@ -161,14 +158,13 @@ pub async fn cancel_collect_ani_item(
     ani_title: String,
 ) -> Result<ApiResponse, String> {
     let pool = ge_db_pool(&state.db);
-    if let Err(e) = delete_ani_collect(&pool, ani_id, ani_title.clone()).await {
-        return Ok(ApiResponse::err(format!("删除失败：{}", e)));
+    if let Err(e) = delete_ani_collect(pool, ani_id, ani_title.clone()).await {
+        return Ok(ApiResponse::err(format!("删除失败：{e}")));
     }
 
-    debug!("已取消收藏：《{}》(id={})", ani_title, ani_id);
+    debug!("已取消收藏：《{ani_title}》(id={ani_id})");
     Ok(ApiResponse::ok(json!({ "message": "cancel success" })))
 }
-
 
 /// 查询动漫历史更新信息列表
 #[tauri::command]
@@ -179,15 +175,15 @@ pub async fn query_ani_history_list(
 ) -> Result<ApiResponse, String> {
     let pool = ge_db_pool(&state.db);
     //查询数据
-    let list = match list_all_ani_history_data(&pool, page, page_size).await {
+    let list = match list_all_ani_history_data(pool, page, page_size).await {
         Ok(v) => v,
-        Err(e) => return Ok(ApiResponse::err(format!("查询失败：{}", e))),
+        Err(e) => return Ok(ApiResponse::err(format!("查询失败：{e}"))),
     };
     if list.is_empty() {
         return Ok(ApiResponse::ok(json!({ "message": "没有历史更新数据" })));
     }
     let total_count: i64 = list[0].total_count;
-    debug!("历史更新数据：{:?}", list);
+    debug!("历史更新数据：{list:?}");
     // 3. 组织分页数据
     let data = PageData {
         items: list,

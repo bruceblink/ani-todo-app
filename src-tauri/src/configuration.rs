@@ -1,8 +1,8 @@
+use log::info;
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::fs;
 use std::path::PathBuf;
-use log::info;
 use tauri::{App, Manager};
 
 #[derive(Debug, Deserialize)]
@@ -37,7 +37,6 @@ pub fn load_configuration(config_path: PathBuf) -> Result<AppConfig, config::Con
     settings.try_deserialize::<AppConfig>()
 }
 
-
 /// 初始化应用配置
 pub fn init_config(app: &mut App) -> std::io::Result<PathBuf> {
     let app_name = app.handle().package_info().name.clone();
@@ -49,12 +48,18 @@ pub fn init_config(app: &mut App) -> std::io::Result<PathBuf> {
     // 检查配置文件是否已存在，如果不存在则复制
     if !target_config_path.exists() {
         // 获取资源目录中配置文件的路径
-        let resource_path = app.path().resource_dir().expect("Unable to get resource directory");
+        let resource_path = app
+            .path()
+            .resource_dir()
+            .expect("Unable to get resource directory");
         let config_file_in_resources = resource_path.join("configuration/config.yaml");
 
         // 复制配置文件到目标目录
         if !config_file_in_resources.exists() {
-            return Err(std::io::Error::new(std::io::ErrorKind::NotFound, "Config file not found in resources"));
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::NotFound,
+                "Config file not found in resources",
+            ));
         }
 
         // 复制文件
@@ -67,8 +72,6 @@ pub fn init_config(app: &mut App) -> std::io::Result<PathBuf> {
 
     Ok(config_path)
 }
-
-
 
 #[cfg(test)]
 mod tests {
