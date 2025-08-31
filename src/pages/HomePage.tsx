@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
+import {useEffect, useState} from "react";
 import AniList from "@/components/AniList.tsx";
 import AniSummary from "@/components/AniSummary.tsx"; // 新增的统计组件
-import { useAniData } from "@/hooks/useAniData.ts";
-import { useFavoriteAni } from "@/hooks/useFavoriteAni.ts";
-import type { Ani } from "@/utils/api.ts";
+import {useAniData} from "@/hooks/useAniData.ts";
+import {useFavoriteAni} from "@/hooks/useFavoriteAni.ts";
+import type {Ani} from "@/utils/api.ts";
 import {fuzzySearch} from "@/utils/utils.ts";
 
 interface HomePageProps {
@@ -11,7 +11,7 @@ interface HomePageProps {
 }
 
 export default function HomePage({ searchQuery }: HomePageProps) {
-    const { data, loading, error} = useAniData();
+    const { data, loading, error, refresh} = useAniData();
     const { favoriteAniItems, isLoaded } = useFavoriteAni();
 
     const [showFavorite, setShowFavorite] = useState(false);
@@ -23,6 +23,15 @@ export default function HomePage({ searchQuery }: HomePageProps) {
             setInitialized(true);
         }
     }, [isLoaded, favoriteAniItems, initialized]);
+
+    // ⭐ 定时刷新逻辑（比如 5分钟一次）
+    useEffect(() => {
+        const interval = setInterval(() => {
+            refresh?.(); // 调用 hook 提供的刷新函数
+        }, 300 * 1000);
+
+        return () => clearInterval(interval); // 卸载时清理
+    }, [refresh]);
     const handleFilterChange = (filter: 'all' | 'favorites') => {
         setShowFavorite(filter === 'favorites');
     };

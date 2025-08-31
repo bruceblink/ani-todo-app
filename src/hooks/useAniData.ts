@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import {useCallback, useEffect, useState} from 'react';
 import {type Ani, api, dataSources} from "@/utils/api";
 import {mergeAniGroups} from "@/utils/utils";
 
@@ -108,9 +108,9 @@ export function useAniData(): UseAniData {
 
     // 刷新时：先网络拉取再本地加载
     const refresh = useCallback(async () => {
-        await fetchData();
+        //await fetchData();
         await loadData();
-    }, [fetchData, loadData]);
+    }, [loadData]);
 
     return { data, loading, error, errors, refresh };
 }
