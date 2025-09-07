@@ -1,14 +1,8 @@
 import {useCallback, useEffect, useState} from 'react';
-import {type Ani, api, dataSources} from "@/utils/api";
-import {mergeAniGroups} from "@/utils/utils";
-
-// 单个请求可能的结果
-type RequestResult =
-    | { name: string; data: Record<string, Ani[]> }
-    | { name: string; error: Error };
+import {type Ani, api} from "@/utils/api";
 
 // Hook 对外暴露的状态
-export type UseAniData = {
+export type AniData = {
     data: Record<string, Ani[]>;
     loading: boolean;
     error: string | null;
@@ -18,7 +12,7 @@ export type UseAniData = {
 };
 
 
-export function useAniData(): UseAniData {
+export function useAniData(): AniData {
     const [data, setData] = useState<Record<string, Ani[]>>({});
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -30,63 +24,6 @@ export function useAniData(): UseAniData {
         setError(null);
         setErrors({});
     }, []);
-
-    // 从网络拉取并写库
-    const fetchData = useCallback(async () => {
-        resetState();
-        try {
-            const sources = dataSources;
-
-            const settled = await Promise.allSettled(
-                sources.map(({ url, cmd, name }) =>
-                    api.fetchAniData(cmd, url!,)
-                        .then((d) => ({ name, data: d }))
-                        .catch((err) => ({ name, error: err }))
-                )
-            );
-
-            const resultErrors: Record<string, string> = {};
-            const successList: Record<string, Ani[]>[] = [];
-
-            settled.forEach((r, idx) => {
-                if (r.status === 'fulfilled') {
-                    const v = r.value as RequestResult;
-                    if ('error' in v) {
-                        resultErrors[v.name] = v.error.message || '未知错误';
-                    } else {
-                        successList.push(v.data);
-                    }
-                } else {
-                    const src = sources[idx];
-                    resultErrors[src.name] = (r.reason as Error).message || '未知错误';
-                }
-            });
-
-            if (successList.length === 0) {
-                // 全部网络请求都失败，直接设置错误状态并返回
-                setErrors(resultErrors);
-                const first = Object.keys(resultErrors)[0] || '所有源';
-                setError(`${first} 请求失败`);
-                return;
-            }
-            // 合并成功的数据
-            const merged = mergeAniGroups(successList);
-            // 保存到数据库
-            await api.saveAniItems(merged);
-            // 如果有部分失败，保留 errors 和摘要
-            if (Object.keys(resultErrors).length > 0) {
-                setErrors(resultErrors);
-                const first = Object.keys(resultErrors)[0];
-                setError(`部分请求失败（${first} 等）`);
-            }
-        } catch (e: unknown) {
-            const err = e instanceof Error ? e : new Error('未知错误');
-            setError(err.message);
-        } finally {
-            setLoading(false);
-        }
-    }, [resetState]);
-
     // 只从本地数据库加载
     const loadData = useCallback(async () => {
         resetState();
