@@ -5,6 +5,7 @@ import {useAniData} from "@/hooks/useAniData.ts";
 import {useFavoriteAni} from "@/hooks/useFavoriteAni.ts";
 import type {Ani} from "@/utils/api.ts";
 import {fuzzySearch} from "@/utils/utils.ts";
+import {CircularProgress} from "@mui/material";
 
 interface HomePageProps {
     searchQuery: string;
@@ -35,9 +36,35 @@ export default function HomePage({ searchQuery }: HomePageProps) {
     const handleFilterChange = (filter: 'all' | 'favorites') => {
         setShowFavorite(filter === 'favorites');
     };
-    if (loading) return <div className="loading">加载中…</div>;
+
+    if (loading)
+        return (
+            <div
+                style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}
+            >
+                <CircularProgress />
+            </div>
+        );
+    if (error)
+        return (
+            <div
+                style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}
+            >
+                查询出错了: {error}
+            </div>
+        );
+    if (!Object.keys(data).length)
+        return (
+            <div
+                style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}
+            >
+                没有数据
+            </div>
+        );
+
+/*    if (loading) return <div className="loading">加载中…</div>;
     if (error) return <div className="loading">出错了：{error}</div>;
-    if (!Object.keys(data).length) return <div className="loading">无数据</div>;
+    if (!Object.keys(data).length) return <div className="loading">无数据</div>;*/
 
     const today = Object.keys(data)[0];
     const aniList = data[today] as Ani[];
