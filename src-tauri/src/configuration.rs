@@ -1,4 +1,4 @@
-use log::info;
+use log::{error, info};
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::fs;
@@ -40,36 +40,30 @@ pub fn load_configuration(config_path: PathBuf) -> Result<AppConfig, config::Con
 /// 初始化应用配置
 pub fn init_config(app: &mut App) -> std::io::Result<PathBuf> {
     let app_name = app.handle().package_info().name.clone();
-    // 获取配置目录路径 (在 Windows 上通常是 AppData\Roaming\{app_name})
+    // 设置app配置文件的存放目录路径 (在 Windows 上通常是 AppData\Roaming\{app_name})
     let config_path = app.path().config_dir().unwrap_or_default().join(app_name);
-    // 配置文件的目标路径
+    // 配置文件存放的目标路径
     let target_config_path = config_path.join("config.yaml");
 
-    // 检查配置文件是否已存在，如果不存在则复制
-    if !target_config_path.exists() {
-        // 获取资源目录中配置文件的路径
-        let resource_path = app
-            .path()
-            .resource_dir()
-            .expect("Unable to get resource directory");
-        let config_file_in_resources = resource_path.join("configuration/config.yaml");
-
-        // 复制配置文件到目标目录
-        if !config_file_in_resources.exists() {
-            return Err(std::io::Error::new(
-                std::io::ErrorKind::NotFound,
-                "Config file not found in resources",
-            ));
-        }
-
-        // 复制文件
-        fs::create_dir_all(config_path.clone())?; // 如果目标目录不存在则创建
-        fs::copy(config_file_in_resources, target_config_path)?;
-        info!("配置文件已复制到目标目录");
-    } else {
-        info!("配置文件已存在");
+    // 获取app安装目录中
+    let resource_path = app
+        .path()
+        .resource_dir()
+        .expect("Unable to get resource directory");
+    // 获取安装目录中的配置文件
+    let config_file_in_resources = resource_path.join("configuration/config.yaml");
+    // 如果配置文件不存在则直接报错退出程序
+    if !config_file_in_resources.exists() {
+        error!("Config file not found in {:?}", config_file_in_resources);
+        return Err(std::io::Error::new(
+            std::io::ErrorKind::NotFound,
+            "Config file not found in app resources",
+        ));
     }
-
+    // 复制配置文件到目标目录(覆盖)
+    fs::create_dir_all(config_path.clone())?; // 如果目标目录不存在则创建
+    fs::copy(config_file_in_resources, target_config_path.clone())?;
+    info!("配置文件已初始化到目标目录：{:?}", target_config_path);
     Ok(config_path)
 }
 
