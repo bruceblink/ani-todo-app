@@ -354,7 +354,14 @@ pub async fn list_all_ani_update_today(pool: &SqlitePool, today_ts: i64) -> Resu
                        ai.update_time,
                        ai.platform
                 FROM ani_info ai
-                WHERE ai.update_time >= ?
+                         INNER JOIN (
+                    SELECT title, update_count, MIN(id) AS min_id
+                    FROM ani_info
+                    WHERE update_time >= ?
+                    GROUP BY title, update_count
+                ) t ON ai.title = t.title
+                    AND ai.update_count = t.update_count
+                    AND ai.id = t.min_id;
            ;"#,
     )
     .bind(today_ts);
