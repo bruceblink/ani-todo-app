@@ -14,7 +14,7 @@ datasource:
       retry_times: 0
 
     - name: "agedm"
-      url: "https://www.agedm.io/update"
+      url: "https://www.agedm.tv/update"
       cmd: "fetch_agedm_ani_data"
       cron_expr: "0 17 10,11,12,17,18,19,20,21,22,23 * * * *"
       retry_times: 0

@@ -42,7 +42,7 @@ async fn test_youku_cartoon_data() {
 
 #[tokio::test]
 async fn test_agedm_data() {
-    let url = "https://www.agedm.vip/update".to_string();
+    let url = "https://www.agedm.tv/update".to_string();
     let res = fetch_agedm_ani_data(url).await.unwrap();
     println!("{:?}", res);
 }

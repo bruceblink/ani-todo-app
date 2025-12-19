@@ -41,7 +41,7 @@ pub async fn fetch_agedm_ani_data(url: String) -> Result<ApiResponse<AniItemResu
     let client = http_client()?; // 若失败会 early-return Err(String)
     let response = client
         .get(&url)
-        .header("Referer", "https://www.agedm.vip/")
+        .header("Referer", "https://www.agedm.tv")
         .send()
         .await
         .map_err(|e| e.to_string())?;
