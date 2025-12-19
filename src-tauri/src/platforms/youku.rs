@@ -10,6 +10,7 @@ use reqwest::header;
 use scraper::{Html, Selector};
 use serde_json::Value;
 use std::collections::HashMap;
+use url::Url;
 
 /// 全局 HTTP 客户端复用
 fn client() -> Result<reqwest::Client> {
@@ -123,29 +124,30 @@ fn process_module_list(modules: &[Value]) -> Result<Vec<AniItem>> {
     let mut found = Vec::new();
     let mut seen = HashMap::new();
 
+    let weekday = get_today_weekday().num_from_mon as usize;
+
     for comp in modules
         .iter()
         .filter_map(|m| m.get("components").and_then(Value::as_array))
         .flat_map(|arr| arr.iter())
         .filter(|comp| comp.get("title").and_then(Value::as_str) == Some("每日更新"))
     {
-        if let Some(items) = comp.get("itemList").and_then(Value::as_array) {
-            for item in items.iter().flat_map(|v| {
-                if let Value::Array(arr) = v {
-                    arr.iter().collect::<Vec<_>>()
-                } else {
-                    vec![v]
-                }
-            }) {
-                if item.get("updateTips").and_then(Value::as_str) == Some("有更新") {
-                    if let Some(map) = item.as_object() {
-                        let ani = build_aniitem(map);
-                        if seen.insert(ani.title.clone(), ()).is_none() {
-                            info!("识别到更新: {} {}", ani.title, ani.update_info);
-                            found.push(ani);
-                        }
-                    }
-                }
+        let items = match comp.get("itemList").and_then(Value::as_array) {
+            Some(v) => v,
+            None => continue,
+        };
+
+        let today_items = match items.get(weekday).and_then(Value::as_array) {
+            Some(v) => v,
+            None => continue,
+        };
+
+        for item in today_items {
+            let ani = build_aniitem(item);
+
+            if seen.insert(ani.title.clone(), ()).is_none() {
+                info!("识别到更新: {} {}", ani.title, ani.update_info);
+                found.push(ani);
             }
         }
     }
@@ -154,7 +156,7 @@ fn process_module_list(modules: &[Value]) -> Result<Vec<AniItem>> {
 }
 
 /// 构建 AniItem
-fn build_aniitem(map: &serde_json::Map<String, Value>) -> AniItem {
+fn build_aniitem(map: &Value) -> AniItem {
     let title = map
         .get("title")
         .and_then(Value::as_str)
@@ -196,7 +198,41 @@ fn build_aniitem(map: &serde_json::Map<String, Value>) -> AniItem {
             .unwrap_or_default()
             .trim()
             .to_string(),
-        detail_url: "https://www.youku.com/ku/webcomic".into(),
+        detail_url: get_youku_video_url(Option::from(map)),
         update_time: get_today_slash(),
     }
+}
+
+pub fn get_youku_video_url(item: Option<&Value>) -> String {
+    let default_url = "https://www.youku.com/ku/webcomic".to_string();
+
+    let item = match item {
+        Some(v) => v,
+        None => return default_url,
+    };
+
+    let action_value = match item.get("action_value").and_then(Value::as_str) {
+        Some(v) => v,
+        None => return default_url,
+    };
+
+    let mut url = match Url::parse("https://v.youku.com/video") {
+        Ok(u) => u,
+        Err(_) => return default_url,
+    };
+
+    {
+        let mut query = url.query_pairs_mut();
+        query.append_pair("s", action_value);
+
+        if let Some(scm) = item.get("scm").and_then(Value::as_str) {
+            query.append_pair("scm", scm);
+        }
+
+        if let Some(scg_id) = item.get("scg_id").and_then(Value::as_str) {
+            query.append_pair("scg_id", scg_id);
+        }
+    }
+
+    url.to_string()
 }

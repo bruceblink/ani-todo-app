@@ -44,6 +44,7 @@ async-trait = "0.1.88"
 num_cpus = "1.17.0"
 tauri-plugin-single-instance = "2"
 tauri-plugin-dialog = "2"
+url = "2.5.4"
 
 [dev-dependencies]  # 仅用于测试
 tempfile = "3"
