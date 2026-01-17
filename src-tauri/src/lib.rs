@@ -14,9 +14,8 @@ use crate::command::service::{
 };
 use crate::configuration::init_config;
 use crate::db::sqlite::init_and_migrate_db;
-use crate::startup::{init_logger, init_system_tray};
+use crate::startup::{init_logger, init_system_tray, start_async_timer_task};
 use crate::state::AppState;
-use crate::tasks::start_async_timer_task;
 use command::platforms::agedm::{fetch_agedm_ani_data, fetch_agedm_image};
 use command::platforms::bilibili::{fetch_bilibili_ani_data, fetch_bilibili_image};
 use command::platforms::iqiyi::{fetch_iqiyi_ani_data, fetch_iqiyi_image};
