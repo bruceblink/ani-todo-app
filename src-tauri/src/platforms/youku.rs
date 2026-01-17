@@ -1,5 +1,4 @@
-use crate::command::ApiResponse;
-use crate::platforms::{AniItem, AniItemResult};
+use crate::types::{AniItem, AniItemResult, ApiResponse};
 use crate::utils::date_utils::{get_today_slash, get_today_weekday};
 use crate::utils::extract_number;
 use crate::utils::http_client::http_client;

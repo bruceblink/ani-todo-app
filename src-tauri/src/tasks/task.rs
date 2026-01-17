@@ -1,5 +1,4 @@
-use crate::command::ApiResponse;
-use crate::platforms::AniItemResult;
+use crate::types::{AniItemResult, ApiResponse};
 use async_trait::async_trait;
 use cron::Schedule;
 use std::collections::HashMap;

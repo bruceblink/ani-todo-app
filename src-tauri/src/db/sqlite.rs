@@ -1,9 +1,11 @@
 use crate::db::common::run_query;
+use crate::db::po::Ani;
 use crate::db::po::AniColl;
 use crate::db::po::AniCollect;
 use crate::db::po::AniHistoryInfo;
 use crate::db::po::{AniWatch, AniWatchHistory};
-use crate::db::Ani;
+use crate::types::AniItem;
+use crate::utils::date_utils::parse_date_to_millis;
 use anyhow::{Context, Error, Result};
 use log::info;
 use sqlx::migrate::Migrator;
@@ -96,9 +98,6 @@ pub async fn setup_app_db(app: &mut tauri::App) -> Result<(), Box<dyn std::error
         .expect("database init or migrate failed!");
     Ok(())
 }
-
-use crate::platforms::AniItem;
-use crate::utils::date_utils::parse_date_to_millis;
 
 /// 动漫信息插入新记录
 pub async fn upsert_ani_info(pool: &SqlitePool, item: &AniItem) -> Result<()> {
@@ -465,8 +464,7 @@ mod tests {
     use super::*;
     use crate::db::sqlite::upsert_ani_info;
     use crate::db::sqlite::{creat_database_connection_pool, test_init_db_schema};
-    use crate::db::Ani;
-    use crate::platforms::AniItem;
+    use crate::types::AniItem;
     use crate::utils::date_utils::parse_date_to_millis;
     use anyhow::Context;
     use sqlx::{Pool, Sqlite, SqlitePool};

@@ -3,6 +3,7 @@ pub mod configuration;
 pub mod db;
 pub mod platforms;
 mod tasks;
+pub mod types;
 pub mod utils;
 
 use crate::command::service::{

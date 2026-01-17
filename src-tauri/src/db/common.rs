@@ -1,7 +1,5 @@
-use crate::command::ApiResponse;
-use crate::db::ge_db_pool;
 use crate::db::sqlite::upsert_ani_info;
-use crate::platforms::AniItemResult;
+use crate::types::{AniItemResult, ApiResponse};
 use crate::utils::date_utils::get_today_weekday;
 use anyhow::Result;
 use serde_json::json;
@@ -11,6 +9,10 @@ use sqlx::{
     FromRow, Sqlite, SqlitePool,
 };
 use std::sync::Arc;
+
+pub fn ge_db_pool(pool: &SqlitePool) -> &SqlitePool {
+    pool
+}
 
 /// 通用查询：接收一个已经 bind 好参数的 `QueryAs`，执行并返回 Vec<T>
 pub async fn run_query<'q, T>(

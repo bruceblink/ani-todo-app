@@ -1,10 +1,10 @@
-use crate::command::ApiResponse;
 use crate::platforms::agedm::fetch_agedm_ani_data;
+use crate::platforms::fetch_bilibili_ani_data;
 use crate::platforms::iqiyi::fetch_iqiyi_ani_data;
 use crate::platforms::mikanani::fetch_mikanani_ani_data;
 use crate::platforms::tencent::fetch_qq_ani_data;
 use crate::platforms::youku::fetch_youku_ani_data;
-use crate::platforms::{fetch_bilibili_ani_data, AniItemResult};
+use crate::types::{AniItemResult, ApiResponse};
 use std::collections::HashMap;
 use std::future::Future;
 use std::pin::Pin;
