@@ -1,9 +1,9 @@
-use app_lib::platforms::agedm::fetch_agedm_ani_data;
-use app_lib::platforms::bilibili::fetch_bilibili_ani_data;
-use app_lib::platforms::iqiyi::fetch_iqiyi_ani_data;
-use app_lib::platforms::mikanani::fetch_mikanani_ani_data;
-use app_lib::platforms::tencent::fetch_qq_ani_data;
-use app_lib::platforms::youku::fetch_youku_ani_data;
+use app_lib::command::platforms::agedm::fetch_agedm_ani_data;
+use app_lib::command::platforms::bilibili::fetch_bilibili_ani_data;
+use app_lib::command::platforms::iqiyi::fetch_iqiyi_ani_data;
+use app_lib::command::platforms::mikanani::fetch_mikanani_ani_data;
+use app_lib::command::platforms::tencent::fetch_qq_ani_data;
+use app_lib::command::platforms::youku::fetch_youku_ani_data;
 
 #[tokio::test]
 async fn test_fetch_bilibili_ani_data() {
