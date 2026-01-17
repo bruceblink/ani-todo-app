@@ -14,11 +14,11 @@ use crate::command::service::{
 use crate::configuration::init_config;
 use crate::db::sqlite::init_and_migrate_db;
 use crate::platforms::agedm::{fetch_agedm_ani_data, fetch_agedm_image};
+use crate::platforms::bilibili::{fetch_bilibili_ani_data, fetch_bilibili_image};
 use crate::platforms::iqiyi::{fetch_iqiyi_ani_data, fetch_iqiyi_image};
 use crate::platforms::mikanani::{fetch_mikanani_ani_data, fetch_mikanani_image};
 use crate::platforms::tencent::{fetch_qq_ani_data, fetch_qq_image};
 use crate::platforms::youku::{fetch_youku_ani_data, fetch_youku_image};
-use crate::platforms::{fetch_bilibili_ani_data, fetch_bilibili_image};
 use crate::tasks::start_async_timer_task;
 use crate::utils::date_utils::{format_now, DateFormat};
 use chrono::Local;

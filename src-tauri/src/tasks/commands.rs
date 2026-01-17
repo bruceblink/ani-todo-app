@@ -1,5 +1,5 @@
 use crate::platforms::agedm::fetch_agedm_ani_data;
-use crate::platforms::fetch_bilibili_ani_data;
+use crate::platforms::bilibili::fetch_bilibili_ani_data;
 use crate::platforms::iqiyi::fetch_iqiyi_ani_data;
 use crate::platforms::mikanani::fetch_mikanani_ani_data;
 use crate::platforms::tencent::fetch_qq_ani_data;
