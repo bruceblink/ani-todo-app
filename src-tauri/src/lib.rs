@@ -2,6 +2,7 @@ pub mod command;
 pub mod configuration;
 pub mod db;
 mod startup;
+pub mod state;
 mod tasks;
 pub mod types;
 pub mod utils;
@@ -14,6 +15,7 @@ use crate::command::service::{
 use crate::configuration::init_config;
 use crate::db::sqlite::init_and_migrate_db;
 use crate::startup::{init_logger, init_system_tray};
+use crate::state::AppState;
 use crate::tasks::start_async_timer_task;
 use command::platforms::agedm::{fetch_agedm_ani_data, fetch_agedm_image};
 use command::platforms::bilibili::{fetch_bilibili_ani_data, fetch_bilibili_image};
@@ -22,17 +24,11 @@ use command::platforms::mikanani::{fetch_mikanani_ani_data, fetch_mikanani_image
 use command::platforms::tencent::{fetch_qq_ani_data, fetch_qq_image};
 use command::platforms::youku::{fetch_youku_ani_data, fetch_youku_image};
 use log::info;
-use sqlx::SqlitePool;
 use std::sync::Arc;
 use tauri::async_runtime::block_on;
 use tauri::Manager;
 use tauri_plugin_dialog::{DialogExt, MessageDialogKind};
 use tauri_plugin_single_instance::init;
-
-/// tauri 的全局App状态
-pub struct AppState {
-    pub db: Arc<SqlitePool>,
-}
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
