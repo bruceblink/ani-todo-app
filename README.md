@@ -35,11 +35,11 @@
 
 2. 本地运行：
     ```bash
-      cargo tauri dev
+      cargo tauri dev # or tauri dev
     ```
 3. 本地打包：
     ```bash
-      cargo tauri build
+      cargo tauri build # or tauri build
     ```
 4. 配置文件路径(Windows系统)
 
