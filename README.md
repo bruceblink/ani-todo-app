@@ -1,8 +1,58 @@
+<div style="text-align: center">
+
 # Ani-Todo-App - 今天的番看完了吗？ 🎬
+
+</div>
+
+<div style="text-align: center">
+    <a href="https://github.com/bruceblink/ani-todo-app/releases/latest" target="_blank">
+        <img src="https://img.shields.io/github/v/release/bruceblink/ani-todo-app" alt="release-version">
+    </a>
+    <!-- total download -->
+    <a href="https://github.com/bruceblink/ani-todo-app/releases/latest" target="_blank">
+        <img src="https://img.shields.io/github/downloads/bruceblink/ani-todo-app/total" alt="downloads">
+    </a>
+    <!-- stars -->
+    <a href="https://github.com/bruceblink/ani-todo-app/stargazers" target="_blank">
+        <img src="https://img.shields.io/github/stars/bruceblink/ani-todo-app?" alt="stars">
+    </a>
+    <!-- forks -->
+    <a href="https://github.com/bruceblink/ani-todo-app/network/members" target="_blank">
+        <img src="https://img.shields.io/github/forks/bruceblink/ani-todo-app.svg?" alt="fork">
+    </a>
+    <!-- visitors -->
+    <a href="https://github.com/bruceblink/ani-todo-app" target="_blank">
+        <img src="https://api.visitorbadge.io/api/visitors?path=https%3A%2F%2Fgithub.com%2Fbruceblink%2Fani-todo-app&countColor=%23263759&style=flat"
+            alt="visitors">
+    </a>
+    <!-- license -->
+    <a href="https://github.com/bruceblink/ani-todo-app/blob/main/LICENSE" target="_blank">
+        <img src="https://img.shields.io/github/license/bruceblink/ani-todo-app" alt="license">
+    </a>
+    <br>
+    <!-- window -->
+    <a href="https://github.com/bruceblink/ani-todo-app/releases/latest" target="_blank">
+        <img src="https://img.shields.io/badge/Windows-0078D6?style=flat&logo=windows&logoColor=white" alt="window">
+    </a>
+    <!-- macos -->
+    <a href="https://github.com/bruceblink/ani-todo-app/releases/latest" target="_blank">
+        <img src="https://img.shields.io/badge/MACOS-adb8c5?style=flat&logo=macos&logoColor=white" alt="macos">
+    </a>
+    <!-- linux -->
+    <a href="https://github.com/bruceblink/ani-todo-app/releases/latest" target="_blank">
+        <img src="https://img.shields.io/badge/linux-1793D1?style=flat&logo=linux&logoColor=white" alt="linux">
+    </a>
+    <br>
+    <a href="https://www.buymeacoffee.com/bruceblink" target="_blank"><img
+            src="https://cdn.buymeacoffee.com/buttons/v2/default-blue.png" alt="Buy Me A Coffee"
+            style="height: 40px !important;width: 145px !important;">
+    </a>
+</div>
 
 ## 项目简介
 这是一个使用 **Tauri** 框架构建的跨平台桌面应用，旨在帮助用户追踪和管理他们的动漫观看列表。该应用支持自动和手动更新各大视频平台的动漫最新信息，并提供了一个简洁易用的界面来查看和管理这些信息。
 桌面端应用**主页**截图如下：
+
 ![snapshot](/picture/snapshotv0.4.3.png)
 **关注**页面截图如下：
 ![snapshot](/picture/snapshotv0.4.4-1.png)
@@ -19,9 +69,30 @@
 - 🎯 关注更新：可以关注特定动漫，获取最新更新信息
 - 💾 数据本地存储：所有信息保存在本地sqlite数据库中，方便查询和管理
 
-## 系统要求
+## 安装
 
-目前支持Windows10+、Mac~~以及Linux~~等主流的桌面操作系统
+最简单的入门方式是根据你所使用的操作系统下载以下对应版本之一:
+
+<table>
+  <tr>
+    <td><b>Platform</b></td>
+    <td><b>Download</b></td>
+  </tr>
+  <tr>
+    <td><b>Windows</b></td>
+    <td><a href='https://github.com/bruceblink/ani-todo-app/releases/download/v0.4.9/AniTodo_0.4.9_x64-setup.exe'>AniTodo.exe</a></td>
+  </tr>
+  <tr>
+    <td><b>macOS</b></td>
+    <td><a href='https://github.com/bruceblink/ani-todo-app/releases/download/v0.4.9/AniTodo_0.4.9_universal.dmg'>AniTodo.dmg</a></td>
+  <tr>
+    <td><b>Linux </b></td>
+    <td><a href='https://github.com/bruceblink/ani-todo-app/releases/download/v0.4.9/AniTodo_0.4.9_amd64.deb'>AniTodo.deb</a></td>
+  </tr>
+</table>
+
+
+更多的下载选择 [GitHub Releases](https://github.com/bruceblink/ani-todo-app/releases).
 
 ## 使用说明
 
@@ -114,3 +185,11 @@ ani-todo-app/
 ---
 
 **注意**：本项目仅用于个人学习和研究使用，请勿用于任何商业用途。在使用过程中请遵守相关网站的使用条款和规定。
+
+[badge-version]: https://img.shields.io/badge/version-0.4.9-blue
+
+[badge-platforms]: https://img.shields.io/badge/platforms-macOS%2C%20Windows%2C%20Linux%2C%20-green
+
+[badge-sponsor]: https://img.shields.io/badge/sponsor-ff69b4
+
+[badge-hire]: https://img.shields.io/badge/hire%20developer-8b5cf6
