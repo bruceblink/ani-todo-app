@@ -1,0 +1,11 @@
+{
+  "name": "AniTodo",
+  "version": "0.4.9",
+  "scripts": {
+    "dev": "cd ../ && pnpm tauri dev",
+    "build": "cd ../ && pnpm tauri dev",
+    "sync-version": "node ../scripts/sync-version.cjs",
+    "validate-version": "node ../scripts/validate-version.cjs",
+    "release": "node ../scripts/release.cjs"
+  }
+}
