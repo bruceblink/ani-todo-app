@@ -4,7 +4,7 @@
 
 </div>
 
-<div style="text-align: center">
+<p align="center">
     <a href="https://github.com/bruceblink/ani-todo-app/releases/latest" target="_blank">
         <img src="https://img.shields.io/github/v/release/bruceblink/ani-todo-app" alt="release-version">
     </a>
@@ -47,7 +47,7 @@
             src="https://cdn.buymeacoffee.com/buttons/v2/default-blue.png" alt="Buy Me A Coffee"
             style="height: 40px !important;width: 145px !important;">
     </a>
-</div>
+</p>
 
 ## 项目简介
 这是一个使用 **Tauri** 框架构建的跨平台桌面应用，旨在帮助用户追踪和管理他们的动漫观看列表。该应用支持自动和手动更新各大视频平台的动漫最新信息，并提供了一个简洁易用的界面来查看和管理这些信息。
