@@ -92,7 +92,7 @@ dependencies = [
 
 [[package]]
 name = "ani-todo-app"
-version = "0.4.8"
+version = "0.4.9"
 dependencies = [
  "anyhow",
  "async-trait",
