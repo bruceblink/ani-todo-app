@@ -5,7 +5,6 @@ use crate::utils::http_client::http_client;
 use anyhow::{anyhow, Context, Result};
 use base64::{engine::general_purpose, Engine as _};
 use log::{debug, info};
-use reqwest::header;
 use scraper::{Html, Selector};
 use serde_json::Value;
 use std::collections::HashMap;
@@ -20,7 +19,7 @@ fn client() -> Result<reqwest::Client> {
 async fn fetch_image_base64(url: &str, referer: &str) -> Result<String> {
     let resp = client()?
         .get(url)
-        .header(header::REFERER, referer)
+        .header(reqwest::header::REFERER, referer)
         .send()
         .await
         .context("请求图片失败")?;
@@ -28,7 +27,7 @@ async fn fetch_image_base64(url: &str, referer: &str) -> Result<String> {
     let headers = resp.headers().clone();
     let bytes = resp.bytes().await.context("读取图片字节失败")?;
     let content_type = headers
-        .get(header::CONTENT_TYPE)
+        .get(reqwest::header::CONTENT_TYPE)
         .and_then(|v| v.to_str().ok())
         .unwrap_or("application/octet-stream");
 
