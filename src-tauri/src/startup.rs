@@ -12,8 +12,9 @@ use std::sync::Arc;
 use std::{fmt, fs};
 use tauri::menu::{Menu, MenuItem};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
-use tauri::{App, AppHandle, Manager};
+use tauri::{App, AppHandle, Emitter, Manager};
 use tauri_plugin_log::{fern, Target, TargetKind};
+use tauri_plugin_notification::NotificationExt;
 use tokio::sync::mpsc;
 
 /// 初始化日志组件
@@ -64,8 +65,9 @@ pub fn init_logger(app: &mut App) -> anyhow::Result<()> {
 pub fn init_system_tray(app: &mut App) -> anyhow::Result<()> {
     // 定义托盘菜单
     let show_i = MenuItem::with_id(app, "show", "主界面", true, None::<&str>)?;
+    let refresh_i = MenuItem::with_id(app, "refresh", "刷新数据", true, None::<&str>)?;
     let quit_i = MenuItem::with_id(app, "quit", "退出", true, None::<&str>)?;
-    let menu = Menu::with_items(app, &[&show_i, &quit_i])?;
+    let menu = Menu::with_items(app, &[&show_i, &refresh_i, &quit_i])?;
 
     let tray = TrayIconBuilder::new()
         //.title(app.package_info().name.clone())
@@ -83,6 +85,14 @@ pub fn init_system_tray(app: &mut App) -> anyhow::Result<()> {
                 let _ = window.unminimize();
                 let _ = window.show();
                 let _ = window.set_focus();
+            }
+        }
+        "refresh" => {
+            if let Some(window) = app.get_webview_window("main") {
+                let _ = window.unminimize();
+                let _ = window.show();
+                let _ = window.set_focus();
+                let _ = window.emit("tray:refresh", ());
             }
         }
         _ => {
@@ -158,13 +168,44 @@ pub fn start_async_timer_task(handle: &AppHandle, config_path: PathBuf) {
     // 8) 启动结果接收器（异步）
     tauri::async_runtime::spawn({
         let state_for_loop = state_arc.clone();
+        let handle_for_loop = handle.clone();
         async move {
             while let Some(res) = rx.recv().await {
                 if let Some(ani_item_result) = res.result {
-                    let db = state_for_loop.db.clone(); // Arc<SqlitePool>
+                    let db = state_for_loop.db.clone();
+                    let handle_inner = handle_for_loop.clone();
                     tauri::async_runtime::spawn(async move {
-                        if let Err(e) = save_ani_item_data_db(db, ani_item_result).await {
-                            warn!("task {} 保存失败：{}", res.name, e);
+                        // Collect notification info before moving ani_item_result
+                        let item_count: usize =
+                            ani_item_result.values().map(|v| v.len()).sum();
+                        let first_title = ani_item_result
+                            .values()
+                            .flat_map(|v| v.iter())
+                            .next()
+                            .map(|item| item.title.clone())
+                            .unwrap_or_default();
+
+                        match save_ani_item_data_db(db, ani_item_result).await {
+                            Ok(_) if item_count > 0 => {
+                                let body = if item_count == 1 {
+                                    format!("《{}》已更新！", first_title)
+                                } else {
+                                    format!("《{}》等 {} 部新番已更新", first_title, item_count)
+                                };
+                                if let Err(e) = handle_inner
+                                    .notification()
+                                    .builder()
+                                    .title("AniTodo 新番更新")
+                                    .body(&body)
+                                    .show()
+                                {
+                                    warn!("发送通知失败：{}", e);
+                                }
+                            }
+                            Err(e) => {
+                                warn!("task {} 保存失败：{}", res.name, e);
+                            }
+                            _ => {}
                         }
                     });
                 }

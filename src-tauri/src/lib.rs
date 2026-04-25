@@ -10,7 +10,7 @@ pub mod utils;
 use crate::command::service::{
     cancel_collect_ani_item, collect_ani_item, query_ani_history_list,
     query_favorite_ani_update_list, query_today_update_ani_list, query_watched_ani_item_list,
-    save_ani_item_data, watch_ani_item,
+    save_ani_item_data, watch_ani_item, query_date_update_ani_list,
 };
 use crate::configuration::init_config;
 use crate::db::sqlite::init_and_migrate_db;
@@ -51,6 +51,7 @@ pub fn run() {
             Ok(())
         })
         .plugin(tauri_plugin_updater::Builder::new().build())
+        .plugin(tauri_plugin_notification::init())
         .plugin(init(|app, _args, _cwd| {
             if let Some(window) = app.get_webview_window("main") {
                 window.show().unwrap();
@@ -87,6 +88,7 @@ pub fn run() {
             check_for_update,
             install_update,
             restart_app,
+            query_date_update_ani_list,
         ])
         .on_window_event(|window, event| {
             if let tauri::WindowEvent::CloseRequested { api, .. } = event {
