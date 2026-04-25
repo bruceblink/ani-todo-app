@@ -1,4 +1,5 @@
 import { useWatchedAni } from "@/hooks/useWatchedAni.ts";
+import { CalendarDays } from "lucide-react";
 
 interface Props {
     weekday: string;
@@ -13,29 +14,21 @@ export default function AniStat({ weekday, total }: Props) {
 
     return (
         <div style={{ flex: 1, minWidth: '180px' }}>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-                <span
-                    style={{
-                        fontSize: '1.2rem',
-                        fontWeight: 700,
-                        color: 'var(--text-primary)',
-                    }}
-                >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                <CalendarDays
+                    size={15}
+                    strokeWidth={2}
+                    style={{ color: 'var(--color-primary)', flexShrink: 0 }}
+                />
+                <span style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-primary)' }}>
                     {weekday}更新
                 </span>
-                <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
                     共 {total} 部
                 </span>
             </div>
 
-            <div
-                style={{
-                    marginTop: 8,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 10,
-                }}
-            >
+            <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 10 }}>
                 <div
                     style={{
                         flex: 1,
@@ -59,7 +52,7 @@ export default function AniStat({ weekday, total }: Props) {
                 <span
                     style={{
                         fontSize: '0.78rem',
-                        color: isDone ? 'var(--color-success)' : 'var(--text-secondary)',
+                        color: isDone ? 'var(--color-success)' : 'var(--text-muted)',
                         whiteSpace: 'nowrap',
                         fontWeight: isDone ? 600 : 400,
                     }}

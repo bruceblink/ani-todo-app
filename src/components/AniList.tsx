@@ -51,8 +51,16 @@ export default function AniList({ list }: Props) {
                 width: '100%',
             }}
         >
-            {watchingToday.map(ani => (
-                <div key={ani.id} style={{ height: '140px' }}>
+            {watchingToday.map((ani, index) => (
+                <div
+                    key={ani.id}
+                    style={{
+                        height: '140px',
+                        animation: 'cardEnter 0.22s ease forwards',
+                        animationDelay: `${index * 0.04}s`,
+                        opacity: 0,
+                    }}
+                >
                     <AniItem
                         ani={ani}
                         onClear={handleWatch}

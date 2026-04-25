@@ -87,7 +87,7 @@ export default function AniItem({
                         padding: 0,
                         background: isFavorite
                             ? 'rgba(245, 158, 11, 0.12)'
-                            : 'rgba(255,255,255,0.85)',
+                            : 'var(--bg-overlay)',
                         backdropFilter: 'blur(4px)',
                         borderRadius: '50%',
                         border: isFavorite ? '1.5px solid rgba(245,158,11,0.3)' : 'none',
@@ -122,7 +122,7 @@ export default function AniItem({
                         padding: 0,
                         background: isHovered
                             ? 'rgba(16, 185, 129, 0.9)'
-                            : 'rgba(255,255,255,0.85)',
+                            : 'var(--bg-overlay)',
                         backdropFilter: 'blur(4px)',
                         borderRadius: '50%',
                         border: 'none',

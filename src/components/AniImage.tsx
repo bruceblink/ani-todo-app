@@ -52,19 +52,19 @@ const AniImage: React.FC<Props> = ({ url, alt = '', className }) => {
     };
 
     return src ? (
-        <img 
-            src={src} 
-            alt={alt} 
+        <img
+            src={src}
+            alt={alt}
             className={className}
-            style={baseStyle} 
+            style={baseStyle}
         />
     ) : (
-        <div 
-            className={className} 
-            style={{ 
+        <div
+            className={className}
+            style={{
                 ...baseStyle,
-                background: '#eee',
-            }} 
+                background: 'var(--border-color)',
+            }}
         />
     );
 };
