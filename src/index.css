@@ -7,107 +7,160 @@
     box-sizing: border-box;
 }
 
+/* ===== Design Token System ===== */
 :root {
-    font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+    /* Brand colors */
+    --color-primary: #6366f1;
+    --color-primary-dark: #4f46e5;
+    --color-primary-light: #e0e7ff;
+    --color-primary-text: #4338ca;
+
+    --color-accent: #f59e0b;
+    --color-accent-light: #fef3c7;
+
+    --color-success: #10b981;
+    --color-error: #ef4444;
+
+    /* Semantic tokens — Light Mode */
+    --bg-base: #f5f7fa;
+    --bg-surface: #ffffff;
+    --bg-surface-hover: #f8fafc;
+    --bg-overlay: rgba(255, 255, 255, 0.92);
+
+    --text-primary: #111827;
+    --text-secondary: #6b7280;
+    --text-muted: #9ca3af;
+
+    --border-color: #e5e7eb;
+    --border-focus: #6366f1;
+
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+    --shadow-lg: 0 10px 20px -3px rgba(0, 0, 0, 0.1), 0 4px 8px -2px rgba(0, 0, 0, 0.05);
+    --shadow-xl: 0 20px 30px -5px rgba(0, 0, 0, 0.1), 0 10px 12px -5px rgba(0, 0, 0, 0.04);
+
+    --header-bg: rgba(255, 255, 255, 0.92);
+    --header-border: #e5e7eb;
+
+    --progress-bg: #e5e7eb;
+    --progress-fill: #6366f1;
+
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto',
+        'Noto Sans SC', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei',
+        sans-serif;
     line-height: 1.5;
     font-weight: 400;
 
-    color-scheme: light dark;
-    color: rgba(255, 255, 255, 0.87);
-    background-color: #242424;
+    color: var(--text-primary);
+    background-color: var(--bg-base);
 
     font-synthesis: none;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    font-family: -apple-system,
-    BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-    --link-color: #646cff;
 }
 
+/* ===== Dark Mode ===== */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg-base: #0f172a;
+        --bg-surface: #1e293b;
+        --bg-surface-hover: #263248;
+        --bg-overlay: rgba(15, 23, 42, 0.92);
+
+        --text-primary: #f1f5f9;
+        --text-secondary: #94a3b8;
+        --text-muted: #64748b;
+
+        --border-color: #334155;
+        --border-focus: #818cf8;
+
+        --color-primary: #818cf8;
+        --color-primary-dark: #6366f1;
+        --color-primary-light: #1e1b4b;
+        --color-primary-text: #a5b4fc;
+
+        --header-bg: rgba(15, 23, 42, 0.92);
+        --header-border: #334155;
+
+        --progress-bg: #334155;
+        --progress-fill: #818cf8;
+
+        --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+        --shadow-lg: 0 10px 20px -3px rgba(0, 0, 0, 0.4), 0 4px 8px -2px rgba(0, 0, 0, 0.2);
+    }
+}
+
+/* ===== Base Styles ===== */
 a {
     font-weight: 500;
-    color: #646cff;
-    text-decoration: inherit;
+    color: var(--color-primary);
+    text-decoration: none;
+    transition: color 0.15s ease;
 }
 
 a:hover {
-    color: #535bf2;
+    color: var(--color-primary-dark);
 }
 
 body {
     margin: 0;
     min-width: 320px;
     min-height: 100vh;
-    /* 关键修复：始终显示滚动条防止跳动 */
     overflow-y: scroll;
-    background: #f5f7fa;
+    background: var(--bg-base);
+    color: var(--text-primary);
 }
 
 #root {
     width: 100%;
+    min-height: 100vh;
     display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 20px;
-}
-
-h1 {
-    font-size: 3.2em;
-    line-height: 1.1;
+    flex-direction: column;
 }
 
 button {
     border-radius: 8px;
     border: 1px solid transparent;
-    /*padding: 0.6em 1.2em;*/
     font-size: 1em;
     font-weight: 500;
     font-family: inherit;
-    background-color: #1a1a1a;
     cursor: pointer;
-    transition: border-color 0.25s;
+    transition: all 0.18s ease;
+    background: none;
 }
 
-button:hover {
-    border-color: #646cff;
-}
-
-
-@media (prefers-color-scheme: light) {
-    :root {
-        color: #213547;
-        background-color: #ffffff;
-    }
-
-    a:hover {
-        color: #747bff;
-    }
-
-    button {
-        background-color: #f9f9f9;
-    }
-}
-
+/* ===== Animations ===== */
 .spin {
     animation: spin 1s linear infinite;
 }
 
 @keyframes spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+}
+
+@keyframes fadeInUp {
     from {
-        transform: rotate(0deg);
+        opacity: 0;
+        transform: translateY(10px);
     }
     to {
-        transform: rotate(360deg);
+        opacity: 1;
+        transform: translateY(0);
     }
+}
+
+.fade-in {
+    animation: fadeInUp 0.3s ease forwards;
 }
 
 .loading {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 50vh; /* 占满视口高度 */
-    font-size: 1.2rem;
+    height: 50vh;
+    font-size: 1.1rem;
+    color: var(--text-secondary);
 }
