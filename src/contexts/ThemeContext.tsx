@@ -39,11 +39,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
     useEffect(() => {
         const root = document.documentElement;
-        if (resolvedDark) {
-            root.setAttribute('data-theme', 'dark');
-        } else {
-            root.removeAttribute('data-theme');
-        }
+        root.setAttribute('data-theme', resolvedDark ? 'dark' : 'light');
     }, [resolvedDark]);
 
     const setThemeMode = (mode: ThemeMode) => {
