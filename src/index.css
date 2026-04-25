@@ -168,28 +168,26 @@ button {
 /* ===== Platform Badges ===== */
 .pb {
     display: inline-block;
-    padding: 2px 8px;
-    border-radius: 5px;
     font-size: 0.72rem;
     font-weight: 600;
     letter-spacing: 0.01em;
 }
-.pb-bilibili { background: #e8f7ff; color: #0099cc; }
-.pb-iqiyi    { background: #e6fce8; color: #00850a; }
-.pb-tencent  { background: #e8f1ff; color: #1677ff; }
-.pb-youku    { background: #e8fafe; color: #0088aa; }
-.pb-agedm    { background: #fff2e8; color: #c84000; }
-.pb-mikanani { background: #fffbeb; color: #a16207; }
-.pb-default  { background: #f3f4f6; color: #6b7280; }
+.pb-bilibili { color: #0099cc; }
+.pb-iqiyi    { color: #00850a; }
+.pb-tencent  { color: #1677ff; }
+.pb-youku    { color: #0088aa; }
+.pb-agedm    { color: #c84000; }
+.pb-mikanani { color: #a16207; }
+.pb-default  { color: #6b7280; }
 
 @media (prefers-color-scheme: dark) {
-    .pb-bilibili { background: #0c2a3a; color: #38bdf8; }
-    .pb-iqiyi    { background: #082810; color: #4ade80; }
-    .pb-tencent  { background: #0a1e40; color: #60a5fa; }
-    .pb-youku    { background: #0a2530; color: #22d3ee; }
-    .pb-agedm    { background: #2a1000; color: #fb923c; }
-    .pb-mikanani { background: #2a1d00; color: #fbbf24; }
-    .pb-default  { background: #1f2937; color: #9ca3af; }
+    .pb-bilibili { color: #38bdf8; }
+    .pb-iqiyi    { color: #4ade80; }
+    .pb-tencent  { color: #60a5fa; }
+    .pb-youku    { color: #22d3ee; }
+    .pb-agedm    { color: #fb923c; }
+    .pb-mikanani { color: #fbbf24; }
+    .pb-default  { color: #9ca3af; }
 }
 
 /* ===== Anime cover image ===== */

@@ -55,7 +55,7 @@ export default function AniList({ list }: Props) {
                 <div
                     key={ani.id}
                     style={{
-                        height: '140px',
+                        height: '168px',
                         animation: 'cardEnter 0.22s ease forwards',
                         animationDelay: `${index * 0.04}s`,
                         opacity: 0,

@@ -22,9 +22,9 @@ export default function AniInfo({ ani }: Props) {
             style={{
                 display: 'flex',
                 flexDirection: 'row',
-                alignItems: 'flex-start',
+                alignItems: 'center',
                 gap: 12,
-                padding: '14px 14px',
+                padding: '12px 14px',
                 width: '100%',
                 height: '100%',
             }}
@@ -38,8 +38,8 @@ export default function AniInfo({ ani }: Props) {
                 className="ani-cover-link"
                 style={{
                     display: 'block',
-                    width: 76,
-                    height: 108,
+                    width: 80,
+                    height: 116,
                     borderRadius: 8,
                     overflow: 'hidden',
                     flexShrink: 0,
@@ -56,9 +56,8 @@ export default function AniInfo({ ani }: Props) {
                     minWidth: 0,
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: 5,
-                    paddingTop: 2,
-                    paddingRight: 20,
+                    gap: 6,
+                    overflow: 'hidden',
                 }}
             >
                 <h3
@@ -67,12 +66,10 @@ export default function AniInfo({ ani }: Props) {
                         fontSize: '0.92rem',
                         fontWeight: 600,
                         color: 'var(--text-primary)',
-                        display: '-webkit-box',
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: 'vertical',
                         overflow: 'hidden',
-                        lineHeight: 1.45,
-                        wordBreak: 'break-word',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                        lineHeight: 1.4,
                     }}
                 >
                     {ani.title}
@@ -86,11 +83,9 @@ export default function AniInfo({ ani }: Props) {
                     {ani.update_count ? `第 ${ani.update_count} 集` : '暂无信息'}
                 </div>
 
-                <div>
-                    <span className={getPlatformClass(ani.platform)}>
-                        {ani.platform}
-                    </span>
-                </div>
+                <span className={getPlatformClass(ani.platform)}>
+                    {ani.platform}
+                </span>
             </div>
         </div>
     );
