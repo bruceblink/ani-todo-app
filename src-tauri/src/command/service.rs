@@ -4,13 +4,12 @@ use crate::db::po::{AniColl, AniDto, AniIResult, AniWatch};
 use crate::db::sqlite::{
     delete_ani_collect, list_all_ani_history_data, list_all_ani_info_watched_today,
     list_all_ani_update_today, list_all_follow_ani_update_today, upsert_ani_collect,
-    upsert_ani_watch_history,
+    upsert_ani_watch_history, list_ani_update_by_date,
 };
 use crate::types::{AniItemResult, ApiResponse, PageData};
 use crate::utils::date_utils::{
     get_today_slash, get_today_weekday, get_unix_timestamp_millis_now, parse_date_to_millis,
-};
-use crate::AppState;
+};use crate::AppState;
 use log::debug;
 use serde_json::json;
 use std::collections::HashMap;
@@ -191,4 +190,32 @@ pub async fn query_ani_history_list(
         page_size,
     };
     Ok(ApiResponse::ok(json!(data)))
+}
+
+/// 查询指定日期更新的动漫列表（周导航用）
+/// date_str 格式：YYYY/MM/DD，weekday_label 格式：星期X
+#[tauri::command]
+pub async fn query_date_update_ani_list(
+    state: State<'_, Arc<AppState>>,
+    date_str: String,
+    weekday_label: String,
+) -> Result<ApiResponse, String> {
+    let pool = ge_db_pool(&state.db);
+
+    let start_ts = match parse_date_to_millis(&date_str, true) {
+        Ok(v) => v,
+        Err(e) => return Ok(ApiResponse::err(format!("时间解析失败：{e}"))),
+    };
+    let end_ts = start_ts + 86_400_000; // +24h
+
+    let raw = match list_ani_update_by_date(pool, start_ts, end_ts).await {
+        Ok(v) => v,
+        Err(e) => return Ok(ApiResponse::err(format!("查询失败：{e}"))),
+    };
+
+    let dtos: Vec<AniDto> = raw.into_iter().map(AniDto::from).collect();
+    let mut map: AniIResult = HashMap::new();
+    map.insert(weekday_label, dtos);
+
+    Ok(ApiResponse::ok(json!(map)))
 }

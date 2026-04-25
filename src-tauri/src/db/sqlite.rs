@@ -369,6 +369,39 @@ pub async fn list_all_ani_update_today(pool: &SqlitePool, today_ts: i64) -> Resu
     Ok(list)
 }
 
+/// 查询指定日期更新的动漫列表（按时间范围）
+pub async fn list_ani_update_by_date(
+    pool: &SqlitePool,
+    start_ts: i64,
+    end_ts: i64,
+) -> Result<Vec<Ani>> {
+    let sql = sqlx::query_as::<_, Ani>(
+        r#"
+                SELECT ai.id,
+                       ai.title,
+                       ai.update_count,
+                       ai.update_info,
+                       ai.image_url,
+                       ai.detail_url,
+                       ai.update_time,
+                       ai.platform
+                FROM ani_info ai
+                         INNER JOIN (
+                    SELECT title, update_count, MIN(id) AS min_id
+                    FROM ani_info
+                    WHERE update_time >= ? AND update_time < ?
+                    GROUP BY title, update_count
+                ) t ON ai.title = t.title
+                    AND ai.update_count = t.update_count
+                    AND ai.id = t.min_id;
+           ;"#,
+    )
+    .bind(start_ts)
+    .bind(end_ts);
+    let list = run_query(pool, sql).await?;
+    Ok(list)
+}
+
 pub async fn upsert_ani_watch_history(pool: &SqlitePool, item: &AniWatch) -> Result<()> {
     let _ = sqlx::query(
         r#"
