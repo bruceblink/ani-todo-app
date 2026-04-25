@@ -155,6 +155,10 @@ export type ApiCommands = FetchCommandsMap & {
             items: AniHistoryInfo[];  // 当前页数据数组
         }
     }
+    query_date_update_ani_list: {
+        args: { dateStr: string; weekdayLabel: string }
+        result: Record<string, Ani[]>
+    }
 }
 
 /**
@@ -231,4 +235,10 @@ export const api = {
         pageSize: number;
     }) =>
         invokeApi('query_ani_history_list', params),
+
+    /**
+     * 查询指定日期更新的动漫列表（周导航用）
+     */
+    queryDateUpdateAniList: (dateStr: string, weekdayLabel: string) =>
+        invokeApi('query_date_update_ani_list', { dateStr, weekdayLabel }),
 }

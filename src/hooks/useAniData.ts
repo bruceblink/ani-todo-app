@@ -1,5 +1,5 @@
-import {useCallback, useEffect, useState} from 'react';
-import {type Ani, api} from "@/utils/api";
+import { useCallback, useEffect, useState } from 'react';
+import { type Ani, api } from "@/utils/api";
 
 // Hook 对外暴露的状态
 export type AniData = {
@@ -7,28 +7,34 @@ export type AniData = {
     loading: boolean;
     error: string | null;
     errors: Record<string, string>;
-    /** 刷新网络并重新加载，返回一个 Promise */
+    /** 刷新并重新加载，返回一个 Promise */
     refresh: () => Promise<void>;
 };
 
+interface UseAniDataOptions {
+    /** 如果提供，则查询该日期（格式：YYYY/MM/DD + 星期X），否则查询今日 */
+    dateStr?: string;
+    weekdayLabel?: string;
+}
 
-export function useAniData(): AniData {
+export function useAniData(options?: UseAniDataOptions): AniData {
     const [data, setData] = useState<Record<string, Ani[]>>({});
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [errors, setErrors] = useState<Record<string, string>>({});
+    const [errors] = useState<Record<string, string>>({});
 
-    // 重置 loading 和 error 状态
-    const resetState = useCallback(() => {
+    const { dateStr, weekdayLabel } = options ?? {};
+
+    const loadData = useCallback(async () => {
         setLoading(true);
         setError(null);
-        setErrors({});
-    }, []);
-    // 只从本地数据库加载
-    const loadData = useCallback(async () => {
-        resetState();
         try {
-            const res = await api.queryTodayUpdateAniList()
+            let res: Record<string, Ani[]>;
+            if (dateStr && weekdayLabel) {
+                res = await api.queryDateUpdateAniList(dateStr, weekdayLabel);
+            } else {
+                res = await api.queryTodayUpdateAniList();
+            }
             setData(res);
         } catch (e: unknown) {
             const err = e instanceof Error ? e : new Error('未知错误');
@@ -36,16 +42,13 @@ export function useAniData(): AniData {
         } finally {
             setLoading(false);
         }
-    }, [resetState]);
+    }, [dateStr, weekdayLabel]);
 
-    // 初次挂载只读取本地
     useEffect(() => {
         void loadData();
     }, [loadData]);
 
-    // 刷新时：先网络拉取再本地加载
     const refresh = useCallback(async () => {
-        //await fetchData();
         await loadData();
     }, [loadData]);
 
