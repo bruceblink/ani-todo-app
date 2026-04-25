@@ -48,6 +48,7 @@ export default function HistoryDataGrid({ isServer = true, searchQuery }: Props)
     const [open, setOpen] = useState(false);
     const [selectedAni, setSelectedAni] = useState<AniHistoryInfo | null>(null);
     const [clearAllOpen, setClearAllOpen] = useState(false);
+    const [deleteTarget, setDeleteTarget] = useState<AniHistoryInfo | null>(null);
     const triggerButtonRef = useRef<HTMLButtonElement | null>(null);
 
     // 自动同步 searchQuery 到 filterModel（服务端模式下）
@@ -114,6 +115,7 @@ export default function HistoryDataGrid({ isServer = true, searchQuery }: Props)
         try {
             await api.deleteWatchRecord(id);
             toast.success(`已删除《${title}》的观看记录`);
+            setDeleteTarget(null);
             await refresh();
         } catch (e) {
             toast.error(`删除失败：${e}`);
@@ -172,7 +174,7 @@ export default function HistoryDataGrid({ isServer = true, searchQuery }: Props)
             renderCell: (params: GridRenderCellParams<AniHistoryInfo>) => (
                 <button
                     title="删除此记录"
-                    onClick={() => handleDeleteRow(params.row.id, params.row.title)}
+                    onClick={() => setDeleteTarget(params.row)}
                     style={{
                         background: 'none',
                         border: 'none',
@@ -312,6 +314,28 @@ export default function HistoryDataGrid({ isServer = true, searchQuery }: Props)
                     </div>
                 </div>
             )}
+
+            {/* Single-row delete confirmation dialog */}
+            <Dialog open={!!deleteTarget} onClose={() => setDeleteTarget(null)}>
+                <DialogTitle>确认删除</DialogTitle>
+                <DialogContent>
+                    <DialogContentText>
+                        确定要删除《<strong>{deleteTarget?.title}</strong>》的观看记录吗？
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setDeleteTarget(null)} sx={{ color: 'text.secondary' }}>
+                        取消
+                    </Button>
+                    <Button
+                        onClick={() => deleteTarget && handleDeleteRow(deleteTarget.id, deleteTarget.title)}
+                        variant="contained"
+                        color="error"
+                    >
+                        确认删除
+                    </Button>
+                </DialogActions>
+            </Dialog>
 
             {/* Clear-all confirmation dialog */}
             <Dialog open={clearAllOpen} onClose={() => setClearAllOpen(false)}>
