@@ -1,45 +1,45 @@
 <div align="center">
 
-# Ani-Todo-App - 今天的番看完了吗？ 🎬
+# FanJi - 今天的番看完了吗？ 🎬
 
 </div>
 
 <p align="center">
-    <a href="https://github.com/bruceblink/ani-todo-app/releases/latest" target="_blank">
-        <img src="https://img.shields.io/github/v/release/bruceblink/ani-todo-app" alt="release-version">
+    <a href="https://github.com/bruceblink/FanJi/releases/latest" target="_blank">
+        <img src="https://img.shields.io/github/v/release/bruceblink/FanJi" alt="release-version">
     </a>
     <!-- total download -->
-    <a href="https://github.com/bruceblink/ani-todo-app/releases/latest" target="_blank">
-        <img src="https://img.shields.io/github/downloads/bruceblink/ani-todo-app/total" alt="downloads">
+    <a href="https://github.com/bruceblink/FanJi/releases/latest" target="_blank">
+        <img src="https://img.shields.io/github/downloads/bruceblink/FanJi/total" alt="downloads">
     </a>
     <!-- stars -->
-    <a href="https://github.com/bruceblink/ani-todo-app/stargazers" target="_blank">
-        <img src="https://img.shields.io/github/stars/bruceblink/ani-todo-app?" alt="stars">
+    <a href="https://github.com/bruceblink/FanJi/stargazers" target="_blank">
+        <img src="https://img.shields.io/github/stars/bruceblink/FanJi?" alt="stars">
     </a>
     <!-- forks -->
-    <a href="https://github.com/bruceblink/ani-todo-app/network/members" target="_blank">
-        <img src="https://img.shields.io/github/forks/bruceblink/ani-todo-app.svg?" alt="fork">
+    <a href="https://github.com/bruceblink/FanJi/network/members" target="_blank">
+        <img src="https://img.shields.io/github/forks/bruceblink/FanJi.svg?" alt="fork">
     </a>
     <!-- visitors -->
-    <a href="https://github.com/bruceblink/ani-todo-app" target="_blank">
-        <img src="https://api.visitorbadge.io/api/visitors?path=https%3A%2F%2Fgithub.com%2Fbruceblink%2Fani-todo-app&countColor=%23263759&style=flat"
+    <a href="https://github.com/bruceblink/FanJi" target="_blank">
+        <img src="https://api.visitorbadge.io/api/visitors?path=https%3A%2F%2Fgithub.com%2Fbruceblink%2FFanJi&countColor=%23263759&style=flat"
             alt="visitors">
     </a>
     <!-- license -->
-    <a href="https://github.com/bruceblink/ani-todo-app/blob/main/LICENSE" target="_blank">
-        <img src="https://img.shields.io/github/license/bruceblink/ani-todo-app" alt="license">
+    <a href="https://github.com/bruceblink/FanJi/blob/main/LICENSE" target="_blank">
+        <img src="https://img.shields.io/github/license/bruceblink/FanJi" alt="license">
     </a>
     <br>
     <!-- window -->
-    <a href="https://github.com/bruceblink/ani-todo-app/releases/latest" target="_blank">
+    <a href="https://github.com/bruceblink/FanJi/releases/latest" target="_blank">
         <img src="https://img.shields.io/badge/Windows-0078D6?style=flat&logo=windows&logoColor=white" alt="window">
     </a>
     <!-- macos -->
-    <a href="https://github.com/bruceblink/ani-todo-app/releases/latest" target="_blank">
+    <a href="https://github.com/bruceblink/FanJi/releases/latest" target="_blank">
         <img src="https://img.shields.io/badge/MACOS-adb8c5?style=flat&logo=macos&logoColor=white" alt="macos">
     </a>
     <!-- linux -->
-    <a href="https://github.com/bruceblink/ani-todo-app/releases/latest" target="_blank">
+    <a href="https://github.com/bruceblink/FanJi/releases/latest" target="_blank">
         <img src="https://img.shields.io/badge/linux-1793D1?style=flat&logo=linux&logoColor=white" alt="linux">
     </a>
     <br>
@@ -81,18 +81,18 @@
   </tr>
   <tr>
     <td><b>Windows</b></td>
-    <td><a href='https://github.com/bruceblink/ani-todo-app/releases/download/v1.0.0/AniTodo_1.0.0_x64-setup.exe'>AniTodo.exe</a></td>
+    <td><a href='https://github.com/bruceblink/FanJi/releases/download/v1.0.0/FanJi_1.0.0_x64-setup.exe'>FanJi.exe</a></td>
   </tr>
   <tr>
     <td><b>macOS</b></td>
-    <td><a href='https://github.com/bruceblink/ani-todo-app/releases/download/v1.0.0/AniTodo_1.0.0_universal.dmg'>AniTodo.dmg</a></td>
+    <td><a href='https://github.com/bruceblink/FanJi/releases/download/v1.0.0/FanJi_1.0.0_universal.dmg'>FanJi.dmg</a></td>
   <tr>
     <td><b>Linux </b></td>
-    <td><a href='https://github.com/bruceblink/ani-todo-app/releases/download/v1.0.0/AniTodo_1.0.0_amd64.deb'>AniTodo.deb</a></td>
+    <td><a href='https://github.com/bruceblink/FanJi/releases/download/v1.0.0/FanJi_1.0.0_amd64.deb'>FanJi.deb</a></td>
   </tr>
 </table>
 
-更多的下载选择 [GitHub Releases](https://github.com/bruceblink/ani-todo-app/releases).
+更多的下载选择 [GitHub Releases](https://github.com/bruceblink/FanJi/releases).
 
 ## 使用说明
 
@@ -100,8 +100,8 @@
 
 1. 克隆仓库到本地：
     ```bash
-      git clone https://github.com/bruceblink/ani-todo-app
-      cd ani-todo-app
+      git clone https://github.com/bruceblink/FanJi
+      cd FanJi
     ```
 
 2. 本地运行：
@@ -115,7 +115,7 @@
 4. 配置文件路径(Windows系统)
 
     ```text
-      C:\Users\{username}\AppData\Roaming\{ani-todo-app}\config.yaml
+      C:\Users\{username}\AppData\Roaming\{FanJi}\config.yaml
       格式为{AppData}\Roaming\{app_name}\config.yaml
     ```
     
@@ -126,7 +126,7 @@
     
 ## 项目文件说明
 ```txt
-ani-todo-app/
+FanJi/
 ├── README.md                     项目说明文档
 ├── LICENSE                       项目许可证文件
 ├── public/                       前端公共资源目录
@@ -188,7 +188,7 @@ ani-todo-app/
 
 如有任何问题或建议，欢迎通过以下方式联系：
 
-- 提交 [Issue](https://github.com/bruceblink/ani-todo-app/issues)
+- 提交 [Issue](https://github.com/bruceblink/FanJi/issues)
 - [发送邮件](mailto:likanug.g@qq.com)
 
 ## 致谢
