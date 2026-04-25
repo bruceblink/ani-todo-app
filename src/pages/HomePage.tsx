@@ -98,38 +98,3 @@ export default function HomePage({ searchQuery }: HomePageProps) {
         </div>
     );
 }
-
-    const today = Object.keys(data)[0];
-    const aniList = data[today] as Ani[];
-    const filteredAniList = fuzzySearch(aniList, searchQuery, ['title', 'platform']);
-    const favoriteList = filteredAniList.filter(ani => favoriteAniItems.has(ani.id));
-
-    return (
-        <div
-            style={{
-                display: 'flex',
-                flexDirection: 'column',
-                width: '100%',
-                margin: '0 auto',
-            }}
-        >
-            <AniSummary
-                weekday={today}
-                total={aniList.length}
-                onFilterChange={handleFilterChange}
-                showFavorite={showFavorite}
-            />
-            <div
-                style={{
-                    padding: '0 24px',
-                    boxSizing: 'border-box',
-                    maxWidth: '960px',
-                    margin: '0 auto',
-                    width: '100%',
-                }}
-            >
-                <AniList list={showFavorite ? favoriteList : filteredAniList} />
-            </div>
-        </div>
-    );
-}
