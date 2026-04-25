@@ -1,42 +1,72 @@
-import {useWatchedAni} from "@/hooks/useWatchedAni.ts";
-
+import { useWatchedAni } from "@/hooks/useWatchedAni.ts";
 
 interface Props {
     weekday: string;
     total: number;
 }
 
-export default function AniStat({ weekday, total}: Props) {
-
+export default function AniStat({ weekday, total }: Props) {
     const { watchedAniIds } = useWatchedAni();
     const watchedNum = watchedAniIds.size;
     const percentage = total > 0 ? Math.round((watchedNum / total) * 100) : 0;
+    const isDone = percentage === 100 && total > 0;
 
-    return(
-        <>
-            <div style={{ flex: 1, minWidth: '200px' }}>
-                <h1 style={{
-                    margin: 0,
-                    fontSize: '1.5rem',
-                    fontWeight: 600,
-                    color: 'var(--text-color, #333)'
-                }}>
-                    今天({weekday})更新番剧 共 {total} 部
-                </h1>
-                <div style={{ marginTop: 8, fontSize: '1rem', color: 'var(--sub-text-color, #555)' }}>
-                    已观看 {watchedNum} 部 — {percentage}% 完成
-                </div>
-                <div style={{ width: 200, height: 12, background: 'var(--progress-bg, #ddd)', borderRadius: 6, overflow: 'hidden', margin: '12px 0 0 0' }}>
+    return (
+        <div style={{ flex: 1, minWidth: '180px' }}>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                <span
+                    style={{
+                        fontSize: '1.2rem',
+                        fontWeight: 700,
+                        color: 'var(--text-primary)',
+                    }}
+                >
+                    {weekday}更新
+                </span>
+                <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
+                    共 {total} 部
+                </span>
+            </div>
+
+            <div
+                style={{
+                    marginTop: 8,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 10,
+                }}
+            >
+                <div
+                    style={{
+                        flex: 1,
+                        maxWidth: 160,
+                        height: 5,
+                        background: 'var(--progress-bg)',
+                        borderRadius: 3,
+                        overflow: 'hidden',
+                    }}
+                >
                     <div
                         style={{
                             width: `${percentage}%`,
                             height: '100%',
-                            background: 'var(--progress-fill, #afe1b0)',
-                            transition: 'width 0.3s ease',
+                            background: isDone ? 'var(--color-success)' : 'var(--progress-fill)',
+                            borderRadius: 3,
+                            transition: 'width 0.4s ease',
                         }}
                     />
                 </div>
+                <span
+                    style={{
+                        fontSize: '0.78rem',
+                        color: isDone ? 'var(--color-success)' : 'var(--text-secondary)',
+                        whiteSpace: 'nowrap',
+                        fontWeight: isDone ? 600 : 400,
+                    }}
+                >
+                    {watchedNum}/{total} · {percentage}%
+                </span>
             </div>
-        </>
-    )
+        </div>
+    );
 }
