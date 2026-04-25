@@ -496,7 +496,7 @@ pub async fn list_all_ani_history_data(
                     platform,
                     COUNT(*) OVER() AS total_count  -- 总条数使用窗口函数SQLite 3.25+ 支持
                 FROM ani_info ai
-                LEFT JOIN ani_watch_history awh
+                INNER JOIN ani_watch_history awh
                        ON ai.id = awh.ani_item_id
                 ORDER BY ai.update_time DESC
                 LIMIT ? OFFSET ?
