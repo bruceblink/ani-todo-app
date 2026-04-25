@@ -1,5 +1,5 @@
 [package]
-name = "ani-todo-app"               # Crate 名称，对应二进制的 name
+name = "fan-ji"                 # Crate 名称，对应二进制的 name
 version.workspace = true
 edition.workspace = true
 description.workspace = true

@@ -195,7 +195,7 @@ pub fn start_async_timer_task(handle: &AppHandle, config_path: PathBuf) {
                                 if let Err(e) = handle_inner
                                     .notification()
                                     .builder()
-                                    .title("AniTodo 新番更新")
+                                    .title("FanJi 新番更新")
                                     .body(&body)
                                     .show()
                                 {

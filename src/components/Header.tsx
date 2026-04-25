@@ -78,7 +78,7 @@ export default function Header({ onSearchChange }: HeaderProps) {
                             letterSpacing: '-0.02em',
                         }}
                     >
-                        AniTodo
+                        FanJi
                     </span>
                 </Link>
 

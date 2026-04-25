@@ -94,7 +94,7 @@ export default function AboutPage() {
                     <Tv size={30} color="#fff" strokeWidth={2} />
                 </div>
 
-                <h2 className="about-title">AniTodo</h2>
+                <h2 className="about-title">FanJi</h2>
 
                 <div className="about-version">v{appVersion}</div>
 
