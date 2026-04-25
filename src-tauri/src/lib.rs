@@ -11,6 +11,7 @@ use crate::command::service::{
     cancel_collect_ani_item, collect_ani_item, query_ani_history_list,
     query_favorite_ani_update_list, query_today_update_ani_list, query_watched_ani_item_list,
     save_ani_item_data, watch_ani_item, query_date_update_ani_list,
+    delete_watch_history_item, clear_all_watch_history_records,
 };
 use crate::configuration::init_config;
 use crate::db::sqlite::init_and_migrate_db;
@@ -89,6 +90,8 @@ pub fn run() {
             install_update,
             restart_app,
             query_date_update_ani_list,
+            delete_watch_history_item,
+            clear_all_watch_history_records,
         ])
         .on_window_event(|window, event| {
             if let tauri::WindowEvent::CloseRequested { api, .. } = event {

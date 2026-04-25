@@ -423,6 +423,23 @@ pub async fn upsert_ani_watch_history(pool: &SqlitePool, item: &AniWatch) -> Res
     Ok(())
 }
 
+pub async fn delete_watch_record(pool: &SqlitePool, ani_item_id: i64) -> Result<()> {
+    sqlx::query("DELETE FROM ani_watch_history WHERE ani_item_id = ?")
+        .bind(ani_item_id)
+        .execute(pool)
+        .await
+        .map_err(|e| anyhow::anyhow!("删除观看记录失败: {}", e))?;
+    Ok(())
+}
+
+pub async fn clear_all_watch_history(pool: &SqlitePool) -> Result<()> {
+    sqlx::query("DELETE FROM ani_watch_history")
+        .execute(pool)
+        .await
+        .map_err(|e| anyhow::anyhow!("清空观看历史失败: {}", e))?;
+    Ok(())
+}
+
 /// 查询所有关注的动漫今日的更新
 pub async fn list_all_follow_ani_update_today(
     pool: &SqlitePool,

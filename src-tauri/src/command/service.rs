@@ -4,7 +4,7 @@ use crate::db::po::{AniColl, AniDto, AniIResult, AniWatch};
 use crate::db::sqlite::{
     delete_ani_collect, list_all_ani_history_data, list_all_ani_info_watched_today,
     list_all_ani_update_today, list_all_follow_ani_update_today, upsert_ani_collect,
-    upsert_ani_watch_history, list_ani_update_by_date,
+    upsert_ani_watch_history, list_ani_update_by_date, delete_watch_record, clear_all_watch_history,
 };
 use crate::types::{AniItemResult, ApiResponse, PageData};
 use crate::utils::date_utils::{
@@ -218,4 +218,31 @@ pub async fn query_date_update_ani_list(
     map.insert(weekday_label, dtos);
 
     Ok(ApiResponse::ok(json!(map)))
+}
+
+/// 删除单条观看历史记录
+#[tauri::command]
+pub async fn delete_watch_history_item(
+    state: State<'_, Arc<AppState>>,
+    ani_id: i64,
+) -> Result<ApiResponse, String> {
+    let pool = ge_db_pool(&state.db);
+    if let Err(e) = delete_watch_record(pool, ani_id).await {
+        return Ok(ApiResponse::err(format!("删除失败：{e}")));
+    }
+    debug!("已删除观看记录：id={ani_id}");
+    Ok(ApiResponse::ok(json!({ "message": "delete success" })))
+}
+
+/// 清空所有观看历史记录
+#[tauri::command]
+pub async fn clear_all_watch_history_records(
+    state: State<'_, Arc<AppState>>,
+) -> Result<ApiResponse, String> {
+    let pool = ge_db_pool(&state.db);
+    if let Err(e) = clear_all_watch_history(pool).await {
+        return Ok(ApiResponse::err(format!("清空失败：{e}")));
+    }
+    debug!("已清空所有观看历史");
+    Ok(ApiResponse::ok(json!({ "message": "clear success" })))
 }

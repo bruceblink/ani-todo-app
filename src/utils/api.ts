@@ -159,6 +159,14 @@ export type ApiCommands = FetchCommandsMap & {
         args: { dateStr: string; weekdayLabel: string }
         result: Record<string, Ani[]>
     }
+    delete_watch_history_item: {
+        args: { aniId: number }
+        result: { message: string }
+    }
+    clear_all_watch_history_records: {
+        args: undefined
+        result: { message: string }
+    }
 }
 
 /**
@@ -241,4 +249,16 @@ export const api = {
      */
     queryDateUpdateAniList: (dateStr: string, weekdayLabel: string) =>
         invokeApi('query_date_update_ani_list', { dateStr, weekdayLabel }),
+
+    /**
+     * 删除单条观看历史记录
+     */
+    deleteWatchRecord: (aniId: number) =>
+        invokeApi('delete_watch_history_item', { aniId }),
+
+    /**
+     * 清空所有观看历史记录
+     */
+    clearAllWatchHistory: () =>
+        invokeApi('clear_all_watch_history_records', undefined),
 }
