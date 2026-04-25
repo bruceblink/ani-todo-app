@@ -64,10 +64,15 @@
 
 ## 功能特点
 - 🔄 自动更新：自动抓取各大视频平台的动漫最新更新信息
-- ⚙️ 新增配置文件支持cron表达式自定义更新频率
-- 📺 多平台支持：目前支~~持蜜柑计划(自己手动开启设置)~~、腾讯视频、哔哩哔哩、爱奇艺和优酷, AGE动漫等 后续将支持更多视频平台
-- 🎯 关注更新：可以关注特定动漫，获取最新更新信息
-- 💾 数据本地存储：所有信息保存在本地sqlite数据库中，方便查询和管理
+- ⚙️ 新增配置文件支持 cron 表达式自定义更新频率
+- 📺 多平台支持：目前支持腾讯视频、哔哩哔哩、爱奇艺、优酷、AGE动漫等，后续将支持更多视频平台
+- 🗓️ 周导航：可按日期切换查看任意一天的番剧更新
+- 🎯 关注追踪：可关注特定番剧，只看自己在追的番
+- ✅ 一键全部已看：一键将当前列表所有番剧标记为已看
+- 🔀 排序支持：番剧列表可按更新时间 / 平台 / 标题排序
+- 🗑️ 历史管理：可删除单条或清空全部观看历史记录
+- 💾 本地存储：所有数据保存在本地 SQLite 数据库，无需联网登录
+- 🌙 深色 / 浅色主题：支持系统主题自动跟随及手动切换
 
 ## 安装
 
@@ -80,17 +85,16 @@
   </tr>
   <tr>
     <td><b>Windows</b></td>
-    <td><a href='https://github.com/bruceblink/ani-todo-app/releases/download/v0.4.9/AniTodo_0.4.9_x64-setup.exe'>AniTodo.exe</a></td>
+    <td><a href='https://github.com/bruceblink/ani-todo-app/releases/download/v1.0.0/AniTodo_1.0.0_x64-setup.exe'>AniTodo.exe</a></td>
   </tr>
   <tr>
     <td><b>macOS</b></td>
-    <td><a href='https://github.com/bruceblink/ani-todo-app/releases/download/v0.4.9/AniTodo_0.4.9_universal.dmg'>AniTodo.dmg</a></td>
+    <td><a href='https://github.com/bruceblink/ani-todo-app/releases/download/v1.0.0/AniTodo_1.0.0_universal.dmg'>AniTodo.dmg</a></td>
   <tr>
     <td><b>Linux </b></td>
-    <td><a href='https://github.com/bruceblink/ani-todo-app/releases/download/v0.4.9/AniTodo_0.4.9_amd64.deb'>AniTodo.deb</a></td>
+    <td><a href='https://github.com/bruceblink/ani-todo-app/releases/download/v1.0.0/AniTodo_1.0.0_amd64.deb'>AniTodo.deb</a></td>
   </tr>
 </table>
-
 
 更多的下载选择 [GitHub Releases](https://github.com/bruceblink/ani-todo-app/releases).
 
@@ -152,6 +156,15 @@ ani-todo-app/
 3. 提交你的修改
 4. 发起 Pull Request
 
+## 更新日志
+
+### v1.0.0 (2026-04-25)
+- ✅ 新增「一键全部已看」功能，批量标记当前列表所有番剧为已看
+- 🔀 新增番剧列表排序（按更新时间 / 平台 / 标题）
+- 🗑️ 新增观看历史删除功能（逐条删除 & 一键清空）
+- 🌙 修复手动切换浅色模式不生效的问题
+- 🎨 历史页面新增行进入动画，体验更流畅
+
 ## 未来计划
 
 - [x] 支持更多视频平台
@@ -164,9 +177,13 @@ ani-todo-app/
 - [x] 添加图形用户界面（GUI）
 - [x] 🎯 个性化追踪：可以根据个人喜好设置关注的节目
 - [x] 支持简单搜索
+- [x] ✅ 一键全部已看
+- [x] 🔀 番剧列表排序
+- [x] 🗑️ 历史记录删除 / 清空
 - [ ] 📅 每日更新提醒：及时获取最新剧集更新信息
 - [ ] 添加导出功能
 - [ ] ...更多功能
+
 ## 许可证
 
 本项目采用 MIT 许可证 - 详情请查看 [LICENSE](LICENSE) 文件
@@ -186,7 +203,7 @@ ani-todo-app/
 
 **注意**：本项目仅用于个人学习和研究使用，请勿用于任何商业用途。在使用过程中请遵守相关网站的使用条款和规定。
 
-[badge-version]: https://img.shields.io/badge/version-0.4.9-blue
+[badge-version]: https://img.shields.io/badge/version-1.0.0-blue
 
 [badge-platforms]: https://img.shields.io/badge/platforms-macOS%2C%20Windows%2C%20Linux%2C%20-green
 
