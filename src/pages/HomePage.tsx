@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { listen } from "@tauri-apps/api/event";
 import { toast } from "react-hot-toast";
 import AniList from "@/components/AniList.tsx";

@@ -1,4 +1,5 @@
 import { createTheme, type PaletteMode } from '@mui/material/styles';
+import type {} from '@mui/x-data-grid/themeAugmentation';
 
 export function buildTheme(mode: PaletteMode) {
     const isDark = mode === 'dark';
