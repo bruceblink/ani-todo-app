@@ -40,6 +40,7 @@ async-trait.workspace = true
 num_cpus.workspace = true
 tauri-plugin-single-instance.workspace = true
 tauri-plugin-dialog.workspace = true
+tauri-plugin-updater.workspace = true
 url.workspace = true
 
 [dev-dependencies]  # 仅用于测试
