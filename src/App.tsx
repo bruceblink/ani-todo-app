@@ -1,18 +1,20 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import {Box, ThemeProvider} from "@mui/material";
+import { Box, ThemeProvider, useMediaQuery } from "@mui/material";
 import { Toaster } from "react-hot-toast";
+import { useMemo } from "react";
 
-// 导入你的页面组件
-import theme from "@/theme.ts";
+import { buildTheme } from "@/theme.ts";
 import HomePage from "@/pages/HomePage.tsx";
 import Header from "@/components/Header.tsx";
 import HistoryPage from "@/pages/HistoryPage.tsx";
 import AboutPage from "@/pages/AboutPage.tsx";
-import {useState} from "react";
+import { useState } from "react";
 import BackToTop from "@/components/BackToTop.tsx";
 
 export default function App() {
     const [searchValue, setSearchValue] = useState("");
+    const prefersDark = useMediaQuery('(prefers-color-scheme: dark)');
+    const theme = useMemo(() => buildTheme(prefersDark ? 'dark' : 'light'), [prefersDark]);
 
     return (
         <ThemeProvider theme={theme}>
@@ -21,7 +23,7 @@ export default function App() {
 
                 <Box
                     component="main"
-                    sx={{ paddingTop: '80px', width: '100%', margin: '0 auto', boxSizing: 'border-box' }}
+                    sx={{ paddingTop: '64px', width: '100%', margin: '0 auto', boxSizing: 'border-box' }}
                 >
                     <Routes>
                         <Route path="/" element={<HomePage searchQuery={searchValue} />} />

@@ -16,6 +16,7 @@ export default function HistoryPage({ searchQuery }: HistoryPageProps) {
                 maxWidth: '1280px',
                 margin: '0 auto',
                 boxSizing: 'border-box',
+                color: 'text.primary',
             }}
         >
             <Typography component="h2" variant="h6" sx={{ mb: 2 }}>
