@@ -36,7 +36,7 @@ export default function AboutPage() {
     const [appVersion, setAppVersion] = useState<string>('...');
 
     useEffect(() => {
-        getVersion().then(setAppVersion).catch(() => setAppVersion('0.4.9'));
+        getVersion().then(setAppVersion).catch(() => setAppVersion('1.0.0'));
     }, []);
 
     useEffect(() => {

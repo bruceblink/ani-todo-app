@@ -27,7 +27,6 @@ export function useAniHistoryData(
         setError(null);
 
         try {
-            console.log(filterModel)
             const res = await api.queryAniHistoryList({
                 page: isServer ? page : 1,
                 pageSize: isServer ? pageSize : Number.MAX_SAFE_INTEGER, // 本地模式一次性拉全量

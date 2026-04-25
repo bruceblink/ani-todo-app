@@ -11,7 +11,7 @@ const FavoriteAniContext = createContext<FavoriteAniCtx | null>(null)
 
 const useFavoriteAni = () => {
     const ctx = useContext(FavoriteAniContext)
-    if (!ctx) throw new Error('useWatchedAni must be inside WatchedAniProvider')
+    if (!ctx) throw new Error('useFavoriteAni must be inside FavoriteAniProvider')
     return ctx
 }
 

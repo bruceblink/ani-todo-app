@@ -308,7 +308,7 @@ export default function HistoryDataGrid({ isServer = true, searchQuery }: Props)
                                 platform: selectedAni?.platform ?? '',
                             }}
                             onClear={handleClearAndRefresh}
-                            isFavorite={favoriteAniItems.has(selectedAni?.title ?? '')}
+                            isFavorite={favoriteAniItems.has(selectedAni?.id ?? 0)}
                             onToggleFavorite={handleFavor}
                         />
                     </div>
