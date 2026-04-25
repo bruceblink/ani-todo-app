@@ -149,7 +149,9 @@ export default function HistoryDataGrid({ isServer = true, searchQuery }: Props)
             <div
                 key={loading ? 'loading' : 'loaded'}
                 style={loading ? undefined : {
-                    animation: 'fadeInUp 0.25s ease forwards',
+                    animation: 'fadeInUp 0.38s ease-out forwards',
+                    animationDelay: '0.08s',
+                    opacity: 0,
                 }}
             >
             <DataGrid
