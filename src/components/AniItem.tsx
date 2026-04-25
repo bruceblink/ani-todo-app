@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { toast } from "react-hot-toast";
-import { Star, X } from "lucide-react";
+import { Star, Check } from "lucide-react";
 import type { Ani } from "@/utils/api";
 import AniInfo from "./AniInfo";
 
@@ -25,23 +25,19 @@ interface Props {
 }
 
 export default function AniItem({
-                                    ani,
-                                    onClear,
-                                    isFavorite,
-                                    onToggleFavorite,
-                                }: Props) {
+    ani,
+    onClear,
+    isFavorite,
+    onToggleFavorite,
+}: Props) {
     const aniInfo = `《${ani.title}》第${ani.update_count}集`;
     const [isHovered, setIsHovered] = useState(false);
     const [open, setOpen] = useState(false);
 
-    const handleClearClick = () => {
-        setOpen(true); // 打开确认弹窗
-    };
-
     const handleFavorClick = () => {
         onToggleFavorite(ani.id, ani.title, isFavorite);
         toast(
-            isFavorite ? `已取消关注《${ani.title}》` : `关注了《${ani.title}》`,
+            isFavorite ? `已取消关注《${ani.title}》` : `已关注《${ani.title}》`,
             { icon: isFavorite ? "💔" : "⭐️" }
         );
     };
@@ -51,124 +47,117 @@ export default function AniItem({
         if (isFavorite) {
             onToggleFavorite(ani.id, ani.title, 0);
         }
-        toast.success(`已经观看了${aniInfo} 这部番剧`);
-        setOpen(false);
-    };
-
-    const handleCancel = () => {
+        toast.success(`已标记观看 ${aniInfo}`);
         setOpen(false);
     };
 
     return (
         <>
             <div
-                className="ani-item"
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
                 style={{
-                    display: "flex",
-                    alignItems: "flex-start",
-                    gap: 16,
-                    position: "relative",
-                    padding: 16,
-                    background: "#fff",
-                    borderRadius: 12,
+                    position: 'relative',
+                    background: 'var(--bg-surface)',
+                    borderRadius: 14,
+                    border: `1.5px solid ${isHovered ? 'var(--color-primary)' : 'var(--border-color)'}`,
                     boxShadow: isHovered
-                        ? "0 16px 32px rgba(0,0,0,0.12), 0 6px 16px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.04)"
-                        : "0 1px 3px rgba(0,0,0,0.1)",
-                    border: `1px solid ${isHovered ? "#646cff" : "#eee"}`,
-                    transition:
-                        "transform 0.3s cubic-bezier(0.25,0.8,0.25,1), box-shadow 0.3s cubic-bezier(0.25,0.8,0.25,1), border-color 0.3s ease",
-                    cursor: "default",
-                    width: "100%",
-                    height: "100%",
-                    boxSizing: "border-box",
-                    transform: isHovered ? "translateY(-6px) scale(1.02)" : "none",
-                    minHeight: "100%",
+                        ? 'var(--shadow-lg), 0 0 0 3px var(--color-primary-light)'
+                        : 'var(--shadow-sm)',
+                    transition: 'all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1)',
+                    transform: isHovered ? 'translateY(-4px)' : 'none',
+                    cursor: 'default',
+                    width: '100%',
+                    height: '100%',
+                    overflow: 'hidden',
                 }}
             >
-                {/* 关注按钮 */}
+                {/* Favorite button */}
                 <button
                     onClick={handleFavorClick}
                     style={{
-                        position: "absolute",
+                        position: 'absolute',
                         top: 8,
                         left: 8,
-                        width: 32,
-                        height: 32,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
+                        width: 30,
+                        height: 30,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
                         padding: 0,
-                        background: isHovered ? "#fff" : "rgba(255,255,255,0.9)",
-                        backdropFilter: "blur(4px)",
-                        borderRadius: "50%",
-                        border: "none",
-                        cursor: "pointer",
-                        transition: "all 0.2s ease",
+                        background: isFavorite
+                            ? 'rgba(245, 158, 11, 0.12)'
+                            : 'rgba(255,255,255,0.85)',
+                        backdropFilter: 'blur(4px)',
+                        borderRadius: '50%',
+                        border: isFavorite ? '1.5px solid rgba(245,158,11,0.3)' : 'none',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
                         opacity: isFavorite ? 1 : isHovered ? 1 : 0,
-                        transform: `scale(${isFavorite ? 1 : isHovered ? 1 : 0.8})`,
+                        transform: `scale(${isFavorite || isHovered ? 1 : 0.7})`,
                         zIndex: 10,
                     }}
                     title={isFavorite ? "取消关注" : "关注"}
                 >
                     <Star
-                        size={18}
-                        fill={isFavorite ? "#FBBF24" : "none"}
-                        color={isFavorite ? "#FBBF24" : "#666"}
-                        strokeWidth={2.5}
+                        size={15}
+                        fill={isFavorite ? "#F59E0B" : "none"}
+                        color={isFavorite ? "#F59E0B" : "#9ca3af"}
+                        strokeWidth={2}
                     />
                 </button>
 
-                {/* 标记为已观看 */}
+                {/* Mark watched button */}
                 <button
-                    onClick={handleClearClick}
+                    onClick={() => setOpen(true)}
                     style={{
-                        position: "absolute",
+                        position: 'absolute',
                         top: 8,
                         right: 8,
-                        width: 32,
-                        height: 32,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
+                        width: 30,
+                        height: 30,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
                         padding: 0,
                         background: isHovered
-                            ? "rgba(255,59,48,0.95)"
-                            : "rgba(255,255,255,0.9)",
-                        backdropFilter: "blur(4px)",
-                        borderRadius: "50%",
-                        border: "none",
-                        cursor: "pointer",
-                        transition: "all 0.2s ease",
-                        boxShadow: isHovered
-                            ? "0 4px 8px rgba(255,59,48,0.25)"
-                            : "0 2px 4px rgba(0,0,0,0.1)",
+                            ? 'rgba(16, 185, 129, 0.9)'
+                            : 'rgba(255,255,255,0.85)',
+                        backdropFilter: 'blur(4px)',
+                        borderRadius: '50%',
+                        border: 'none',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                        boxShadow: isHovered ? '0 2px 8px rgba(16,185,129,0.3)' : 'none',
                         opacity: isHovered ? 1 : 0,
-                        transform: `scale(${isHovered ? 1 : 0.8})`,
-                        color: isHovered ? "#fff" : "#666",
+                        transform: `scale(${isHovered ? 1 : 0.7})`,
                         zIndex: 10,
                     }}
                     title="标记为已观看"
                 >
-                    <X size={18} color={isHovered ? "#fff" : "#666"} strokeWidth={2.5} />
+                    <Check
+                        size={15}
+                        color={isHovered ? "#fff" : "#9ca3af"}
+                        strokeWidth={2.5}
+                    />
                 </button>
 
                 <AniInfo ani={ani} />
             </div>
 
-            {/* MUI Dialog */}
-            <Dialog open={open} onClose={handleCancel}>
+            <Dialog open={open} onClose={() => setOpen(false)}>
                 <DialogTitle>确认观看</DialogTitle>
                 <DialogContent>
                     <DialogContentText>
-                        你确定观看过 <strong>{aniInfo}</strong> 这部番剧吗？
+                        确认已观看 <strong>{aniInfo}</strong>？
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleCancel}>取消</Button>
-                    <Button onClick={handleConfirm} color="error">
-                        确认
+                    <Button onClick={() => setOpen(false)} sx={{ color: 'text.secondary' }}>
+                        取消
+                    </Button>
+                    <Button onClick={handleConfirm} variant="contained" color="success">
+                        确认观看
                     </Button>
                 </DialogActions>
             </Dialog>
