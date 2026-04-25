@@ -12,6 +12,7 @@ export default function Header({ onSearchChange }: HeaderProps) {
     const isHomePage = location.pathname === "/";
     const isFavoritesPage = location.pathname === "/favorites";
     const isAboutPage = location.pathname === "/about";
+    const isSettingsPage = location.pathname === "/settings";
 
     const [menuOpen, setMenuOpen] = useState(false);
     const handleLinkClick = () => setMenuOpen(false);
@@ -19,6 +20,7 @@ export default function Header({ onSearchChange }: HeaderProps) {
     const navItems = [
         { to: "/", label: "今日更新", active: isHomePage },
         { to: "/favorites", label: "观看历史", active: isFavoritesPage },
+        { to: "/settings", label: "设置", active: isSettingsPage },
         { to: "/about", label: "关于", active: isAboutPage },
     ];
 

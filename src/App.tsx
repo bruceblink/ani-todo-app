@@ -1,23 +1,25 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { Box, ThemeProvider, useMediaQuery } from "@mui/material";
+import { Box, ThemeProvider as MuiThemeProvider } from "@mui/material";
 import { Toaster } from "react-hot-toast";
 import { useMemo } from "react";
 
 import { buildTheme } from "@/theme.ts";
+import { ThemeProvider, useTheme } from "@/contexts/ThemeContext";
 import HomePage from "@/pages/HomePage.tsx";
 import Header from "@/components/Header.tsx";
 import HistoryPage from "@/pages/HistoryPage.tsx";
 import AboutPage from "@/pages/AboutPage.tsx";
+import SettingsPage from "@/pages/SettingsPage.tsx";
 import { useState } from "react";
 import BackToTop from "@/components/BackToTop.tsx";
 
-export default function App() {
+function AppInner() {
     const [searchValue, setSearchValue] = useState("");
-    const prefersDark = useMediaQuery('(prefers-color-scheme: dark)');
-    const theme = useMemo(() => buildTheme(prefersDark ? 'dark' : 'light'), [prefersDark]);
+    const { resolvedDark } = useTheme();
+    const theme = useMemo(() => buildTheme(resolvedDark ? 'dark' : 'light'), [resolvedDark]);
 
     return (
-        <ThemeProvider theme={theme}>
+        <MuiThemeProvider theme={theme}>
             <Router>
                 <Header onSearchChange={setSearchValue} />
 
@@ -29,6 +31,7 @@ export default function App() {
                         <Route path="/" element={<HomePage searchQuery={searchValue} />} />
                         <Route path="/about" element={<AboutPage />} />
                         <Route path="/favorites" element={<HistoryPage searchQuery={searchValue} />} />
+                        <Route path="/settings" element={<SettingsPage />} />
                     </Routes>
                 </Box>
 
@@ -41,6 +44,14 @@ export default function App() {
                     }}
                 />
             </Router>
+        </MuiThemeProvider>
+    );
+}
+
+export default function App() {
+    return (
+        <ThemeProvider>
+            <AppInner />
         </ThemeProvider>
     );
 }
