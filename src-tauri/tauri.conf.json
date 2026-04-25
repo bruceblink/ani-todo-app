@@ -7,7 +7,7 @@
       "version": "2.0.0"
     },
     "updater": {
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDlENTg0QjAwQjI1NUM4RTQKUldUa3lGV3lBRXRZblU2N2E1cXVySFU5anRHY0JWNUcrRm41SXJOK1RZZFJ0M3ltOTZ1R0NtckYK",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEZBNkExMDhDRTA1MjAzNTkKUldSWkExTGdqQkJxK3JmUVlIOFJyaUh2TnpkZE03bVNadUtjL3JicnA5Zk5ybnpuQkxMQ1Fza0YK",
       "endpoints": [
         "https://github.com/bruceblink/ani-todo-app/releases/latest/download/latest.json"
       ],
