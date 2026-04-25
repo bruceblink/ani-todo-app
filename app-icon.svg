@@ -1,0 +1,142 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <!-- Background gradient: indigo → violet -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#5b5fd6"/>
+      <stop offset="100%" stop-color="#9055d4"/>
+    </linearGradient>
+
+    <!-- TV body: white → soft lavender -->
+    <linearGradient id="tvGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%"   stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#ede9fe"/>
+    </linearGradient>
+
+    <!-- Screen: deep indigo -->
+    <linearGradient id="screenGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%"   stop-color="#2e1065"/>
+      <stop offset="100%" stop-color="#1e1b4b"/>
+    </linearGradient>
+
+    <!-- Star centre glow -->
+    <radialGradient id="starGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%"   stop-color="#fbbf24" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#fbbf24" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Badge green gradient -->
+    <linearGradient id="badgeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#34d399"/>
+      <stop offset="100%" stop-color="#059669"/>
+    </linearGradient>
+
+    <!-- TV drop shadow -->
+    <filter id="tvShadow" x="-12%" y="-8%" width="124%" height="128%">
+      <feDropShadow dx="0" dy="14" stdDeviation="22" flood-color="rgba(0,0,0,0.28)"/>
+    </filter>
+
+    <!-- Badge drop shadow -->
+    <filter id="badgeShadow" x="-25%" y="-25%" width="150%" height="150%">
+      <feDropShadow dx="0" dy="6" stdDeviation="10" flood-color="rgba(5,150,105,0.45)"/>
+    </filter>
+  </defs>
+
+  <!-- ── Background ── -->
+  <rect width="1024" height="1024" rx="220" fill="url(#bgGrad)"/>
+  <!-- Subtle top-half highlight -->
+  <rect width="1024" height="540" rx="220" fill="white" opacity="0.055"/>
+
+  <!-- ── Antennas ── -->
+  <!-- Left antenna -->
+  <line x1="372" y1="208" x2="308" y2="106"
+        stroke="white" stroke-width="30" stroke-linecap="round" opacity="0.72"/>
+  <circle cx="308" cy="90" r="34" fill="white" opacity="0.78"/>
+  <!-- Right antenna -->
+  <line x1="652" y1="208" x2="716" y2="106"
+        stroke="white" stroke-width="30" stroke-linecap="round" opacity="0.72"/>
+  <circle cx="716" cy="90" r="34" fill="white" opacity="0.78"/>
+
+  <!-- ── TV body ── -->
+  <rect x="108" y="202" width="808" height="516" rx="60"
+        fill="url(#tvGrad)" filter="url(#tvShadow)"/>
+
+  <!-- Screen bezel -->
+  <rect x="156" y="246" width="712" height="428" rx="34"
+        fill="url(#screenGrad)"/>
+
+  <!-- Scan-line texture overlay (subtle) -->
+  <rect x="156" y="246" width="712" height="428" rx="34"
+        fill="none" stroke="white" stroke-width="0"
+        style="fill:url(#screenGrad)"/>
+
+  <!-- Screen inner glow -->
+  <ellipse cx="512" cy="460" rx="260" ry="180" fill="url(#starGlow)"/>
+
+  <!-- ── Star (centre of screen) ── -->
+  <!-- 5-point star, tip-to-centre = 110px -->
+  <g transform="translate(512,454)">
+    <!-- Outer warm glow disc -->
+    <circle r="136" fill="#fbbf24" opacity="0.12"/>
+    <!-- Star shape -->
+    <polygon
+      points="
+        0,-110
+        26.1,-81.1
+        93.6,-84.4
+        57.0,-33.0
+        72.4,61.6
+        0,26.5
+        -72.4,61.6
+        -57.0,-33.0
+        -93.6,-84.4
+        -26.1,-81.1"
+      fill="#fbbf24"
+      stroke="#f59e0b"
+      stroke-width="5"
+      stroke-linejoin="round"
+    />
+    <!-- Highlight on star -->
+    <polygon
+      points="
+        0,-62
+        14.7,-45.7
+        52.7,-47.5
+        32.1,-18.6
+        40.8,34.7
+        0,15.0
+        -40.8,34.7
+        -32.1,-18.6
+        -52.7,-47.5
+        -14.7,-45.7"
+      fill="#fde68a"
+      opacity="0.55"
+    />
+  </g>
+
+  <!-- Small decorative dots on screen corners -->
+  <circle cx="186" cy="274" r="8" fill="#818cf8" opacity="0.55"/>
+  <circle cx="838" cy="274" r="8" fill="#818cf8" opacity="0.55"/>
+  <circle cx="186" cy="646" r="8" fill="#818cf8" opacity="0.55"/>
+  <circle cx="838" cy="646" r="8" fill="#818cf8" opacity="0.55"/>
+
+  <!-- ── TV stand ── -->
+  <rect x="452" y="718" width="120" height="54" rx="16" fill="url(#tvGrad)" opacity="0.92"/>
+  <!-- Base -->
+  <rect x="342" y="768" width="340" height="44" rx="22" fill="url(#tvGrad)" opacity="0.88"/>
+
+  <!-- ── Check badge (bottom-right corner of TV body) ── -->
+  <circle cx="828" cy="700" r="90"
+          fill="url(#badgeGrad)" filter="url(#badgeShadow)"/>
+  <!-- White ring -->
+  <circle cx="828" cy="700" r="90"
+          fill="none" stroke="white" stroke-width="7" opacity="0.35"/>
+  <!-- Checkmark -->
+  <polyline
+    points="784,700 816,732 878,665"
+    fill="none"
+    stroke="white"
+    stroke-width="24"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+</svg>
