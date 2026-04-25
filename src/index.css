@@ -547,6 +547,33 @@ button {
     margin-left: 4px;
 }
 
+/* ===== History DataGrid row wave animation ===== */
+.history-grid .MuiDataGrid-row {
+    animation: cardEnter 0.22s ease-out forwards;
+    opacity: 0;
+}
+.history-grid .MuiDataGrid-row:nth-child(1)  { animation-delay: 0.00s; }
+.history-grid .MuiDataGrid-row:nth-child(2)  { animation-delay: 0.04s; }
+.history-grid .MuiDataGrid-row:nth-child(3)  { animation-delay: 0.08s; }
+.history-grid .MuiDataGrid-row:nth-child(4)  { animation-delay: 0.12s; }
+.history-grid .MuiDataGrid-row:nth-child(5)  { animation-delay: 0.16s; }
+.history-grid .MuiDataGrid-row:nth-child(6)  { animation-delay: 0.20s; }
+.history-grid .MuiDataGrid-row:nth-child(7)  { animation-delay: 0.24s; }
+.history-grid .MuiDataGrid-row:nth-child(8)  { animation-delay: 0.28s; }
+.history-grid .MuiDataGrid-row:nth-child(9)  { animation-delay: 0.32s; }
+.history-grid .MuiDataGrid-row:nth-child(10) { animation-delay: 0.36s; }
+.history-grid .MuiDataGrid-row:nth-child(11) { animation-delay: 0.40s; }
+.history-grid .MuiDataGrid-row:nth-child(12) { animation-delay: 0.44s; }
+.history-grid .MuiDataGrid-row:nth-child(13) { animation-delay: 0.48s; }
+.history-grid .MuiDataGrid-row:nth-child(14) { animation-delay: 0.52s; }
+.history-grid .MuiDataGrid-row:nth-child(15) { animation-delay: 0.56s; }
+.history-grid .MuiDataGrid-row:nth-child(16) { animation-delay: 0.60s; }
+.history-grid .MuiDataGrid-row:nth-child(17) { animation-delay: 0.64s; }
+.history-grid .MuiDataGrid-row:nth-child(18) { animation-delay: 0.68s; }
+.history-grid .MuiDataGrid-row:nth-child(19) { animation-delay: 0.72s; }
+.history-grid .MuiDataGrid-row:nth-child(20) { animation-delay: 0.76s; }
+.history-grid .MuiDataGrid-row:nth-child(n+21) { animation-delay: 0.80s; }
+
 .page-state {
     display: flex;
     flex-direction: column;
