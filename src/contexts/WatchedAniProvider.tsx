@@ -42,11 +42,32 @@ export function WatchedAniProvider({ children }: { children: ReactNode }) {
         }
     }
 
+    const handleWatchAll = async (items: Array<{ id: number; title: string }>) => {
+        const unwatched = items.filter(item => !watchedAniIds.has(item.id));
+        if (unwatched.length === 0) return;
+        try {
+            await Promise.all(unwatched.map(item => api.clearAni(item.id)));
+            setWatchedAniIds(prev => {
+                const updated = new Set(prev);
+                unwatched.forEach(item => updated.add(item.id));
+                return updated;
+            });
+            unwatched.forEach(item => {
+                if (favoriteAniItems.has(item.id)) {
+                    handleFavor(item.id, item.title, 0);
+                }
+            });
+        } catch (err) {
+            console.error('批量标记已看失败:', err);
+        }
+    };
+
     return (
         <WatchedAniContext.Provider value={{
-            watchedAniIds: watchedAniIds,
-            handleWatch: handleWatch,
-           }}>
+            watchedAniIds,
+            handleWatch,
+            handleWatchAll,
+        }}>
             {children}
         </WatchedAniContext.Provider>
     )
