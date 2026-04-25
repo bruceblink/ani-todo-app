@@ -1,6 +1,6 @@
 {
   "productName": "AniTodo",
-  "version": "0.4.9",
+  "version": "1.0.0",
   "identifier": "top.likanug.dev",
   "plugins": {
     "http": {
