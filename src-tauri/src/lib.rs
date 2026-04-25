@@ -22,6 +22,7 @@ use command::platforms::iqiyi::{fetch_iqiyi_ani_data, fetch_iqiyi_image};
 use command::platforms::mikanani::{fetch_mikanani_ani_data, fetch_mikanani_image};
 use command::platforms::tencent::{fetch_qq_ani_data, fetch_qq_image};
 use command::platforms::youku::{fetch_youku_ani_data, fetch_youku_image};
+use command::update::check_for_update;
 use log::info;
 use std::sync::Arc;
 use tauri::async_runtime::block_on;
@@ -82,6 +83,7 @@ pub fn run() {
             collect_ani_item,
             cancel_collect_ani_item,
             query_ani_history_list,
+            check_for_update,
         ])
         .on_window_event(|window, event| {
             if let tauri::WindowEvent::CloseRequested { api, .. } = event {
