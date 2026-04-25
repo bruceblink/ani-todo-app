@@ -146,6 +146,12 @@ export default function HistoryDataGrid({ isServer = true, searchQuery }: Props)
     return (
         <>
 
+            <div
+                key={loading ? 'loading' : 'loaded'}
+                style={loading ? undefined : {
+                    animation: 'fadeInUp 0.25s ease forwards',
+                }}
+            >
             <DataGrid
                 rows={isServer ? data?.items ?? [] : (filteredRows as AniHistoryInfo[])}
                 columns={columns}
@@ -161,6 +167,7 @@ export default function HistoryDataGrid({ isServer = true, searchQuery }: Props)
                 disableColumnResize
                 density="compact"
             />
+            </div>
 
             {open && (
                 <div

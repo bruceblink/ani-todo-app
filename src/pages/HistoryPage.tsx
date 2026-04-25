@@ -17,6 +17,7 @@ export default function HistoryPage({ searchQuery }: HistoryPageProps) {
                 margin: '0 auto',
                 boxSizing: 'border-box',
                 color: 'text.primary',
+                animation: 'fadeInUp 0.3s ease forwards',
             }}
         >
             <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px', mb: 2 }}>
