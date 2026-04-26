@@ -24,5 +24,6 @@ target
 *.sln
 *.sw?
 .claude/
+sign-key/
 
 #rust
