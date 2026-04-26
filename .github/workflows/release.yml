@@ -158,7 +158,7 @@ jobs:
         with:
           projectPath: ./
           tagName: ${{ github.ref_name }}
-          releaseName: AniTodo ${{ env.VERSION }}
+          releaseName: FanJi ${{ env.VERSION }}
           releaseBody: ${{ steps.notes.outputs.body }}
           releaseDraft: false
           includeUpdaterJson: true

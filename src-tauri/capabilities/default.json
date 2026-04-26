@@ -1,7 +1,7 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "Default capabilities for AniTodo app",
+  "description": "Default capabilities for FanJi app",
   "platforms": ["linux", "macOS", "windows"],
   "windows": ["main"],
   "permissions": [
