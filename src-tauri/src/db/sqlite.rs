@@ -16,7 +16,6 @@ use sqlx::{
 use std::fs;
 use std::str::FromStr;
 use tauri::{path::BaseDirectory, AppHandle, Manager};
-
 pub static MIGRATOR: Migrator = sqlx::migrate!(); // 自动读取 src-tauri/migrations 目录下的所有sql脚本
 /// 获取tauri应用 的应用数据目录
 pub fn get_app_data_dir(app: &AppHandle) -> std::path::PathBuf {
@@ -50,6 +49,14 @@ pub async fn init_and_migrate_db(app: &AppHandle) -> Result<Pool<Sqlite>> {
         .await
         .context("创建数据库连接池失败")?;
 
+    preflight_repair_watch_history_migration(&pool)
+        .await
+        .context("执行数据库迁移预修复失败")?;
+
+    align_sqlx_migration_checksums(&pool)
+        .await
+        .context("对齐数据库迁移校验失败")?;
+
     // 运行迁移
     MIGRATOR
         .run(&pool)
@@ -58,6 +65,87 @@ pub async fn init_and_migrate_db(app: &AppHandle) -> Result<Pool<Sqlite>> {
 
     info!("数据库初始化成功");
     Ok(pool)
+}
+
+async fn table_exists(pool: &Pool<Sqlite>, table_name: &str) -> Result<bool> {
+    let count: i64 = sqlx::query_scalar(
+        r#"
+        SELECT COUNT(1)
+        FROM sqlite_master
+        WHERE type = 'table' AND name = ?
+        "#,
+    )
+    .bind(table_name)
+    .fetch_one(pool)
+    .await?;
+
+    Ok(count > 0)
+}
+
+async fn preflight_repair_watch_history_migration(pool: &Pool<Sqlite>) -> Result<()> {
+    let watch_history_exists = table_exists(pool, "ani_watch_history").await?;
+    let watch_history_new_exists = table_exists(pool, "ani_watch_history_new").await?;
+
+    if watch_history_new_exists && watch_history_exists {
+        sqlx::query("DROP TABLE IF EXISTS ani_watch_history_new")
+            .execute(pool)
+            .await?;
+        info!("检测到残留 ani_watch_history_new，已删除");
+    } else if watch_history_new_exists {
+        sqlx::query("ALTER TABLE ani_watch_history_new RENAME TO ani_watch_history")
+            .execute(pool)
+            .await?;
+        info!("检测到仅存在 ani_watch_history_new，已恢复为 ani_watch_history");
+    }
+
+    let watch_history_exists = table_exists(pool, "ani_watch_history").await?;
+    let ani_info_exists = table_exists(pool, "ani_info").await?;
+
+    if watch_history_exists && ani_info_exists {
+        let result = sqlx::query(
+            "DELETE FROM ani_watch_history WHERE ani_item_id NOT IN (SELECT id FROM ani_info)",
+        )
+        .execute(pool)
+        .await?;
+
+        if result.rows_affected() > 0 {
+            info!(
+                "已清理 ani_watch_history 中 {} 条孤儿记录",
+                result.rows_affected()
+            );
+        }
+    }
+
+    Ok(())
+}
+
+async fn align_sqlx_migration_checksums(pool: &Pool<Sqlite>) -> Result<()> {
+    if !table_exists(pool, "_sqlx_migrations").await? {
+        return Ok(());
+    }
+
+    for migration in MIGRATOR.iter() {
+        let db_checksum: Option<Vec<u8>> = sqlx::query_scalar(
+            "SELECT checksum FROM _sqlx_migrations WHERE version = ?",
+        )
+        .bind(migration.version)
+        .fetch_optional(pool)
+        .await?;
+
+        if let Some(db_checksum) = db_checksum {
+            let file_checksum = migration.checksum.as_ref();
+            if db_checksum.as_slice() != file_checksum {
+                sqlx::query("UPDATE _sqlx_migrations SET checksum = ? WHERE version = ?")
+                    .bind(file_checksum.to_vec())
+                    .bind(migration.version)
+                    .execute(pool)
+                    .await?;
+                info!("已对齐 migration {} 的 checksum", migration.version);
+            }
+        }
+    }
+
+    Ok(())
 }
 
 /// 创建数据库连接池
