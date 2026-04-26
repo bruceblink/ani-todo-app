@@ -29,6 +29,7 @@ use std::sync::Arc;
 use tauri::async_runtime::block_on;
 use tauri::Manager;
 use tauri_plugin_dialog::{DialogExt, MessageDialogKind};
+use tauri_plugin_opener::init as opener_init;
 use tauri_plugin_single_instance::init;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -53,6 +54,7 @@ pub fn run() {
         })
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_notification::init())
+        .plugin(opener_init())
         .plugin(init(|app, _args, _cwd| {
             if let Some(window) = app.get_webview_window("main") {
                 window.show().unwrap();
