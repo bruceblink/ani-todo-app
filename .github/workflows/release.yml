@@ -160,6 +160,6 @@ jobs:
           tagName: ${{ github.ref_name }}
           releaseName: AniTodo ${{ env.VERSION }}
           releaseBody: ${{ steps.notes.outputs.body }}
-          releaseDraft: true
+          releaseDraft: false
           includeUpdaterJson: true
           args: ${{ matrix.args }}
