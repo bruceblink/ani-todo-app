@@ -7,7 +7,7 @@
       "version": "2.0.0"
     },
     "updater": {
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEZBNkExMDhDRTA1MjAzNTkKUldSWkExTGdqQkJxK3JmUVlIOFJyaUh2TnpkZE03bVNadUtjL3JicnA5Zk5ybnpuQkxMQ1Fza0YK",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEI2NEVEMTJFNzIwOUI3NTAKUldSUXR3bHlMdEZPdHFWQlRWR3MyQURhbU9KTWlETmFLOTJDOFZ5ZmRqMDVmb2lQTnMrckFUUzMK",
       "endpoints": [
         "https://github.com/bruceblink/FanJi/releases/latest/download/latest.json"
       ],
