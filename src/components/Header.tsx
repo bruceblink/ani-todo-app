@@ -38,6 +38,7 @@ export default function Header({ onSearchChange, viewMode, onViewModeChange }: H
     );
 
     const showViewToggle = location.pathname === "/";
+    const showSearch = location.pathname !== "/settings" && location.pathname !== "/about";
 
     return (
         <>
@@ -90,12 +91,14 @@ export default function Header({ onSearchChange, viewMode, onViewModeChange }: H
                         </div>
                     )}
 
-                    <AniSearch
-                        onSearch={onSearchChange}
-                        debounceMs={300}
-                        persistKey="aniSearch.v1"
-                        clearOnBlur={false}
-                    />
+                    {showSearch && (
+                        <AniSearch
+                            onSearch={onSearchChange}
+                            debounceMs={300}
+                            persistKey="aniSearch.v1"
+                            clearOnBlur={false}
+                        />
+                    )}
                     <button
                         type="button"
                         className="console-mobile-menu-btn"

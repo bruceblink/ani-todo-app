@@ -1,14 +1,21 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
-    Tv, RefreshCw, CheckCircle, AlertCircle,
-    ArrowUpCircle, Download, RotateCcw, ChevronLeft,
+    Tv,
+    RefreshCw,
+    CheckCircle,
+    AlertCircle,
+    ArrowUpCircle,
+    Download,
+    RotateCcw,
+    ChevronLeft,
+    Info,
 } from "lucide-react";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { getVersion } from "@tauri-apps/api/app";
 
-const TECH_STACK = ['React 19', 'TypeScript', 'Tauri v2', 'Rust', 'SQLite', 'MUI'];
+const TECH_STACK = ["React 19", "TypeScript", "Tauri v2", "Rust", "SQLite", "MUI"];
 
 interface UpdateStatus {
     available: boolean;
@@ -23,126 +30,133 @@ interface DownloadProgress {
 }
 
 type CheckState =
-    | { type: 'idle' }
-    | { type: 'checking' }
-    | { type: 'up-to-date'; version: string }
-    | { type: 'available'; latestVersion: string; notes?: string }
-    | { type: 'installing'; progress: DownloadProgress | null }
-    | { type: 'installed' }
-    | { type: 'error'; message: string };
+    | { type: "idle" }
+    | { type: "checking" }
+    | { type: "up-to-date"; version: string }
+    | { type: "available"; latestVersion: string; notes?: string }
+    | { type: "installing"; progress: DownloadProgress | null }
+    | { type: "installed" }
+    | { type: "error"; message: string };
 
 export default function AboutPage() {
-    const [checkState, setCheckState] = useState<CheckState>({ type: 'idle' });
-    const [appVersion, setAppVersion] = useState<string>('...');
+    const [checkState, setCheckState] = useState<CheckState>({ type: "idle" });
+    const [appVersion, setAppVersion] = useState<string>("...");
 
     useEffect(() => {
-        getVersion().then(setAppVersion).catch(() => setAppVersion('1.0.0'));
+        getVersion().then(setAppVersion).catch(() => setAppVersion("1.0.0"));
     }, []);
 
     useEffect(() => {
-        if (checkState.type !== 'installing') return;
+        if (checkState.type !== "installing") return;
         let unlisten: (() => void) | null = null;
-        listen<DownloadProgress>('update:progress', (e) => {
-            setCheckState({ type: 'installing', progress: e.payload });
-        }).then((fn) => { unlisten = fn; });
+        listen<DownloadProgress>("update:progress", (e) => {
+            setCheckState({ type: "installing", progress: e.payload });
+        }).then((fn) => {
+            unlisten = fn;
+        });
         return () => unlisten?.();
     }, [checkState.type]);
 
     const handleCheckUpdate = async () => {
-        setCheckState({ type: 'checking' });
+        setCheckState({ type: "checking" });
         try {
-            const status = await invoke<UpdateStatus>('check_for_update');
+            const status = await invoke<UpdateStatus>("check_for_update");
             if (status.available && status.latest_version) {
                 setCheckState({
-                    type: 'available',
+                    type: "available",
                     latestVersion: status.latest_version,
                     notes: status.release_notes ?? undefined,
                 });
             } else {
-                setCheckState({ type: 'up-to-date', version: status.current_version });
+                setCheckState({ type: "up-to-date", version: status.current_version });
             }
         } catch (err) {
-            setCheckState({ type: 'error', message: String(err) });
+            setCheckState({ type: "error", message: String(err) });
         }
     };
 
     const handleInstall = async () => {
-        setCheckState({ type: 'installing', progress: null });
+        setCheckState({ type: "installing", progress: null });
         try {
-            await invoke('install_update');
-            setCheckState({ type: 'installed' });
+            await invoke("install_update");
+            setCheckState({ type: "installed" });
         } catch (err) {
-            setCheckState({ type: 'error', message: String(err) });
+            setCheckState({ type: "error", message: String(err) });
         }
     };
 
     const handleRestart = async () => {
-        await invoke('restart_app');
+        await invoke("restart_app");
     };
 
     const showCheckBtn =
-        checkState.type === 'idle' ||
-        checkState.type === 'up-to-date' ||
-        checkState.type === 'error';
+        checkState.type === "idle" ||
+        checkState.type === "up-to-date" ||
+        checkState.type === "error";
 
     return (
-        <div style={{ maxWidth: 'var(--content-max-width)', margin: '0 auto', padding: '22px' }}>
-            <div style={{ maxWidth: 560 }}>
-                <div className="about-card">
+        <div className="console-page-wrap">
+            <div className="console-page-head">
+                <span className="console-page-head-icon">
+                    <Info size={16} strokeWidth={2.1} />
+                </span>
+                <h2 className="console-page-head-title">关于</h2>
+            </div>
 
-                {/* Logo */}
-                <div className="about-logo">
-                    <Tv size={30} color="#fff" strokeWidth={2} />
+            <section className="console-panel about-panel">
+                <div className="about-section-card">
+                    <div className="about-hero">
+                        <div className="about-hero-logo">
+                            <Tv size={26} color="#fff" strokeWidth={2.1} />
+                        </div>
+                        <div className="about-hero-main">
+                            <h3 className="about-hero-title">FanJi</h3>
+                            <span className="about-hero-version">v{appVersion}</span>
+                        </div>
+                    </div>
+
+                    <p className="about-hero-desc">
+                        一款追踪新番更新的桌面应用，聚合 Bilibili、爱奇艺、腾讯、优酷等平台。
+                    </p>
+
+                    <div className="about-stack">
+                        {TECH_STACK.map((tech) => (
+                            <span key={tech} className="about-stack__chip">
+                                {tech}
+                            </span>
+                        ))}
+                    </div>
                 </div>
 
-                <h2 className="about-title">FanJi</h2>
+                <div className="about-section-card about-update-section">
+                    <header className="console-panel-head">
+                        <h3 className="console-panel-title">版本更新</h3>
+                        <p className="console-panel-desc">检查并安装最新版本</p>
+                    </header>
 
-                <div className="about-version">v{appVersion}</div>
-
-                <p className="about-desc">
-                    一款追踪新番更新的桌面应用<br />
-                    聚合 Bilibili、爱奇艺、腾讯、优酷等平台
-                </p>
-
-                {/* Tech stack */}
-                <div className="about-stack">
-                    {TECH_STACK.map(tech => (
-                        <span key={tech} className="about-stack__chip">{tech}</span>
-                    ))}
-                </div>
-
-                {/* Update section */}
-                <div className="about-update-section">
-                    <UpdateResult
-                        state={checkState}
-                        onInstall={handleInstall}
-                        onRestart={handleRestart}
-                    />
+                    <UpdateResult state={checkState} onInstall={handleInstall} onRestart={handleRestart} />
 
                     {showCheckBtn && (
-                        <button type="button" className="about-check-btn" onClick={handleCheckUpdate}>
+                        <button type="button" className="console-primary-btn" onClick={handleCheckUpdate}>
                             <RefreshCw size={15} strokeWidth={2.2} />
                             检查更新
                         </button>
                     )}
 
-                    {checkState.type === 'checking' && (
+                    {checkState.type === "checking" && (
                         <div className="about-checking">
-                            <RefreshCw
-                                size={15}
-                                strokeWidth={2.2}
-                                style={{ animation: 'spin 1s linear infinite' }}
-                            />
+                            <RefreshCw size={15} strokeWidth={2.2} style={{ animation: "spin 1s linear infinite" }} />
                             正在检查…
                         </div>
                     )}
                 </div>
+            </section>
 
-                    <Link to="/" className="about-back-btn">
-                        <ChevronLeft size={15} strokeWidth={2.5} />
-                        返回主页
-                    </Link>
-                </div>
+            <div className="console-page-foot">
+                <Link to="/" className="console-inline-back">
+                    <ChevronLeft size={15} strokeWidth={2.3} />
+                    返回主页
+                </Link>
             </div>
         </div>
     );
@@ -155,9 +169,9 @@ interface UpdateResultProps {
 }
 
 function UpdateResult({ state, onInstall, onRestart }: UpdateResultProps) {
-    if (state.type === 'idle' || state.type === 'checking') return null;
+    if (state.type === "idle" || state.type === "checking") return null;
 
-    if (state.type === 'up-to-date') {
+    if (state.type === "up-to-date") {
         return (
             <div className="upd-panel upd-panel--success">
                 <span className="upd-label--success">
@@ -168,9 +182,9 @@ function UpdateResult({ state, onInstall, onRestart }: UpdateResultProps) {
         );
     }
 
-    if (state.type === 'available') {
+    if (state.type === "available") {
         const shortNotes = state.notes
-            ? state.notes.replace(/#+\s*/g, '').split('\n').filter(Boolean).slice(0, 3).join('  ·  ')
+            ? state.notes.replace(/#+\s*/g, "").split("\n").filter(Boolean).slice(0, 3).join("  ·  ")
             : null;
 
         return (
@@ -188,12 +202,10 @@ function UpdateResult({ state, onInstall, onRestart }: UpdateResultProps) {
         );
     }
 
-    if (state.type === 'installing') {
+    if (state.type === "installing") {
         const { progress } = state;
-        const percent = progress?.total
-            ? Math.round((progress.downloaded / progress.total) * 100)
-            : null;
-        const downloadedMB = progress ? (progress.downloaded / 1024 / 1024).toFixed(1) : '0';
+        const percent = progress?.total ? Math.round((progress.downloaded / progress.total) * 100) : null;
+        const downloadedMB = progress ? (progress.downloaded / 1024 / 1024).toFixed(1) : "0";
         const totalMB = progress?.total ? (progress.total / 1024 / 1024).toFixed(1) : null;
 
         return (
@@ -209,8 +221,8 @@ function UpdateResult({ state, onInstall, onRestart }: UpdateResultProps) {
                     <div
                         className="upd-progress-fill"
                         style={{
-                            width: percent !== null ? `${percent}%` : '100%',
-                            animation: percent === null ? 'pulse 1.5s ease-in-out infinite' : 'none',
+                            width: percent !== null ? `${percent}%` : "100%",
+                            animation: percent === null ? "pulse 1.5s ease-in-out infinite" : "none",
                         }}
                     />
                 </div>
@@ -218,7 +230,7 @@ function UpdateResult({ state, onInstall, onRestart }: UpdateResultProps) {
         );
     }
 
-    if (state.type === 'installed') {
+    if (state.type === "installed") {
         return (
             <div className="upd-panel upd-panel--success" style={{ marginBottom: 12 }}>
                 <div className="upd-label--success" style={{ marginBottom: 12 }}>
@@ -233,10 +245,10 @@ function UpdateResult({ state, onInstall, onRestart }: UpdateResultProps) {
         );
     }
 
-    if (state.type === 'error') {
+    if (state.type === "error") {
         return (
             <div className="upd-panel upd-panel--error">
-                <AlertCircle size={15} strokeWidth={2} style={{ flexShrink: 0, marginTop: 1, color: '#991b1b' }} />
+                <AlertCircle size={15} strokeWidth={2} style={{ flexShrink: 0, marginTop: 1, color: "#991b1b" }} />
                 <span className="upd-label--error">{state.message}</span>
             </div>
         );
