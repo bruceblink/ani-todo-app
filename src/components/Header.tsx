@@ -8,7 +8,6 @@ import {
     History,
     Settings,
     CircleHelp,
-    PanelsTopLeft,
     Grid3X3,
     List,
 } from "lucide-react";
@@ -37,13 +36,6 @@ export default function Header({ onSearchChange, viewMode, onViewModeChange }: H
         ],
         []
     );
-
-    const pageTitle = useMemo(() => {
-        if (location.pathname === "/favorites") return "观看历史";
-        if (location.pathname === "/settings") return "设置";
-        if (location.pathname === "/about") return "关于";
-        return "Overview";
-    }, [location.pathname]);
 
     const showViewToggle = location.pathname === "/";
 
@@ -76,11 +68,6 @@ export default function Header({ onSearchChange, viewMode, onViewModeChange }: H
             </aside>
 
             <header className="console-topbar">
-                <div className="console-topbar-left">
-                    <PanelsTopLeft size={16} strokeWidth={2.1} />
-                    <span>{pageTitle}</span>
-                </div>
-
                 <div className="console-topbar-right">
                     {showViewToggle && (
                         <div className="console-view-toggle" role="group" aria-label="切换视图模式">
