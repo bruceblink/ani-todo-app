@@ -70,20 +70,36 @@ export default function HomePage({ searchQuery, viewMode }: HomePageProps) {
         setShowFavorite(false);
     };
 
-    if (loading)
+    const hasData = Object.keys(data).length > 0;
+    const isInitialLoading = loading && !hasData && !error;
+    const isRefreshing = loading && hasData;
+
+    if (isInitialLoading)
         return (
-            <div className="home-overview">
+            <div className="home-overview" style={{ gap: 0 }}>
                 <WeekNav selectedDate={selectedDay.dateStr} onSelect={handleDaySelect} />
+                <div className="overview-toolbar overview-toolbar--loading" aria-hidden>
+                    <div className="overview-toolbar-loading-pill" />
+                    <div className="overview-toolbar-loading-actions">
+                        <div className="overview-toolbar-loading-btn" />
+                        <div className="overview-toolbar-loading-btn" />
+                    </div>
+                </div>
                 <div className="home-overview-content">
-                    <div className="page-state">
-                        <Loader2 size={32} strokeWidth={2} style={{ animation: "spin 1s linear infinite", color: "var(--color-primary)" }} />
+                    <div className={`ani-loading-grid ani-loading-grid--${viewMode}`}>
+                        {Array.from({ length: viewMode === "grid" ? 8 : 6 }).map((_, index) => (
+                            <div key={index} className={`ani-loading-card ani-loading-card--${viewMode}`} />
+                        ))}
+                    </div>
+                    <div className="page-state page-state--inline">
+                        <Loader2 size={18} strokeWidth={2} style={{ animation: "spin 1s linear infinite", color: "var(--color-primary)" }} />
                         <p className="page-state__desc">正在加载番剧数据…</p>
                     </div>
                 </div>
             </div>
         );
 
-    if (error)
+    if (error && !hasData)
         return (
             <div className="home-overview">
                 <WeekNav selectedDate={selectedDay.dateStr} onSelect={handleDaySelect} />
@@ -97,7 +113,7 @@ export default function HomePage({ searchQuery, viewMode }: HomePageProps) {
             </div>
         );
 
-    if (!Object.keys(data).length)
+    if (!hasData)
         return (
             <div className="home-overview">
                 <WeekNav selectedDate={selectedDay.dateStr} onSelect={handleDaySelect} />
@@ -138,7 +154,13 @@ export default function HomePage({ searchQuery, viewMode }: HomePageProps) {
                 onWatchAll={handleWatchAllClick}
                 onSortChange={setSortBy}
             />
-            <div className="home-overview-content">
+            <div className="home-overview-content home-overview-content--with-refresh">
+                {isRefreshing && (
+                    <div className="overview-refreshing-overlay" role="status" aria-live="polite">
+                        <Loader2 size={14} strokeWidth={2} className="spin" />
+                        <span>更新中…</span>
+                    </div>
+                )}
                 <AniList list={displayList} layoutMode={viewMode} />
             </div>
         </div>

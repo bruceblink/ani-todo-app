@@ -899,6 +899,11 @@ button {
     to { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
 .loading {
     display: flex;
     justify-content: center;
@@ -1349,6 +1354,93 @@ button {
 .history-grid .MuiDataGrid-row:nth-child(20) { animation-delay: 1.14s; }
 .history-grid .MuiDataGrid-row:nth-child(n+21) { animation-delay: 1.2s; }
 
+.overview-toolbar--loading {
+    margin-top: 2px;
+}
+
+.overview-toolbar-loading-pill,
+.overview-toolbar-loading-btn,
+.ani-loading-card {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(
+            90deg,
+            color-mix(in srgb, var(--panel-bg) 78%, #ffffff 0%) 25%,
+            color-mix(in srgb, var(--panel-bg) 90%, #ffffff 10%) 50%,
+            color-mix(in srgb, var(--panel-bg) 78%, #ffffff 0%) 75%
+    );
+    background-size: 220% 100%;
+    animation: shimmer 1.35s ease-in-out infinite;
+    border: 1px solid var(--panel-border);
+}
+
+.overview-toolbar-loading-pill {
+    width: 164px;
+    height: 30px;
+    border-radius: 8px;
+}
+
+.overview-toolbar-loading-actions {
+    display: inline-flex;
+    gap: 8px;
+}
+
+.overview-toolbar-loading-btn {
+    width: 86px;
+    height: 30px;
+    border-radius: 8px;
+}
+
+.ani-loading-grid {
+    width: 100%;
+    padding: 10px 0 12px;
+    display: grid;
+    gap: 12px;
+}
+
+.ani-loading-grid--grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+
+.ani-loading-grid--list {
+    grid-template-columns: 1fr;
+}
+
+.ani-loading-card {
+    border-radius: 14px;
+}
+
+.ani-loading-card--grid {
+    min-height: 188px;
+}
+
+.ani-loading-card--list {
+    min-height: 118px;
+}
+
+.home-overview-content--with-refresh {
+    position: relative;
+}
+
+.overview-refreshing-overlay {
+    position: sticky;
+    top: 8px;
+    margin: 8px 0 0 auto;
+    width: fit-content;
+    z-index: 4;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--panel-border);
+    background: color-mix(in srgb, var(--panel-bg) 88%, transparent);
+    color: var(--text-secondary);
+    font-size: 0.74rem;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+}
+
 .page-state {
     display: flex;
     flex-direction: column;
@@ -1357,6 +1449,14 @@ button {
     min-height: 52vh;
     gap: 12px;
     color: var(--text-secondary);
+}
+
+.page-state--inline {
+    min-height: 0;
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 8px;
+    padding: 6px 0 2px;
 }
 
 .page-state__title {
