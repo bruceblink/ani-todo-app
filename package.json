@@ -1,7 +1,7 @@
 {
   "name": "fan-ji",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.1.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -9,7 +9,12 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "tauri:dev": "pnpm tauri dev",
+    "tauri:build": "pnpm tauri build",
+    "sync-version": "node scripts/sync-version.cjs",
+    "validate-version": "node scripts/validate-version.cjs",
+    "release": "node scripts/release.cjs"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

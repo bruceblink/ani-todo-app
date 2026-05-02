@@ -92,7 +92,9 @@ jobs:
         shell: bash
         run: |
           VERSION="${GITHUB_REF#refs/tags/v}"
-          (cd src-tauri && npm pkg set version="$VERSION" && npm run sync-version && npm run validate-version)
+          npm pkg set version="$VERSION"
+          pnpm sync-version
+          pnpm validate-version
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       # --------------------

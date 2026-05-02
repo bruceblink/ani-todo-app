@@ -3,7 +3,7 @@ resolver = "2"
 members = ["src-tauri"]
 
 [workspace.package]
-version = "1.0.0"
+version = "1.1.0"
 authors = ["likanug <likanug.g@qq.com>"]
 edition = "2021"
 description = "FanJi — 番迹，跨平台番剧追踪桌面应用"

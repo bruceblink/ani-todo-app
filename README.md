@@ -81,14 +81,14 @@
   </tr>
   <tr>
     <td><b>Windows</b></td>
-    <td><a href='https://github.com/bruceblink/FanJi/releases/download/v1.0.0/FanJi_1.0.0_x64-setup.exe'>FanJi.exe</a></td>
+    <td><a href='https://github.com/bruceblink/FanJi/releases/download/v1.1.0/FanJi_1.1.0_x64-setup.exe'>FanJi.exe</a></td>
   </tr>
   <tr>
     <td><b>macOS</b></td>
-    <td><a href='https://github.com/bruceblink/FanJi/releases/download/v1.0.0/FanJi_1.0.0_universal.dmg'>FanJi.dmg</a></td>
+    <td><a href='https://github.com/bruceblink/FanJi/releases/download/v1.1.0/FanJi_1.1.0_universal.dmg'>FanJi.dmg</a></td>
   <tr>
     <td><b>Linux </b></td>
-    <td><a href='https://github.com/bruceblink/FanJi/releases/download/v1.0.0/FanJi_1.0.0_amd64.deb'>FanJi.deb</a></td>
+    <td><a href='https://github.com/bruceblink/FanJi/releases/download/v1.1.0/FanJi_1.1.0_amd64.deb'>FanJi.deb</a></td>
   </tr>
 </table>
 
@@ -199,7 +199,7 @@ FanJi/
 
 **注意**：本项目仅用于个人学习和研究使用，请勿用于任何商业用途。在使用过程中请遵守相关网站的使用条款和规定。
 
-[badge-version]: https://img.shields.io/badge/version-1.0.0-blue
+[badge-version]: https://img.shields.io/badge/version-1.1.0-blue
 
 [badge-platforms]: https://img.shields.io/badge/platforms-macOS%2C%20Windows%2C%20Linux%2C%20-green
 

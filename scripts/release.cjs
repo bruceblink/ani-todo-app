@@ -4,19 +4,20 @@ const fs = require('fs');
 const path = require('path');
 const {execSync} = require('child_process');
 
-const tauriPackageJsonPath = path.join(__dirname, '../src-tauri/package.json');
+const appPackageJsonPath = path.join(__dirname, '../package.json');
 const syncVersionScript = path.join(__dirname, 'sync-version.cjs');
 const validateVersionScript = path.join(__dirname, 'validate-version.cjs');
 
-const tauriPackageJson = JSON.parse(fs.readFileSync(tauriPackageJsonPath, 'utf8'));
-const currentVersion = tauriPackageJson.version;
+const appPackageJson = JSON.parse(fs.readFileSync(appPackageJsonPath, 'utf8'));
+const currentVersion = appPackageJson.version;
 
 if (!currentVersion) {
-    console.error('Error: No version found in src-tauri/package.json');
+    console.error('Error: No version found in package.json');
     process.exit(1);
 }
 
-const versionArg = process.argv[2];
+const rawVersionArg = process.argv[2];
+const versionArg = rawVersionArg ? rawVersionArg.replace(/^v/, '') : rawVersionArg;
 
 if (!versionArg) {
     console.error('Error: Please specify version bump type (patch/minor/major) or exact version (e.g., 0.3.0)');
@@ -46,8 +47,8 @@ if (versionArg === 'patch' || versionArg === 'minor' || versionArg === 'major') 
     newVersion = versionArg;
 }
 
-tauriPackageJson.version = newVersion;
-fs.writeFileSync(tauriPackageJsonPath, JSON.stringify(tauriPackageJson, null, 2) + '\n');
+appPackageJson.version = newVersion;
+fs.writeFileSync(appPackageJsonPath, JSON.stringify(appPackageJson, null, 2) + '\n');
 
 try {
     execSync(`node "${syncVersionScript}"`, {stdio: 'inherit'});
