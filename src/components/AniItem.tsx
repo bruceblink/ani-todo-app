@@ -17,17 +17,15 @@ interface Props {
     ani: Ani;
     onClear: (id: number, title: string) => void;
     isFavorite: boolean;
-    onToggleFavorite: (
-        id: number,
-        aniTitle: string,
-        isFavorite: boolean | number
-    ) => void;
+    variant?: "grid" | "list";
+    onToggleFavorite: (id: number, aniTitle: string, isFavorite: boolean | number) => void;
 }
 
 export default function AniItem({
     ani,
     onClear,
     isFavorite,
+    variant = "grid",
     onToggleFavorite,
 }: Props) {
     const aniInfo = `《${ani.title}》第${ani.update_count}集`;
@@ -36,10 +34,9 @@ export default function AniItem({
 
     const handleFavorClick = () => {
         onToggleFavorite(ani.id, ani.title, isFavorite);
-        toast(
-            isFavorite ? `已取消关注《${ani.title}》` : `已关注《${ani.title}》`,
-            { icon: isFavorite ? "💔" : "⭐️" }
-        );
+        toast(isFavorite ? `已取消关注《${ani.title}》` : `已关注《${ani.title}》`, {
+            icon: isFavorite ? "💔" : "⭐️",
+        });
     };
 
     const handleConfirm = () => {
@@ -51,52 +48,20 @@ export default function AniItem({
         setOpen(false);
     };
 
+    const showFavorite = variant === "list" || isHovered || isFavorite;
+    const showWatch = variant === "list" || isHovered;
+
     return (
         <>
             <div
+                className={`ani-item ani-item--${variant}${isHovered ? " is-hovered" : ""}`}
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
-                style={{
-                    position: 'relative',
-                    background: 'var(--bg-surface)',
-                    borderRadius: 14,
-                    border: `1.5px solid ${isHovered ? 'var(--color-primary)' : 'var(--border-color)'}`,
-                    boxShadow: isHovered
-                        ? 'var(--shadow-lg), 0 0 0 3px var(--color-primary-light)'
-                        : 'var(--shadow-sm)',
-                    transition: 'all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1)',
-                    transform: isHovered ? 'translateY(-4px)' : 'none',
-                    cursor: 'default',
-                    width: '100%',
-                    height: '100%',
-                    overflow: 'hidden',
-                }}
             >
-                {/* Favorite button */}
                 <button
+                    type="button"
                     onClick={handleFavorClick}
-                    style={{
-                        position: 'absolute',
-                        top: 8,
-                        left: 8,
-                        width: 30,
-                        height: 30,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        padding: 0,
-                        background: isFavorite
-                            ? 'rgba(245, 158, 11, 0.12)'
-                            : 'var(--bg-overlay)',
-                        backdropFilter: 'blur(4px)',
-                        borderRadius: '50%',
-                        border: isFavorite ? '1.5px solid rgba(245,158,11,0.3)' : 'none',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s ease',
-                        opacity: isFavorite ? 1 : isHovered ? 1 : 0,
-                        transform: `scale(${isFavorite || isHovered ? 1 : 0.7})`,
-                        zIndex: 10,
-                    }}
+                    className={`ani-item-action ani-item-action--favorite${showFavorite ? " is-visible" : ""}`}
                     title={isFavorite ? "取消关注" : "关注"}
                 >
                     <Star
@@ -107,42 +72,16 @@ export default function AniItem({
                     />
                 </button>
 
-                {/* Mark watched button */}
                 <button
+                    type="button"
                     onClick={() => setOpen(true)}
-                    style={{
-                        position: 'absolute',
-                        top: 8,
-                        right: 8,
-                        width: 30,
-                        height: 30,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        padding: 0,
-                        background: isHovered
-                            ? 'rgba(16, 185, 129, 0.9)'
-                            : 'var(--bg-overlay)',
-                        backdropFilter: 'blur(4px)',
-                        borderRadius: '50%',
-                        border: 'none',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s ease',
-                        boxShadow: isHovered ? '0 2px 8px rgba(16,185,129,0.3)' : 'none',
-                        opacity: isHovered ? 1 : 0,
-                        transform: `scale(${isHovered ? 1 : 0.7})`,
-                        zIndex: 10,
-                    }}
+                    className={`ani-item-action ani-item-action--watch${showWatch ? " is-visible" : ""}`}
                     title="标记为已观看"
                 >
-                    <Check
-                        size={15}
-                        color={isHovered ? "#fff" : "#9ca3af"}
-                        strokeWidth={2.5}
-                    />
+                    <Check size={15} color={showWatch ? "#fff" : "#9ca3af"} strokeWidth={2.5} />
                 </button>
 
-                <AniInfo ani={ani} />
+                <AniInfo ani={ani} variant={variant} />
             </div>
 
             <Dialog open={open} onClose={() => setOpen(false)}>
@@ -153,7 +92,7 @@ export default function AniItem({
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => setOpen(false)} sx={{ color: 'text.secondary' }}>
+                    <Button onClick={() => setOpen(false)} sx={{ color: "text.secondary" }}>
                         取消
                     </Button>
                     <Button onClick={handleConfirm} variant="contained" color="success">

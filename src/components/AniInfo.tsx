@@ -3,89 +3,42 @@ import AniImage from "./AniImage";
 
 interface Props {
     ani: Ani;
+    variant?: "grid" | "list";
 }
 
 function getPlatformClass(platform: string) {
     const key = platform.toLowerCase();
-    if (key.includes('bilibili')) return 'pb pb-bilibili';
-    if (key.includes('iqiyi'))    return 'pb pb-iqiyi';
-    if (key.includes('tencent'))  return 'pb pb-tencent';
-    if (key.includes('youku'))    return 'pb pb-youku';
-    if (key.includes('age'))      return 'pb pb-agedm';
-    if (key.includes('mikanani')) return 'pb pb-mikanani';
-    return 'pb pb-default';
+    if (key.includes("bilibili")) return "pb pb-bilibili";
+    if (key.includes("iqiyi")) return "pb pb-iqiyi";
+    if (key.includes("tencent")) return "pb pb-tencent";
+    if (key.includes("youku")) return "pb pb-youku";
+    if (key.includes("age")) return "pb pb-agedm";
+    if (key.includes("mikanani")) return "pb pb-mikanani";
+    return "pb pb-default";
 }
 
-export default function AniInfo({ ani }: Props) {
+export default function AniInfo({ ani, variant = "grid" }: Props) {
     return (
-        <div
-            style={{
-                display: 'flex',
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 12,
-                padding: '12px 14px',
-                width: '100%',
-                height: '100%',
-            }}
-        >
-            {/* Cover image */}
+        <div className={`ani-info ani-info--${variant}`}>
             <a
                 href={ani.detail_url}
                 target="_blank"
                 rel="noopener noreferrer"
                 title={`打开《${ani.title}》详情页`}
-                className="ani-cover-link"
-                style={{
-                    display: 'block',
-                    width: 80,
-                    height: 116,
-                    borderRadius: 8,
-                    overflow: 'hidden',
-                    flexShrink: 0,
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
-                }}
+                className={`ani-cover-link ani-cover-link--${variant}`}
             >
                 <AniImage url={ani.image_url} alt={ani.title} className="ani-img" />
             </a>
 
-            {/* Info text */}
-            <div
-                style={{
-                    flex: 1,
-                    minWidth: 0,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 6,
-                    overflow: 'hidden',
-                }}
-            >
-                <h3
-                    style={{
-                        margin: 0,
-                        fontSize: '0.92rem',
-                        fontWeight: 600,
-                        color: 'var(--text-primary)',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                        lineHeight: 1.4,
-                    }}
-                >
-                    {ani.title}
-                </h3>
+            <div className="ani-info-text">
+                <h3 className="ani-info-title">{ani.title}</h3>
 
-                <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                    {ani.update_time_str} 更新
+                <div className="ani-info-meta">
+                    <div className="ani-info-time">{ani.update_time_str} 更新</div>
+                    <div className="ani-info-episode">{ani.update_count ? `第 ${ani.update_count} 集` : "暂无信息"}</div>
                 </div>
 
-                <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', fontWeight: 500 }}>
-                    {ani.update_count ? `第 ${ani.update_count} 集` : '暂无信息'}
-                </div>
-
-                <span className={getPlatformClass(ani.platform)}>
-                    {ani.platform}
-                </span>
+                <span className={getPlatformClass(ani.platform)}>{ani.platform}</span>
             </div>
         </div>
     );

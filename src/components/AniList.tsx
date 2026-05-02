@@ -5,64 +5,35 @@ import type { Ani } from "@/utils/api";
 
 interface Props {
     list: Ani[];
+    layoutMode: "grid" | "list";
 }
 
-export default function AniList({ list }: Props) {
+export default function AniList({ list, layoutMode }: Props) {
     const { handleWatch, watchedAniIds } = useWatchedAni();
     const { handleFavor, favoriteAniItems } = useFavoriteAni();
-    const watchingToday = list.filter(ani => !watchedAniIds.has(ani.id));
+    const watchingToday = list.filter((ani) => !watchedAniIds.has(ani.id));
 
     if (watchingToday.length === 0) {
         return (
-            <div
-                style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    padding: '72px 24px',
-                    gap: 10,
-                }}
-            >
-                <div style={{ fontSize: '2.5rem' }}>🎉</div>
-                <div
-                    style={{
-                        fontSize: '1rem',
-                        fontWeight: 600,
-                        color: 'var(--text-primary)',
-                    }}
-                >
-                    今天的番剧都看完了！
-                </div>
-                <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                    好好休息，明天继续追番
-                </div>
+            <div className="ani-empty-state">
+                <div className="ani-empty-state-icon">🎉</div>
+                <div className="ani-empty-state-title">今天的番剧都看完了！</div>
+                <div className="ani-empty-state-desc">好好休息，明天继续追番</div>
             </div>
         );
     }
 
     return (
-        <div
-            style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(268px, 1fr))',
-                gap: '14px',
-                padding: '20px 0 32px',
-                width: '100%',
-            }}
-        >
+        <div className={`ani-list ani-list--${layoutMode}`}>
             {watchingToday.map((ani, index) => (
                 <div
                     key={ani.id}
-                    style={{
-                        height: '168px',
-                        animation: 'cardEnter 0.22s ease forwards',
-                        animationDelay: `${index * 0.04}s`,
-                        opacity: 0,
-                    }}
+                    className="ani-list-item"
+                    style={{ animationDelay: `${index * 0.04}s` }}
                 >
                     <AniItem
                         ani={ani}
+                        variant={layoutMode}
                         onClear={handleWatch}
                         isFavorite={favoriteAniItems.has(ani.id)}
                         onToggleFavorite={handleFavor}

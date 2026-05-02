@@ -1,115 +1,108 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Tv, Menu, X } from "lucide-react";
+import {
+    Tv,
+    Menu,
+    X,
+    CalendarDays,
+    History,
+    Settings,
+    CircleHelp,
+    PanelsTopLeft,
+    Grid3X3,
+    List,
+} from "lucide-react";
 import AniSearch from "@/components/AniSearch.tsx";
 
 interface HeaderProps {
     onSearchChange: (value: string) => void;
+    viewMode: "grid" | "list";
+    onViewModeChange: (mode: "grid" | "list") => void;
 }
 
-export default function Header({ onSearchChange }: HeaderProps) {
+export default function Header({ onSearchChange, viewMode, onViewModeChange }: HeaderProps) {
     const location = useLocation();
-    const isHomePage = location.pathname === "/";
-    const isFavoritesPage = location.pathname === "/favorites";
-    const isAboutPage = location.pathname === "/about";
-    const isSettingsPage = location.pathname === "/settings";
-
     const [menuOpen, setMenuOpen] = useState(false);
-    const handleLinkClick = () => setMenuOpen(false);
 
-    const navItems = [
-        { to: "/", label: "今日更新", active: isHomePage },
-        { to: "/favorites", label: "观看历史", active: isFavoritesPage },
-        { to: "/settings", label: "设置", active: isSettingsPage },
-        { to: "/about", label: "关于", active: isAboutPage },
-    ];
+    useEffect(() => {
+        setMenuOpen(false);
+    }, [location.pathname]);
+
+    const navItems = useMemo(
+        () => [
+            { to: "/", label: "今日更新", icon: CalendarDays },
+            { to: "/favorites", label: "观看历史", icon: History },
+            { to: "/settings", label: "设置", icon: Settings },
+            { to: "/about", label: "关于", icon: CircleHelp },
+        ],
+        []
+    );
+
+    const pageTitle = useMemo(() => {
+        if (location.pathname === "/favorites") return "观看历史";
+        if (location.pathname === "/settings") return "设置";
+        if (location.pathname === "/about") return "关于";
+        return "Overview";
+    }, [location.pathname]);
+
+    const showViewToggle = location.pathname === "/";
 
     return (
         <>
-            <nav
-                style={{
-                    position: 'fixed',
-                    top: 0, left: 0, right: 0,
-                    zIndex: 100,
-                    borderBottom: '1px solid var(--header-border)',
-                    background: 'var(--header-bg)',
-                    backdropFilter: 'blur(12px)',
-                    WebkitBackdropFilter: 'blur(12px)',
-                    height: '64px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    padding: '0 24px',
-                    boxSizing: 'border-box',
-                    justifyContent: 'space-between',
-                    gap: '16px',
-                }}
-            >
-                {/* Logo */}
-                <Link
-                    to="/"
-                    style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 10,
-                        textDecoration: 'none',
-                        flexShrink: 0,
-                    }}
-                >
-                    <div
-                        style={{
-                            width: 34,
-                            height: 34,
-                            borderRadius: 10,
-                            background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            flexShrink: 0,
-                            boxShadow: '0 2px 8px rgba(99, 102, 241, 0.35)',
-                        }}
-                    >
-                        <Tv size={18} color="#fff" strokeWidth={2} />
+            <aside className="console-sidebar">
+                <Link to="/" className="console-brand">
+                    <div className="console-brand-logo">
+                        <Tv size={17} color="#fff" strokeWidth={2.2} />
                     </div>
-                    <span
-                        style={{
-                            fontWeight: 700,
-                            fontSize: '1.05rem',
-                            color: 'var(--text-primary)',
-                            letterSpacing: '-0.02em',
-                        }}
-                    >
-                        FanJi
-                    </span>
+                    <span className="console-brand-text">FanJi</span>
                 </Link>
 
-                {/* Desktop Nav */}
-                <div
-                    className="nav-links"
-                    style={{ display: 'flex', alignItems: 'center', gap: 2 }}
-                >
-                    {navItems.map(item => (
-                        <Link
-                            key={item.to}
-                            to={item.to}
-                            style={{
-                                padding: '6px 14px',
-                                borderRadius: 8,
-                                background: item.active ? 'var(--color-primary-light)' : 'transparent',
-                                color: item.active ? 'var(--color-primary-text)' : 'var(--text-secondary)',
-                                fontWeight: item.active ? 600 : 400,
-                                fontSize: '0.9rem',
-                                textDecoration: 'none',
-                                transition: 'all 0.15s ease',
-                                whiteSpace: 'nowrap',
-                            }}
-                        >
-                            {item.label}
-                        </Link>
-                    ))}
+                <nav className="console-nav">
+                    {navItems.map((item) => {
+                        const active = location.pathname === item.to;
+                        const Icon = item.icon;
+                        return (
+                            <Link
+                                key={item.to}
+                                to={item.to}
+                                className={`console-nav-link${active ? " is-active" : ""}`}
+                            >
+                                <Icon size={16} strokeWidth={2} />
+                                <span>{item.label}</span>
+                            </Link>
+                        );
+                    })}
+                </nav>
+            </aside>
+
+            <header className="console-topbar">
+                <div className="console-topbar-left">
+                    <PanelsTopLeft size={16} strokeWidth={2.1} />
+                    <span>{pageTitle}</span>
                 </div>
 
-                {/* Right: Search + Hamburger */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div className="console-topbar-right">
+                    {showViewToggle && (
+                        <div className="console-view-toggle" role="group" aria-label="切换视图模式">
+                            <button
+                                type="button"
+                                className={`console-view-toggle-btn${viewMode === "grid" ? " is-active" : ""}`}
+                                onClick={() => onViewModeChange("grid")}
+                            >
+                                <Grid3X3 size={14} />
+                                <span>Grid</span>
+                            </button>
+                            <button
+                                type="button"
+                                className={`console-view-toggle-btn${viewMode === "list" ? " is-active" : ""}`}
+                                onClick={() => onViewModeChange("list")}
+                            >
+                                <List size={14} />
+                                <span>List</span>
+                            </button>
+                        </div>
+                    )}
+
                     <AniSearch
                         onSearch={onSearchChange}
                         debounceMs={300}
@@ -117,72 +110,45 @@ export default function Header({ onSearchChange }: HeaderProps) {
                         clearOnBlur={false}
                     />
                     <button
-                        onClick={() => setMenuOpen(!menuOpen)}
-                        className="hamburger-btn"
-                        style={{
-                            display: 'none',
-                            background: 'none',
-                            border: 'none',
-                            cursor: 'pointer',
-                            padding: '6px',
-                            borderRadius: '8px',
-                            color: 'var(--text-primary)',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                        }}
-                        aria-label="Toggle menu"
                         type="button"
+                        className="console-mobile-menu-btn"
+                        onClick={() => setMenuOpen((v) => !v)}
+                        aria-label="Toggle menu"
                     >
-                        {menuOpen ? <X size={22} /> : <Menu size={22} />}
+                        {menuOpen ? <X size={18} /> : <Menu size={18} />}
                     </button>
                 </div>
-            </nav>
+            </header>
 
-            {/* Mobile Dropdown */}
-            {menuOpen && (
-                <div
-                    style={{
-                        position: 'fixed',
-                        top: '64px',
-                        left: 0, right: 0,
-                        backgroundColor: 'var(--bg-surface)',
-                        borderBottom: '1px solid var(--border-color)',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        padding: '8px 12px 12px',
-                        boxShadow: 'var(--shadow-lg)',
-                        zIndex: 99,
-                    }}
-                >
-                    {navItems.map(item => (
-                        <Link
-                            key={item.to}
-                            to={item.to}
-                            onClick={handleLinkClick}
-                            style={{
-                                padding: '12px 16px',
-                                borderRadius: 8,
-                                background: item.active ? 'var(--color-primary-light)' : 'transparent',
-                                color: item.active ? 'var(--color-primary-text)' : 'var(--text-primary)',
-                                fontWeight: item.active ? 600 : 400,
-                                fontSize: '0.95rem',
-                                textDecoration: 'none',
-                                marginBottom: 2,
-                                transition: 'all 0.15s ease',
-                            }}
-                        >
-                            {item.label}
-                        </Link>
-                    ))}
+            <div
+                className={`console-mobile-mask${menuOpen ? " is-open" : ""}`}
+                onClick={() => setMenuOpen(false)}
+            />
+
+            <aside className={`console-mobile-drawer${menuOpen ? " is-open" : ""}`}>
+                <div className="console-mobile-drawer-head">
+                    <span>Navigation</span>
+                    <button type="button" onClick={() => setMenuOpen(false)} aria-label="Close menu">
+                        <X size={16} />
+                    </button>
                 </div>
-            )}
-
-            <style>{`
-                @media (max-width: 600px) {
-                    .nav-links { display: none !important; }
-                    .hamburger-btn { display: flex !important; }
-                }
-            `}</style>
+                <nav className="console-mobile-nav">
+                    {navItems.map((item) => {
+                        const active = location.pathname === item.to;
+                        const Icon = item.icon;
+                        return (
+                            <Link
+                                key={item.to}
+                                to={item.to}
+                                className={`console-nav-link${active ? " is-active" : ""}`}
+                            >
+                                <Icon size={16} strokeWidth={2} />
+                                <span>{item.label}</span>
+                            </Link>
+                        );
+                    })}
+                </nav>
+            </aside>
         </>
     );
 }

@@ -86,8 +86,9 @@ export default function AboutPage() {
         checkState.type === 'error';
 
     return (
-        <div style={{ maxWidth: 520, margin: '0 auto', padding: '48px 24px' }}>
-            <div className="about-card">
+        <div style={{ maxWidth: 'var(--content-max-width)', margin: '0 auto', padding: '22px' }}>
+            <div style={{ maxWidth: 560 }}>
+                <div className="about-card">
 
                 {/* Logo */}
                 <div className="about-logo">
@@ -119,7 +120,7 @@ export default function AboutPage() {
                     />
 
                     {showCheckBtn && (
-                        <button className="about-check-btn" onClick={handleCheckUpdate}>
+                        <button type="button" className="about-check-btn" onClick={handleCheckUpdate}>
                             <RefreshCw size={15} strokeWidth={2.2} />
                             检查更新
                         </button>
@@ -137,10 +138,11 @@ export default function AboutPage() {
                     )}
                 </div>
 
-                <Link to="/" className="about-back-btn">
-                    <ChevronLeft size={15} strokeWidth={2.5} />
-                    返回主页
-                </Link>
+                    <Link to="/" className="about-back-btn">
+                        <ChevronLeft size={15} strokeWidth={2.5} />
+                        返回主页
+                    </Link>
+                </div>
             </div>
         </div>
     );
@@ -178,7 +180,7 @@ function UpdateResult({ state, onInstall, onRestart }: UpdateResultProps) {
                     发现新版本 v{state.latestVersion}
                 </div>
                 {shortNotes && <p className="upd-notes">{shortNotes}</p>}
-                <button className="upd-install-btn" onClick={onInstall}>
+                <button type="button" className="upd-install-btn" onClick={onInstall}>
                     <Download size={14} strokeWidth={2.2} />
                     立即安装
                 </button>
@@ -223,7 +225,7 @@ function UpdateResult({ state, onInstall, onRestart }: UpdateResultProps) {
                     <CheckCircle size={16} strokeWidth={2} />
                     更新已安装，重启后生效
                 </div>
-                <button className="upd-restart-btn" onClick={onRestart}>
+                <button type="button" className="upd-restart-btn" onClick={onRestart}>
                     <RotateCcw size={14} strokeWidth={2.2} />
                     立即重启
                 </button>

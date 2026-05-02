@@ -14,15 +14,16 @@ import { Loader2, AlertTriangle, Inbox } from "lucide-react";
 
 interface HomePageProps {
     searchQuery: string;
+    viewMode: "grid" | "list";
 }
 
 function sortList(list: Ani[], sortBy: SortBy): Ani[] {
-    if (sortBy === 'platform') return [...list].sort((a, b) => a.platform.localeCompare(b.platform, 'zh'));
-    if (sortBy === 'title')    return [...list].sort((a, b) => a.title.localeCompare(b.title, 'zh'));
+    if (sortBy === "platform") return [...list].sort((a, b) => a.platform.localeCompare(b.platform, "zh"));
+    if (sortBy === "title") return [...list].sort((a, b) => a.title.localeCompare(b.title, "zh"));
     return list;
 }
 
-export default function HomePage({ searchQuery }: HomePageProps) {
+export default function HomePage({ searchQuery, viewMode }: HomePageProps) {
     const [selectedDay, setSelectedDay] = useState<WeekDay>(() => ({
         dateStr: getTodayDateStr(),
         weekdayLabel: getTodayWeekdayLabel(),
@@ -39,7 +40,7 @@ export default function HomePage({ searchQuery }: HomePageProps) {
 
     const [showFavorite, setShowFavorite] = useState(false);
     const [initialized, setInitialized] = useState(false);
-    const [sortBy, setSortBy] = useState<SortBy>('default');
+    const [sortBy, setSortBy] = useState<SortBy>("default");
 
     useEffect(() => {
         if (isLoaded && !initialized) {
@@ -55,65 +56,77 @@ export default function HomePage({ searchQuery }: HomePageProps) {
 
     useEffect(() => {
         let unlisten: (() => void) | undefined;
-        listen('tray:refresh', () => { void refresh(); }).then(fn => { unlisten = fn; });
+        listen("tray:refresh", () => {
+            void refresh();
+        }).then((fn) => {
+            unlisten = fn;
+        });
         return () => unlisten?.();
     }, [refresh]);
 
-    const handleFilterChange = (filter: 'all' | 'favorites') => setShowFavorite(filter === 'favorites');
-    const handleDaySelect = (day: WeekDay) => { setSelectedDay(day); setShowFavorite(false); };
+    const handleFilterChange = (filter: "all" | "favorites") => setShowFavorite(filter === "favorites");
+    const handleDaySelect = (day: WeekDay) => {
+        setSelectedDay(day);
+        setShowFavorite(false);
+    };
 
     if (loading)
         return (
-            <>
+            <div className="home-overview">
                 <WeekNav selectedDate={selectedDay.dateStr} onSelect={handleDaySelect} />
-                <div className="page-state">
-                    <Loader2 size={32} strokeWidth={2}
-                        style={{ animation: 'spin 1s linear infinite', color: 'var(--color-primary)' }} />
-                    <p className="page-state__desc">正在加载番剧数据…</p>
+                <div className="home-overview-content">
+                    <div className="page-state">
+                        <Loader2 size={32} strokeWidth={2} style={{ animation: "spin 1s linear infinite", color: "var(--color-primary)" }} />
+                        <p className="page-state__desc">正在加载番剧数据…</p>
+                    </div>
                 </div>
-            </>
+            </div>
         );
 
     if (error)
         return (
-            <>
+            <div className="home-overview">
                 <WeekNav selectedDate={selectedDay.dateStr} onSelect={handleDaySelect} />
-                <div className="page-state">
-                    <AlertTriangle size={36} strokeWidth={1.5} color="var(--color-error)" />
-                    <p className="page-state__title">加载失败</p>
-                    <p className="page-state__desc">{error}</p>
+                <div className="home-overview-content">
+                    <div className="page-state">
+                        <AlertTriangle size={36} strokeWidth={1.5} color="var(--color-error)" />
+                        <p className="page-state__title">加载失败</p>
+                        <p className="page-state__desc">{error}</p>
+                    </div>
                 </div>
-            </>
+            </div>
         );
 
     if (!Object.keys(data).length)
         return (
-            <>
+            <div className="home-overview">
                 <WeekNav selectedDate={selectedDay.dateStr} onSelect={handleDaySelect} />
-                <div className="page-state">
-                    <Inbox size={36} strokeWidth={1.5} color="var(--text-muted)" />
-                    <p className="page-state__title">暂无番剧数据</p>
-                    <p className="page-state__desc">
-                        {selectedDay.isToday ? '请检查网络连接或稍后重试' : '该日期暂无更新记录'}
-                    </p>
+                <div className="home-overview-content">
+                    <div className="page-state">
+                        <Inbox size={36} strokeWidth={1.5} color="var(--text-muted)" />
+                        <p className="page-state__title">暂无番剧数据</p>
+                        <p className="page-state__desc">
+                            {selectedDay.isToday ? "请检查网络连接或稍后重试" : "该日期暂无更新记录"}
+                        </p>
+                    </div>
                 </div>
-            </>
+            </div>
         );
 
     const weekdayKey = Object.keys(data)[0];
     const aniList = data[weekdayKey] as Ani[];
-    const filtered = fuzzySearch(aniList, searchQuery, ['title', 'platform']);
-    const displayList = sortList(showFavorite ? filtered.filter(a => favoriteAniItems.has(a.id)) : filtered, sortBy);
-    const unwatchedCount = displayList.filter(a => !watchedAniIds.has(a.id)).length;
+    const filtered = fuzzySearch(aniList, searchQuery, ["title", "platform"]);
+    const displayList = sortList(showFavorite ? filtered.filter((a) => favoriteAniItems.has(a.id)) : filtered, sortBy);
+    const unwatchedCount = displayList.filter((a) => !watchedAniIds.has(a.id)).length;
 
     const handleWatchAllClick = async () => {
-        const items = displayList.filter(a => !watchedAniIds.has(a.id));
+        const items = displayList.filter((a) => !watchedAniIds.has(a.id));
         await handleWatchAll(items);
         toast.success(`已标记 ${items.length} 部番剧为已看`);
     };
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', width: '100%', margin: '0 auto' }}>
+        <div className="home-overview" style={{ gap: 0 }}>
             <WeekNav selectedDate={selectedDay.dateStr} onSelect={handleDaySelect} />
             <AniSummary
                 weekday={weekdayKey}
@@ -125,8 +138,8 @@ export default function HomePage({ searchQuery }: HomePageProps) {
                 onWatchAll={handleWatchAllClick}
                 onSortChange={setSortBy}
             />
-            <div style={{ padding: '0 24px', boxSizing: 'border-box', maxWidth: '960px', margin: '0 auto', width: '100%' }}>
-                <AniList list={displayList} />
+            <div className="home-overview-content">
+                <AniList list={displayList} layoutMode={viewMode} />
             </div>
         </div>
     );

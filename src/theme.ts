@@ -21,14 +21,14 @@ export function buildTheme(mode: PaletteMode) {
                 main: '#ef4444',
             },
             background: {
-                default: isDark ? '#0f172a' : '#f5f7fa',
-                paper: isDark ? '#1e293b' : '#ffffff',
+                default: isDark ? '#05070c' : '#f3f4f6',
+                paper: isDark ? '#0b0f17' : '#ffffff',
             },
             text: {
                 primary: isDark ? '#f1f5f9' : '#111827',
                 secondary: isDark ? '#94a3b8' : '#6b7280',
             },
-            divider: isDark ? '#334155' : '#e5e7eb',
+            divider: isDark ? '#1a2233' : '#e5e7eb',
         },
         components: {
             MuiDialog: {
@@ -41,6 +41,7 @@ export function buildTheme(mode: PaletteMode) {
                         borderRadius: '16px',
                         width: '360px',
                         maxWidth: '90vw',
+                        border: `1px solid ${isDark ? '#1a2233' : '#e5e7eb'}`,
                     },
                 },
             },
@@ -94,25 +95,25 @@ export function buildTheme(mode: PaletteMode) {
             MuiDataGrid: {
                 styleOverrides: {
                     root: {
-                        border: `1px solid ${isDark ? '#334155' : '#e5e7eb'}`,
+                        border: `1px solid ${isDark ? '#1a2233' : '#e5e7eb'}`,
                         borderRadius: '12px',
-                        backgroundColor: isDark ? '#1e293b' : '#ffffff',
+                        backgroundColor: isDark ? '#0b0f17' : '#ffffff',
                         color: isDark ? '#f1f5f9' : '#111827',
-                        '--DataGrid-rowBorderColor': isDark ? '#334155' : '#e5e7eb',
+                        '--DataGrid-rowBorderColor': isDark ? '#1a2233' : '#e5e7eb',
                     },
                     columnHeader: {
-                        backgroundColor: isDark ? '#263248' : '#f8fafc',
+                        backgroundColor: isDark ? '#111827' : '#f8fafc',
                         color: isDark ? '#94a3b8' : '#6b7280',
                     },
                     cell: {
-                        borderColor: isDark ? '#334155' : '#e5e7eb',
+                        borderColor: isDark ? '#1a2233' : '#e5e7eb',
                     },
                     footerContainer: {
-                        borderColor: isDark ? '#334155' : '#e5e7eb',
-                        backgroundColor: isDark ? '#1e293b' : '#ffffff',
+                        borderColor: isDark ? '#1a2233' : '#e5e7eb',
+                        backgroundColor: isDark ? '#0b0f17' : '#ffffff',
                     },
                     toolbarContainer: {
-                        backgroundColor: isDark ? '#1e293b' : '#ffffff',
+                        backgroundColor: isDark ? '#0b0f17' : '#ffffff',
                     },
                 },
             },
@@ -120,5 +121,4 @@ export function buildTheme(mode: PaletteMode) {
     });
 }
 
-// Default light theme (kept for backwards compat)
 export default buildTheme('light');

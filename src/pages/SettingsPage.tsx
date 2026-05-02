@@ -29,45 +29,47 @@ export default function SettingsPage() {
     return (
         <div
             style={{
-                maxWidth: 520,
-                margin: '32px auto',
-                padding: '0 24px 48px',
+                maxWidth: 'var(--content-max-width)',
+                margin: '0 auto',
+                padding: '22px',
             }}
         >
-            <div className="settings-card">
-                <h2 className="settings-section-title">外观</h2>
+            <div style={{ maxWidth: 560 }}>
+                <div className="settings-card">
+                    <h2 className="settings-section-title">外观</h2>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    {THEME_OPTIONS.map(opt => {
-                        const active = themeMode === opt.value;
-                        return (
-                            <button
-                                key={opt.value}
-                                type="button"
-                                onClick={() => setThemeMode(opt.value)}
-                                className={`settings-theme-btn${active ? ' settings-theme-btn--active' : ''}`}
-                            >
-                                <span className={`settings-theme-icon${active ? ' settings-theme-icon--active' : ''}`}>
-                                    {opt.icon}
-                                </span>
-                                <span style={{ flex: 1, textAlign: 'left' }}>
-                                    <span className="settings-theme-label">{opt.label}</span>
-                                    <span className="settings-theme-desc">{opt.desc}</span>
-                                </span>
-                                {active && (
-                                    <span className="settings-theme-check">✓</span>
-                                )}
-                            </button>
-                        );
-                    })}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                        {THEME_OPTIONS.map(opt => {
+                            const active = themeMode === opt.value;
+                            return (
+                                <button
+                                    key={opt.value}
+                                    type="button"
+                                    onClick={() => setThemeMode(opt.value)}
+                                    className={`settings-theme-btn${active ? ' settings-theme-btn--active' : ''}`}
+                                >
+                                    <span className={`settings-theme-icon${active ? ' settings-theme-icon--active' : ''}`}>
+                                        {opt.icon}
+                                    </span>
+                                    <span style={{ flex: 1, textAlign: 'left' }}>
+                                        <span className="settings-theme-label">{opt.label}</span>
+                                        <span className="settings-theme-desc">{opt.desc}</span>
+                                    </span>
+                                    {active && (
+                                        <span className="settings-theme-check">✓</span>
+                                    )}
+                                </button>
+                            );
+                        })}
+                    </div>
                 </div>
-            </div>
 
-            <div style={{ marginTop: 28, textAlign: 'center' }}>
-                <Link to="/" className="about-back-btn">
-                    <ChevronLeft size={15} />
-                    返回首页
-                </Link>
+                <div style={{ marginTop: 16 }}>
+                    <Link to="/" className="about-back-btn">
+                        <ChevronLeft size={15} />
+                        返回首页
+                    </Link>
+                </div>
             </div>
         </div>
     );
