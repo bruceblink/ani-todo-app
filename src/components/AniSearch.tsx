@@ -141,7 +141,13 @@ export default function AniSearch({
                             // 展开时把内部 value 设置为 last（如果当前无 value 且有 last）
                             if (!value && last) setValue(last);
                         }}
-                        sx={{ borderRadius: "50%", boxShadow: 2 }}
+                        sx={{
+                            borderRadius: "50%",
+                            boxShadow: 1,
+                            border: "1px solid var(--panel-border)",
+                            backgroundColor: "var(--panel-bg)",
+                            "& svg": { fontSize: 20 },
+                        }}
                     >
                         <SearchIcon />
                     </IconButton>
@@ -164,10 +170,10 @@ export default function AniSearch({
                         p: "2px 4px",
                         display: "flex",
                         alignItems: "center",
-                        width: 300,
+                        width: 280,
                         transition: "all 0.18s ease",
                         borderRadius: "24px",
-                        boxShadow: 3,
+                        boxShadow: 2,
                     }}
                     onSubmit={(e) => {
                         e.preventDefault();
